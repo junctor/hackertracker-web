@@ -1,16 +1,35 @@
 import { ClockIcon, MapIcon } from "@heroicons/react/24/outline";
 import cal from "../../lib/utils/cal";
 import { eventTime } from "../../lib/utils/dates";
-import Theme from "../../lib/utils/theme";
 import ReactMarkdown from "react-markdown";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 function EventDetails({ event }: { event: HTEvent }) {
-  const theme = new Theme();
-  theme.randomisze();
-
   return (
-    <div className="mt-4 ml-5">
-      <div>
+    <div className="mt-2 ml-5">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink
+              href={`/events?c=${event.conference.toLowerCase()}`}
+            >
+              {event.conference}
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{event.title}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+      <div className="mt-5">
         <h1 className="font-bold text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-5 mr-3">
           {event.title}
         </h1>
@@ -81,7 +100,7 @@ function EventDetails({ event }: { event: HTEvent }) {
                   className="ml-3 table mt-2 mb-2 align-middle items-center"
                 >
                   <div
-                    className={`ml-1 table-cell h-full w-1 sm:w-2 mr-3 bg-${theme.nextColor} rounded-md`}
+                    className={`ml-1 table-cell h-full w-1 sm:w-2 mr-3 rounded-md`}
                   />
                   <div className="inline-block text-left ml-2">
                     <p className="font-bold text-sm sm:text-md md:text-base lg:text-lg">
