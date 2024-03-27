@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Error({ msg }: { msg?: string }) {
   return (
-    <main className="">
+    <main>
       <div className="flex content-center h-screen justify-center items-center text-center">
         <Link href="/">
           <div>

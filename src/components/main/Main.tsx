@@ -45,7 +45,7 @@ export default function Main() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="">
+      <main>
         <div>
           <Heading conferences={htData} />
           <Schedule conf={conf} />

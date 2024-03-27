@@ -28,7 +28,7 @@ export default function Schedule({ conf }: { conf: HTConference }) {
   const eventData = toEventsData(htData);
 
   return (
-    <main className="">
+    <main>
       <Events dateGroup={createDateGroup(eventData)} conf={conf} />
     </main>
   );
