@@ -1,6 +1,7 @@
 "use client";
 
 import { ThemeMode } from "../theme/theme-mode";
+import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import Navigation from "./Navigation";
 import { useTheme } from "next-themes";
@@ -19,7 +20,7 @@ export default function Heading({
       </h1>
       <Navigation conferences={conferences} />
       <div className="flex flex-grow justify-end pr-5 items-center">
-        <div className="mr-1">
+        <Button variant="ghost" size="icon" className="mr-1">
           <a
             href="https://github.com/cak/hackertracker-web"
             target="_blank"
@@ -56,7 +57,7 @@ export default function Heading({
               </svg>
             )}
           </a>
-        </div>
+        </Button>
         <ThemeMode />
       </div>
       <Separator className="my-1" />

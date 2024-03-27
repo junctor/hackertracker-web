@@ -1,5 +1,10 @@
-import { getBookmarks } from "../../lib/utils/storage";
 import EventCell from "./EventCell";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableRow,
+} from "@/components/ui/table";
 
 export default function EventDisplay({
   confCode,
@@ -8,21 +13,18 @@ export default function EventDisplay({
   confCode: string;
   htEvents: EventData[];
 }) {
-  const bookmarks = getBookmarks();
-
-  const isBookMarked = (id: number) => bookmarks.includes(id);
-
   return (
-    <div>
-      {htEvents.map((htEvent) => (
-        <div key={htEvent.id} id={`e-${htEvent.id}`}>
-          <EventCell
-            event={htEvent}
-            bookmarked={isBookMarked(htEvent.id)}
-            confCode={confCode}
-          />
-        </div>
-      ))}
+    <div className="mb-10">
+      <Table>
+        <TableCaption>Events for {confCode}</TableCaption>
+        <TableBody>
+          {htEvents.map((htEvent) => (
+            <TableRow key={htEvent.id} id={`e-${htEvent.id}`}>
+              <EventCell event={htEvent} confCode={confCode} />
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }
