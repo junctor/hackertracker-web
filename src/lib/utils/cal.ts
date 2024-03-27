@@ -26,7 +26,7 @@ DTEND:${iCalDate(new Date(event.end))}
 STATUS:CONFIRMED
 CATEGORIES:CONFERENCE
 SUMMARY:${event.conference}
-URL:${url}/event/?e=${event.id}
+URL:${url}/event/?c=${event.conference.toLowerCase()}&e=${event.id}
 LOCATION:${event.location.name}
 DESCRIPTION:${iCalDesc(event).replace(/(\r\n|\n|\r)/gm, " ")}
 END:VEVENT

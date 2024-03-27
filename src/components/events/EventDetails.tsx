@@ -41,7 +41,7 @@ function EventDetails({ event }: { event: HTEvent }) {
             href={`data:text/calendar;charset=utf8,${encodeURIComponent(
               cal(event)
             )}`}
-            download={`dc31-${event.id}.ics`}
+            download={`${event.conference}-${event.id}.ics`}
           >
             <ClockIcon className="h-5 w-5 md:h-7 md:w-7 lg:w-8 lg:h-8 ml-3 mr-2" />
             <p className="md:text-base lg:text-lg text-xs">
