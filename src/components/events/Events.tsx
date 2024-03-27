@@ -19,7 +19,7 @@ export default function Events({
 
   return (
     <div>
-      <div className="items-center flex bg-background py-3">
+      <div className="items-center flex bg-background py-3 align-middle">
         <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold mr-5 md:mr-7 lg:mr-10 ml-2">
           {conf.name}
         </h1>
@@ -40,15 +40,12 @@ export default function Events({
             </TabsList>
           </Tabs>
         </div>
-        <div className="flex flex-grow justify-end pr-5 items-center">
+        <div className="flex flex-grow justify-end pr-5 items-center align-middle">
           <Search confCode={conf.code.toLowerCase()} dateGroup={dateGroup} />
         </div>
       </div>
       <div className="mx-2">
-        <EventDisplay
-          htEvents={dateGroup.get(day) ?? []}
-          confCode={conf.code}
-        />
+        <EventDisplay htEvents={dateGroup.get(day) ?? []} conf={conf} />
       </div>
     </div>
   );
