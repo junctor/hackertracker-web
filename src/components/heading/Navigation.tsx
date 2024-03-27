@@ -11,6 +11,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function Navigation({
   conferences,
@@ -23,22 +24,24 @@ export default function Navigation({
         <NavigationMenuItem>
           <NavigationMenuTrigger>Conferences</NavigationMenuTrigger>
           <NavigationMenuContent>
-            <ul className="grid gap-3 p-4 md:w-64 lg:w-96 lg:grid-cols-2 overflow-y-auto max-h-screen h-96 md:h-3/5 fixed bg-background">
-              {conferences
-                .sort(
-                  (a, b) =>
-                    b.start_timestamp.seconds - a.start_timestamp.seconds
-                )
-                .map((conference) => (
-                  <ListItem
-                    href={`/events?c=${conference.code.toLowerCase()}`}
-                    title={conference.name}
-                    key={conference.code}
-                  >
-                    {conference.start_date}
-                  </ListItem>
-                ))}
-            </ul>
+            <ScrollArea className="h-96 w-48 rounded-md border">
+              <ul className="p-4">
+                {conferences
+                  .sort(
+                    (a, b) =>
+                      b.start_timestamp.seconds - a.start_timestamp.seconds
+                  )
+                  .map((conference) => (
+                    <ListItem
+                      href={`/events?c=${conference.code.toLowerCase()}`}
+                      title={conference.name}
+                      key={conference.code}
+                    >
+                      {conference.start_date}
+                    </ListItem>
+                  ))}
+              </ul>
+            </ScrollArea>
           </NavigationMenuContent>
         </NavigationMenuItem>
         <NavigationMenuItem>
