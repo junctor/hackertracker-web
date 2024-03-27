@@ -11,19 +11,8 @@ const config = {
   ],
   prefix: "",
   safelist: [
-    // DC30 Theme
-    "text-dc-purple",
-    "text-dc-teal",
-    "text-dc-yellow",
-    "text-dc-red",
-    "bg-dc-purple",
-    "bg-dc-teal",
-    "bg-dc-yellow",
-    "bg-dc-red",
     //  Event colors
-    ...htSafeList.colors.map((c) => `bg-[${c}]`),
     ...htSafeList.colors.map((c) => `hover:text-[${c}]`),
-    ...htSafeList.colors.map((c) => `hover:bg-[${c}]`),
   ],
   theme: {
     container: {
