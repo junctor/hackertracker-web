@@ -19,3 +19,31 @@ export const toEventsData = (events: HTEvent[]): EventData[] => {
     speakers: formatter.format(e.speakers.map((s) => s.name)),
   }));
 };
+
+export const displayConference = (
+  code: string | null,
+  conferences: HTConference[]
+) => {
+  if (code != null || code !== "") {
+    const findConfByCode = conferences.find(
+      (c) => c.code.toString().toLowerCase() === code?.toLowerCase()
+    );
+    if (findConfByCode !== undefined) {
+      return findConfByCode;
+    }
+  }
+
+  const now = new Date().getTime() / 1000;
+
+  console.log(now);
+  console.log(conferences[0].start_timestamp.seconds);
+  const findConfByDate = conferences.sort(
+    (a, b) =>
+      Math.abs(now - a.start_timestamp.seconds) -
+      Math.abs(now - b.start_timestamp.seconds)
+  );
+
+  console.log(findConfByDate.map((c) => c.name));
+
+  return findConfByDate[0] ?? [];
+};

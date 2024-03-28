@@ -6,7 +6,7 @@ import Heading from "../heading/Heading";
 import useSWR from "swr";
 import Loading from "../misc/Loading";
 import Error from "@/components/misc/Error";
-import { fetcher } from "../../lib/utils/misc";
+import { displayConference, fetcher } from "../../lib/utils/misc";
 import { useSearchParams } from "next/navigation";
 
 export default function Main() {
@@ -28,10 +28,7 @@ export default function Main() {
 
   const confId = searchParams.get("c");
 
-  const conf =
-    htData?.find(
-      (c) => c.code.toString().toLowerCase() === confId?.toLowerCase()
-    ) ?? htData[0];
+  const conf = displayConference(confId, htData);
 
   return (
     <div>
