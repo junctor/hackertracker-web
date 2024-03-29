@@ -24,7 +24,7 @@ export default function Navigation({
         <NavigationMenuItem>
           <NavigationMenuTrigger>Conferences</NavigationMenuTrigger>
           <NavigationMenuContent>
-            <ScrollArea className="h-96 w-48 rounded-md border">
+            <ScrollArea className="h-52 rounded-md border">
               <ul className="p-4">
                 {conferences
                   .sort(
@@ -47,7 +47,7 @@ export default function Navigation({
         <NavigationMenuItem>
           <NavigationMenuTrigger>Mobile</NavigationMenuTrigger>
           <NavigationMenuContent>
-            <ul className="grid gap-3 p-4 w-36">
+            <ul className="grid gap-3 p-4">
               <ListItemTitleOnly
                 href="https://play.google.com/store/apps/details?id=com.shortstack.hackertracker&hl=en_US"
                 title="Android"

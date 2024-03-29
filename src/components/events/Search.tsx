@@ -36,7 +36,7 @@ export default function Search({
           <CommandInput placeholder="Search..." />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup heading="Suggestions">
+            <CommandGroup heading="Events">
               {Array.from(dateGroup.values())
                 .flatMap((e) => e)
                 .sort((a, b) =>
