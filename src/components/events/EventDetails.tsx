@@ -10,6 +10,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import Link from "next/link";
 
 function EventDetails({ event }: { event: HTEvent }) {
   return (
@@ -17,10 +18,10 @@ function EventDetails({ event }: { event: HTEvent }) {
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink
-              href={`/events?c=${event.conference.toLowerCase()}`}
-            >
-              {event.conference}
+            <BreadcrumbLink asChild>
+              <Link href={`/events?c=${event.conference.toLowerCase()}`}>
+                {event.conference}
+              </Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />

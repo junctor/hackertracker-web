@@ -10,8 +10,11 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
+
 import { ScrollArea } from "@/components/ui/scroll-area";
+import Link from "next/link";
 
 export default function Navigation({
   conferences,
@@ -25,20 +28,26 @@ export default function Navigation({
           <NavigationMenuTrigger>Conferences</NavigationMenuTrigger>
           <NavigationMenuContent>
             <ScrollArea className="h-52 rounded-md border">
-              <ul className="p-4">
+              <ul>
                 {conferences
                   .sort(
                     (a, b) =>
                       b.start_timestamp.seconds - a.start_timestamp.seconds
                   )
                   .map((conference) => (
-                    <ListItem
-                      href={`/events?c=${conference.code.toLowerCase()}`}
-                      title={conference.name}
-                      key={conference.code}
-                    >
-                      {conference.start_date}
-                    </ListItem>
+                    <li key={conference.code}>
+                      <Link
+                        href={`/events?c=${conference.code.toLowerCase()}`}
+                        legacyBehavior
+                        passHref
+                      >
+                        <NavigationMenuLink
+                          className={navigationMenuTriggerStyle()}
+                        >
+                          {conference.name}
+                        </NavigationMenuLink>
+                      </Link>
+                    </li>
                   ))}
               </ul>
             </ScrollArea>
@@ -47,19 +56,29 @@ export default function Navigation({
         <NavigationMenuItem>
           <NavigationMenuTrigger>Mobile</NavigationMenuTrigger>
           <NavigationMenuContent>
-            <ul className="grid gap-3 p-4">
-              <ListItemTitleOnly
-                href="https://play.google.com/store/apps/details?id=com.shortstack.hackertracker&hl=en_US"
-                title="Android"
-                target="_blank"
-                rel="noopener noreferrer"
-              />
-              <ListItemTitleOnly
-                href="https://itunes.apple.com/us/app/hackertracker/id1021141595?mt=8"
-                title="iOS"
-                target="_blank"
-                rel="noopener noreferrer"
-              />
+            <ul>
+              <li>
+                <Link
+                  href="https://play.google.com/store/apps/details?id=com.shortstack.hackertracker&hl=en_US"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                    Android
+                  </NavigationMenuLink>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="https://itunes.apple.com/us/app/hackertracker/id1021141595?mt=8"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                    iOS
+                  </NavigationMenuLink>
+                </Link>
+              </li>
             </ul>
           </NavigationMenuContent>
         </NavigationMenuItem>
@@ -67,54 +86,3 @@ export default function Navigation({
     </NavigationMenu>
   );
 }
-
-const ListItem = React.forwardRef<
-  React.ElementRef<"a">,
-  React.ComponentPropsWithoutRef<"a">
->(({ className, title, children, ...props }, ref) => {
-  return (
-    <li>
-      <NavigationMenuLink asChild>
-        <a
-          ref={ref}
-          className={cn(
-            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-            className
-          )}
-          {...props}
-        >
-          <div className="text-sm font-medium leading-none">{title}</div>
-          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-            {children}
-          </p>
-        </a>
-      </NavigationMenuLink>
-    </li>
-  );
-});
-
-ListItem.displayName = "ListItem";
-
-const ListItemTitleOnly = React.forwardRef<
-  React.ElementRef<"a">,
-  React.ComponentPropsWithoutRef<"a">
->(({ className, title, ...props }, ref) => {
-  return (
-    <li>
-      <NavigationMenuLink asChild>
-        <a
-          ref={ref}
-          className={cn(
-            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-            className
-          )}
-          {...props}
-        >
-          <div className="text-sm font-medium leading-none">{title}</div>
-        </a>
-      </NavigationMenuLink>
-    </li>
-  );
-});
-
-ListItemTitleOnly.displayName = "ListItemTitleOnly";
