@@ -16,7 +16,7 @@ export default function Main() {
     data: htData,
     error,
     isLoading,
-  } = useSWR<HTConference[], Error>("/ht/index.json", fetcher);
+  } = useSWR<HTConference[], Error>("../ht/index.json", fetcher);
 
   if (isLoading) {
     return <Loading />;

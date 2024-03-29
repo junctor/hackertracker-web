@@ -20,7 +20,7 @@ export default function FetchEvent({
     error: eventsError,
     isLoading: eventsIsLoading,
   } = useSWR<HTEvent[], Error>(
-    `/ht/conferences/${conf.code}/events.json`,
+    `../ht/conferences/${conf.code}/events.json`,
     fetcher
   );
 
