@@ -6,6 +6,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  basePath: "/hackertracker-web",
 };
 
 export default nextConfig;
