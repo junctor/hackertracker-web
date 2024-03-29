@@ -6,7 +6,9 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  basePath: "/hackertracker-web",
+  basePath: process.env.NODE_ENV !== "development" ? "/hackertracker-web" : "",
+  assetPrefix:
+    process.env.NODE_ENV !== "development" ? "/hackertracker-web" : "",
 };
 
 export default nextConfig;
