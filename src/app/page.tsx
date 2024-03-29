@@ -1,11 +1,14 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function Home() {
+  const router = useRouter();
+
   useEffect(() => {
-    window.location.replace("/events");
-  });
+    router.replace("events");
+  }, [router]);
 
   return <></>;
 }
