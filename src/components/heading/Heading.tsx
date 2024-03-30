@@ -19,7 +19,7 @@ export default function Heading({
         HackerTracker
       </h1>
       <Navigation conferences={conferences} />
-      <div className="flex flex-grow justify-end pr-5 items-center">
+      <div className="flex flex-grow justify-end pr-5 items-center mb-1">
         <Button variant="ghost" size="icon" className="mr-1">
           <a
             href="https://github.com/cak/hackertracker-web"

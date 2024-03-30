@@ -7,7 +7,6 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-  BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import Link from "next/link";
@@ -25,18 +24,15 @@ function EventDetails({ event }: { event: HTEvent }) {
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{event.title}</BreadcrumbPage>
-          </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="mt-5">
+      <div className="mt-3">
         <h1 className="font-bold text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-5 mr-3">
           {event.title}
         </h1>
       </div>
       <div>
-        <div className="flex items-center w-11/12 mt-2 md:h-14 lg:h-16 h-12 rounded-lg cursor-pointer">
+        <div className="flex items-center w-11/12 my-4 cursor-pointer">
           <a
             className="flex"
             href={`data:text/calendar;charset=utf8,${encodeURIComponent(
@@ -55,20 +51,20 @@ function EventDetails({ event }: { event: HTEvent }) {
             </p>
           </a>
         </div>
-        <div className="flex items-center w-11/12  mt-2 md:h-14 lg:h-16 h-12 rounded-lg">
+        <div className="flex items-center w-11/12">
           <MapIcon className="h-5 w-5 md:h-7 md:w-7 lg:w-8 lg:h-8 ml-3 mr-2" />
           <p className="md:text-base lg:text-lg text-xs">
             {event.location.name}
           </p>
         </div>
       </div>
-      <div className="mt-8">
+      <div className="mt-5">
         <div className="text-sm md:text-base lg:text-lg w-11/12">
           <div className="prose lg:prose-xl">
             <ReactMarkdown>{event.description}</ReactMarkdown>
           </div>
           {(event.links ?? []).length > 0 && (
-            <div className="mt-8 text-left">
+            <div className="mt-5 text-left">
               <h2 className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl">
                 Links
               </h2>
@@ -84,11 +80,11 @@ function EventDetails({ event }: { event: HTEvent }) {
         </div>
       </div>
       {event.speakers.length > 0 && (
-        <div className="mt-8 text-left">
+        <div className="mt-5 text-left">
           <h2 className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl">
             Speakers
           </h2>
-          <div className=" items-center w-11/12 mt-2 rounded-lg mb-10 pt-2 pb-2">
+          <div className="items-center w-11/12 mt-1 mb-5 pt-2 pb-2">
             {event.speakers
               .sort(
                 (a, b) =>

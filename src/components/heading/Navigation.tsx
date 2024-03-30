@@ -2,7 +2,6 @@
 
 import * as React from "react";
 
-import { cn } from "@/lib/utils";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -22,67 +21,73 @@ export default function Navigation({
   conferences: HTConference[];
 }) {
   return (
-    <NavigationMenu>
-      <NavigationMenuList>
-        <NavigationMenuItem>
-          <NavigationMenuTrigger>Conferences</NavigationMenuTrigger>
-          <NavigationMenuContent>
-            <ScrollArea className="h-52 rounded-md border">
-              <ul>
-                {conferences
-                  .sort(
-                    (a, b) =>
-                      b.start_timestamp.seconds - a.start_timestamp.seconds
-                  )
-                  .map((conference) => (
-                    <li key={conference.code}>
-                      <Link
-                        href={`/events?c=${conference.code.toLowerCase()}`}
-                        legacyBehavior
-                        passHref
-                      >
-                        <NavigationMenuLink
-                          className={navigationMenuTriggerStyle()}
+    <div className="ml-2">
+      <NavigationMenu>
+        <NavigationMenuList>
+          <NavigationMenuItem>
+            <NavigationMenuTrigger>Conferences</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ScrollArea className="h-52 rounded-md border">
+                <ul>
+                  {conferences
+                    .sort(
+                      (a, b) =>
+                        b.start_timestamp.seconds - a.start_timestamp.seconds
+                    )
+                    .map((conference) => (
+                      <li key={conference.code}>
+                        <Link
+                          href={`/events?c=${conference.code.toLowerCase()}`}
+                          legacyBehavior
+                          passHref
                         >
-                          {conference.name}
-                        </NavigationMenuLink>
-                      </Link>
-                    </li>
-                  ))}
+                          <NavigationMenuLink
+                            className={navigationMenuTriggerStyle()}
+                          >
+                            {conference.name}
+                          </NavigationMenuLink>
+                        </Link>
+                      </li>
+                    ))}
+                </ul>
+              </ScrollArea>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <NavigationMenuTrigger>Mobile</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid grid-cols-2 w-56">
+                <li>
+                  <Link
+                    href="https://play.google.com/store/apps/details?id=com.shortstack.hackertracker&hl=en_US"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <NavigationMenuLink
+                      className={navigationMenuTriggerStyle()}
+                    >
+                      Android
+                    </NavigationMenuLink>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="https://itunes.apple.com/us/app/hackertracker/id1021141595?mt=8"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <NavigationMenuLink
+                      className={navigationMenuTriggerStyle()}
+                    >
+                      iOS
+                    </NavigationMenuLink>
+                  </Link>
+                </li>
               </ul>
-            </ScrollArea>
-          </NavigationMenuContent>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <NavigationMenuTrigger>Mobile</NavigationMenuTrigger>
-          <NavigationMenuContent>
-            <ul>
-              <li>
-                <Link
-                  href="https://play.google.com/store/apps/details?id=com.shortstack.hackertracker&hl=en_US"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                    Android
-                  </NavigationMenuLink>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="https://itunes.apple.com/us/app/hackertracker/id1021141595?mt=8"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                    iOS
-                  </NavigationMenuLink>
-                </Link>
-              </li>
-            </ul>
-          </NavigationMenuContent>
-        </NavigationMenuItem>
-      </NavigationMenuList>
-    </NavigationMenu>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+        </NavigationMenuList>
+      </NavigationMenu>
+    </div>
   );
 }
