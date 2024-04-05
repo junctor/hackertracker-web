@@ -1,0 +1,33 @@
+name: Get Events
+
+on: workflow_dispatch
+
+env:
+  FIREBASE_API_KEY: ${{ secrets.FIREBASE }}
+
+jobs:
+  # Build job
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Checkout hackertracker-export
+        uses: actions/checkout@v4
+        with:
+          repository: cak/hackertracker-export
+          path: hackertracker-export
+
+      - name: Fetch events
+        run: |
+          npm run export --prefix hackertracker-export
+          cp -r hackertracker-export/out/ht ./public
+
+      - name: Commit changes
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "typeerror@users.noreply.github.com"
+          git add docs
+          git commit -m "update ht events"
+          git push
