@@ -28,6 +28,6 @@ jobs:
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "typeerror@users.noreply.github.com"
-          git add docs
+          git add public/ht
           git commit -m "update ht events"
           git push
