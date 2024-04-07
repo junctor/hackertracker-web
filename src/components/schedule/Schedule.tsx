@@ -13,7 +13,7 @@ export default function Schedule({ conf }: { conf: HTConference }) {
     error,
     isLoading,
   } = useSWR<HTEvent[], Error>(
-    `../ht/conferences/${conf.code}/events.json`,
+    `../../../ht/conferences/${conf.code}/events.json`,
     fetcher
   );
 
@@ -22,7 +22,7 @@ export default function Schedule({ conf }: { conf: HTConference }) {
   }
 
   if (htData === undefined || error !== undefined) {
-    return <Error />;
+    return <Error msg={error?.message} />;
   }
 
   const eventData = toEventsData(htData);

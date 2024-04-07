@@ -12,6 +12,7 @@ const config = {
   prefix: "",
   safelist: [
     //  Event colors
+    ...htSafeList.colors.map((c) => `text-[${c}]`),
     ...htSafeList.colors.map((c) => `hover:text-[${c}]`),
   ],
   theme: {

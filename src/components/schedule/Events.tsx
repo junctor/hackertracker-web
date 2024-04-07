@@ -43,7 +43,7 @@ export default function Events({
           </Tabs>
         </div>
         <div className="justify-self-end pr-5 items-center align-middle">
-          <Search confCode={conf.code.toLowerCase()} dateGroup={dateGroup} />
+          <Search dateGroup={dateGroup} />
         </div>
       </div>
       <div className="mx-2">

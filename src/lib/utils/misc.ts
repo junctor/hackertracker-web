@@ -33,17 +33,17 @@ export const displayConference = (
     }
   }
 
+  const findConfByDate = sortConferences(conferences);
+
+  return findConfByDate[0] ?? [];
+};
+
+export function sortConferences(conferences: HTConference[]): HTConference[] {
   const now = new Date().getTime() / 1000;
 
-  console.log(now);
-  console.log(conferences[0].start_timestamp.seconds);
-  const findConfByDate = conferences.sort(
+  return conferences.sort(
     (a, b) =>
       Math.abs(now - a.start_timestamp.seconds) -
       Math.abs(now - b.start_timestamp.seconds)
   );
-
-  console.log(findConfByDate.map((c) => c.name));
-
-  return findConfByDate[0] ?? [];
-};
+}

@@ -11,10 +11,7 @@ export default function EventCell({
 }) {
   return (
     <div>
-      <Link
-        href={`/event?c=${confCode.toLowerCase()}&e=${event.id}`}
-        prefetch={false}
-      >
+      <Link href={`../event?id=${event.id}`} prefetch={false}>
         <TableCell className="text-center align-middle">
           {timeDisplayParts(event.begin).map((part) => (
             <p
@@ -31,14 +28,22 @@ export default function EventCell({
           >
             {event.title}
           </h1>
-
-          <p className="text-xs sm:text-sm md:text-sm lg:text-base ">
+          <p className="text-xs md:text-sm lg:text-base font-bold">
             {event.speakers}
           </p>
-
-          <p className="text-xs sm:text-sm md:text-sm lg:text-base text-gray-400">
-            {event.location}
-          </p>
+          <div className="flex items-center">
+            <p className="text-xs md:text-sm lg:text-base text-gray-400">
+              {event.location}
+            </p>
+            <p className="text-xs md:text-sm lg:text-base text-gray-400 mx-2">
+              /
+            </p>
+            <p
+              className={`text-xs md:text-sm lg:text-base text-[${event.color}]`}
+            >
+              {event.category}
+            </p>
+          </div>
         </TableCell>
       </Link>
     </div>

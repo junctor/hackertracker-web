@@ -1,39 +1,34 @@
 "use client";
 
 import Head from "next/head";
-import Schedule from "../events/Schedule";
+import Schedule from "../schedule/Schedule";
 import Heading from "../heading/Heading";
 import useSWR from "swr";
 import Loading from "../misc/Loading";
 import Error from "@/components/misc/Error";
 import { displayConference, fetcher } from "../../lib/utils/misc";
-import { useSearchParams } from "next/navigation";
 
-export default function Main() {
-  const searchParams = useSearchParams();
-
+export default function Main({ conf }: { conf: string }) {
   const {
     data: htData,
     error,
     isLoading,
-  } = useSWR<HTConference[], Error>("../ht/index.json", fetcher);
+  } = useSWR<HTConference[], Error>("../../../ht/index.json", fetcher);
 
   if (isLoading) {
     return <Loading />;
   }
 
   if (htData === undefined || error !== undefined) {
-    return <Error />;
+    return <Error msg={error?.message} />;
   }
 
-  const confId = searchParams.get("c");
-
-  const conf = displayConference(confId, htData);
+  const selectedConf = displayConference(conf, htData);
 
   return (
     <div>
       <Head>
-        <title>HackerTracker</title>
+        <title>{`HackerTracker / ${selectedConf.name}`}</title>
         <meta name="description" content="HackerTracker" />
         <meta
           name="viewport"
@@ -45,7 +40,7 @@ export default function Main() {
       <main>
         <div>
           <Heading conferences={htData} />
-          <Schedule conf={conf} />
+          <Schedule conf={selectedConf} />
         </div>
       </main>
     </div>

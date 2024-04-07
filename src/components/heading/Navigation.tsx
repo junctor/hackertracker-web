@@ -14,6 +14,7 @@ import {
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Link from "next/link";
+import { sortConferences } from "@/lib/utils/misc";
 
 export default function Navigation({
   conferences,
@@ -29,26 +30,21 @@ export default function Navigation({
             <NavigationMenuContent>
               <ScrollArea className="h-52 rounded-md border">
                 <ul>
-                  {conferences
-                    .sort(
-                      (a, b) =>
-                        b.start_timestamp.seconds - a.start_timestamp.seconds
-                    )
-                    .map((conference) => (
-                      <li key={conference.code}>
-                        <Link
-                          href={`/events?c=${conference.code.toLowerCase()}`}
-                          legacyBehavior
-                          passHref
+                  {sortConferences(conferences).map((conference) => (
+                    <li key={conference.code}>
+                      <Link
+                        href={`../../${conference.code}/schedule`}
+                        legacyBehavior
+                        passHref
+                      >
+                        <NavigationMenuLink
+                          className={navigationMenuTriggerStyle()}
                         >
-                          <NavigationMenuLink
-                            className={navigationMenuTriggerStyle()}
-                          >
-                            {conference.name}
-                          </NavigationMenuLink>
-                        </Link>
-                      </li>
-                    ))}
+                          {conference.name}
+                        </NavigationMenuLink>
+                      </Link>
+                    </li>
+                  ))}
                 </ul>
               </ScrollArea>
             </NavigationMenuContent>

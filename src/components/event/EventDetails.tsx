@@ -18,16 +18,16 @@ function EventDetails({ event }: { event: HTEvent }) {
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href={`/events?c=${event.conference.toLowerCase()}`}>
-                {event.conference}
-              </Link>
+              <Link href="../schedule">{event.conference}</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
         </BreadcrumbList>
       </Breadcrumb>
       <div className="mt-3">
-        <h1 className="font-bold text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-5 mr-3">
+        <h1
+          className={`font-bold text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-5 mr-3 text-[${event.type.color}]`}
+        >
           {event.title}
         </h1>
       </div>
@@ -60,7 +60,7 @@ function EventDetails({ event }: { event: HTEvent }) {
       </div>
       <div className="mt-5">
         <div className="text-sm md:text-base lg:text-lg w-11/12">
-          <div className="prose lg:prose-xl">
+          <div className="prose lg:prose-xl whitespace-pre-wrap">
             <ReactMarkdown>{event.description}</ReactMarkdown>
           </div>
           {(event.links ?? []).length > 0 && (

@@ -81,7 +81,7 @@ interface HTConference {
   start_timestamp_str: string;
   start_timestamp: Timestamp;
   supportdoc: string | null;
-  tagline_text: string;
+  tagline_text: string | null;
   timezone: string;
   updated_at: Timestamp;
   enable_merch_cart: boolean;

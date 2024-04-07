@@ -7,14 +7,14 @@ import Error from "@/components/misc/Error";
 import { useSearchParams } from "next/navigation";
 import FetchEvent from "./FetchEvent";
 
-export default function Event() {
+export default function Event({ confId }: { confId: string }) {
   const searchParams = useSearchParams();
 
   const {
     data: htData,
     error: htError,
     isLoading: htIsLoading,
-  } = useSWR<HTConference[], Error>("../ht/index.json", fetcher);
+  } = useSWR<HTConference[], Error>("../../../ht/index.json", fetcher);
 
   if (htIsLoading) {
     return <Loading />;
@@ -24,20 +24,14 @@ export default function Event() {
     return <Error msg={htError?.message} />;
   }
 
-  const confCode = searchParams.get("c");
-  const eventId = searchParams.get("e");
+  const eventId = searchParams.get("id");
 
-  if (
-    eventId == null ||
-    eventId === "" ||
-    confCode == null ||
-    confCode === ""
-  ) {
-    return <Error msg="No conference or event id provided" />;
+  if (eventId == null || eventId === "") {
+    return <Error msg="No event id provided" />;
   }
 
   const conf = htData?.find(
-    (c) => c.code.toString().toLowerCase() === confCode.toLowerCase()
+    (c) => c.code.toString().toLowerCase() === confId.toLowerCase()
   );
 
   if (conf === undefined) {

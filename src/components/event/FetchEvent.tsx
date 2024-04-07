@@ -20,7 +20,7 @@ export default function FetchEvent({
     error: eventsError,
     isLoading: eventsIsLoading,
   } = useSWR<HTEvent[], Error>(
-    `../ht/conferences/${conf.code}/events.json`,
+    `../../../ht/conferences/${conf.code}/events.json`,
     fetcher
   );
 
@@ -43,7 +43,7 @@ export default function FetchEvent({
   return (
     <div>
       <Head>
-        <title>{`${conf.name}: ${event.title}`}</title>
+        <title>{`HackerTracker / ${conf.name} / ${event.title}`}</title>
         <meta name="description" content={`${conf.name} Event`} />
         <link rel="icon" href="/favicon.ico" />
       </Head>

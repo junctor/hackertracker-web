@@ -1,14 +1,27 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { fetcher, sortConferences } from "@/lib/utils/misc";
+import useSWR from "swr";
+import { redirect } from "next/navigation";
+import Loading from "@/components/misc/Loading";
+import Error from "@/components/misc/Error";
 
 export default function Home() {
-  const router = useRouter();
+  const {
+    data: htData,
+    error: htError,
+    isLoading: htIsLoading,
+  } = useSWR<HTConference[], Error>("../ht/index.json", fetcher);
 
-  useEffect(() => {
-    router.replace("events");
-  }, [router]);
+  if (htIsLoading) {
+    return <Loading />;
+  }
 
-  return <></>;
+  if (htData === undefined || htError !== undefined) {
+    return <Error msg={htError?.message} />;
+  }
+
+  const conf = sortConferences(htData)[0].code;
+
+  return redirect(`/conferences/${conf}/schedule`);
 }

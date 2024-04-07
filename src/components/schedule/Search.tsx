@@ -13,10 +13,8 @@ import { useState } from "react";
 import Link from "next/link";
 
 export default function Search({
-  confCode,
   dateGroup,
 }: {
-  confCode: string;
   dateGroup: Map<string, EventData[]>;
 }) {
   const [open, setOpen] = useState(false);
@@ -45,7 +43,7 @@ export default function Search({
                 .map((e) => (
                   <CommandItem key={e.id} value={e.title}>
                     <Link
-                      href={`/event?c=${confCode}&e=${e.id}`}
+                      href={`../event?id=${e.id}`}
                       prefetch={false}
                       className={`hover:text-[${e.color}] font-bold`}
                     >
