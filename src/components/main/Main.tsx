@@ -7,10 +7,17 @@ import useSWR from "swr";
 import Loading from "../misc/Loading";
 import Error from "@/components/misc/Error";
 import { displayConference, fetcher } from "../../lib/utils/misc";
+import Event from "@/components/event/Event";
 
-export default function Main({ conf }: { conf: string }) {
+export default function Main({
+  conf,
+  content,
+}: {
+  conf: string;
+  content: string;
+}) {
   const {
-    data: htData,
+    data: htConferences,
     error,
     isLoading,
   } = useSWR<HTConference[], Error>("../../../ht/index.json", fetcher);
@@ -19,16 +26,19 @@ export default function Main({ conf }: { conf: string }) {
     return <Loading />;
   }
 
-  if (htData === undefined || error !== undefined) {
+  if (htConferences === undefined || error !== undefined) {
     return <Error msg={error?.message} />;
   }
-
-  const selectedConf = displayConference(conf, htData);
 
   return (
     <div>
       <Head>
-        <title>{`HackerTracker / ${selectedConf.name}`}</title>
+        <title>{`HackerTracker / ${conf}`}</title>
+        <meta
+          property="og:title"
+          content={`HackerTracker / ${conf}`}
+          key="title"
+        />
         <meta name="description" content="HackerTracker" />
         <meta
           name="viewport"
@@ -39,8 +49,12 @@ export default function Main({ conf }: { conf: string }) {
 
       <main>
         <div>
-          <Heading conferences={htData} />
-          <Schedule conf={selectedConf} />
+          <Heading conferences={htConferences} />
+          {content === "event" ? (
+            <Event conf={conf} />
+          ) : (
+            <Schedule conf={displayConference(conf, htConferences)} />
+          )}
         </div>
       </main>
     </div>

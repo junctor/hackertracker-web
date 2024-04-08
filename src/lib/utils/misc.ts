@@ -35,7 +35,7 @@ export const displayConference = (
 
   const findConfByDate = sortConferences(conferences);
 
-  return findConfByDate[0] ?? [];
+  return findConfByDate[0];
 };
 
 export function sortConferences(conferences: HTConference[]): HTConference[] {

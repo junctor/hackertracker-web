@@ -2,9 +2,15 @@
 
 import { useState } from "react";
 import { tabDateTitle } from "../../lib/utils/dates";
-import EventDisplay from "./EventDisplay";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Search from "./Search";
+import EventCell from "./EventCell";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableRow,
+} from "@/components/ui/table";
 
 export default function Events({
   conf,
@@ -46,8 +52,17 @@ export default function Events({
           <Search dateGroup={dateGroup} />
         </div>
       </div>
-      <div className="mx-2">
-        <EventDisplay htEvents={dateGroup.get(day) ?? []} conf={conf} />
+      <div className="mb-10">
+        <Table>
+          <TableCaption>Events for {conf.name}</TableCaption>
+          <TableBody>
+            {(dateGroup.get(day) ?? []).map((htEvent) => (
+              <TableRow key={htEvent.id} id={`e-${htEvent.id}`}>
+                <EventCell event={htEvent} confCode={conf.code} />
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

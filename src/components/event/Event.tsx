@@ -1,27 +1,28 @@
-"use client";
-
 import useSWR from "swr";
 import { fetcher } from "../../lib/utils/misc";
 import Loading from "@/components/misc/Loading";
 import Error from "@/components/misc/Error";
+import EventDetails from "./EventDetails";
 import { useSearchParams } from "next/navigation";
-import FetchEvent from "./FetchEvent";
 
-export default function Event({ confId }: { confId: string }) {
+export default function Event({ conf }: { conf: string }) {
   const searchParams = useSearchParams();
 
   const {
-    data: htData,
-    error: htError,
-    isLoading: htIsLoading,
-  } = useSWR<HTConference[], Error>("../../../ht/index.json", fetcher);
+    data: eventsData,
+    error: eventsError,
+    isLoading: eventsIsLoading,
+  } = useSWR<HTEvent[], Error>(
+    `../../../ht/conferences/${conf}/events.json`,
+    fetcher
+  );
 
-  if (htIsLoading) {
+  if (eventsIsLoading) {
     return <Loading />;
   }
 
-  if (htData === undefined || htError !== undefined) {
-    return <Error msg={htError?.message} />;
+  if (eventsData === undefined || eventsError !== undefined) {
+    return <Error msg={eventsError?.message} />;
   }
 
   const eventId = searchParams.get("id");
@@ -30,13 +31,17 @@ export default function Event({ confId }: { confId: string }) {
     return <Error msg="No event id provided" />;
   }
 
-  const conf = htData?.find(
-    (c) => c.code.toString().toLowerCase() === confId.toLowerCase()
+  const event = eventsData?.find(
+    (e) => e.id.toString().toLowerCase() === eventId.toLowerCase()
   );
 
-  if (conf === undefined) {
-    return <Error msg="No conference found for id" />;
+  if (event === undefined) {
+    return <Error msg="No event found for id" />;
   }
 
-  return <FetchEvent conf={conf} confs={htData} eventId={eventId} />;
+  return (
+    <div>
+      <EventDetails event={event} />
+    </div>
+  );
 }
