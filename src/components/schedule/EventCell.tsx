@@ -24,7 +24,7 @@ export default function EventCell({
         </TableCell>
         <TableCell>
           <h1
-            className={`text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-left break-words hover:text-[${event.color}]`}
+            className={`text-base md:text-lg lg:text-xl font-bold text-left break-words hover:text-[${event.color}]`}
           >
             {event.title}
           </h1>
@@ -32,15 +32,14 @@ export default function EventCell({
             {event.speakers}
           </p>
           <div className="flex items-center">
-            <p className="text-xs md:text-sm lg:text-base text-gray-400">
+            <p className="text-xs md:text-sm lg:text-base text-gray-400 mr-5">
               {event.location}
             </p>
-            <p className="text-xs md:text-sm lg:text-base text-gray-400 mx-2">
-              /
-            </p>
-            <p
-              className={`text-xs md:text-sm lg:text-base text-[${event.color}]`}
-            >
+
+            <span
+              className={`rounded-full h-2 w-2 md:h-3 md:w-3 lg:h-4 lg:w-4 green inline-flex flex-none mr-2 bg-[${event.color}]`}
+            />
+            <p className={`text-xs md:text-sm lg:text-base`}>
               {event.category}
             </p>
           </div>

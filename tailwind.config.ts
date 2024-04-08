@@ -14,6 +14,7 @@ const config = {
     //  Event colors
     ...htSafeList.colors.map((c) => `text-[${c}]`),
     ...htSafeList.colors.map((c) => `hover:text-[${c}]`),
+    ...htSafeList.colors.map((c) => `bg-[${c}]`),
   ],
   theme: {
     container: {
