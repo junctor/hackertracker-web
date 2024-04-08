@@ -30,7 +30,6 @@ _Command [build](https://nextjs.org/docs/app/building-your-application/deploying
 - [aNullValue](https://github.com/aNullValue)
 - [cak](https://github.com/cak)
 - [sethlaw](https://github.com/sethlaw)
--
 
 ### Misc
 
