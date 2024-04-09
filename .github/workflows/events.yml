@@ -36,5 +36,5 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add public/ht
-          git commit -m "update ht events"
+          git commit -m "update ht events" || true
           git push
