@@ -13,7 +13,7 @@ import Link from "next/link";
 
 function EventDetails({ event }: { event: HTEvent }) {
   return (
-    <div className="mt-2 ml-5">
+    <div className="mt-2 ml-5 mb-5">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -32,7 +32,7 @@ function EventDetails({ event }: { event: HTEvent }) {
         </h1>
       </div>
       <div className="font-bold">
-        <div className="flex items-center w-11/12 my-2 cursor-pointer">
+        <div className="flex items-center w-11/12 my-2 cursor-pointer mx-2">
           <a
             className="flex"
             href={`data:text/calendar;charset=utf8,${encodeURIComponent(
@@ -40,7 +40,7 @@ function EventDetails({ event }: { event: HTEvent }) {
             )}`}
             download={`${event.conference}-${event.id}.ics`}
           >
-            <ClockIcon className="h-5 w-5 md:h-7 md:w-7 lg:w-8 lg:h-8 ml-3 mr-2" />
+            <ClockIcon className="h-5 w-5 md:h-7 md:w-7 lg:w-8 lg:h-8 mr-2" />
             <p className="md:text-base lg:text-lg text-xs">
               {event.end_timestamp.seconds !== event.begin_timestamp.seconds
                 ? `${eventTime(new Date(event.begin), false)} - ${eventTime(

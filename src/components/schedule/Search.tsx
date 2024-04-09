@@ -29,7 +29,7 @@ export default function Search({
           }}
         />
       </Button>
-      <Command>
+      <Command className="rounded-lg border shadow-md">
         <CommandDialog open={open} onOpenChange={setOpen}>
           <CommandInput placeholder="Search..." />
           <CommandList>
