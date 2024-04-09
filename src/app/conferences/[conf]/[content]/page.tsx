@@ -24,6 +24,7 @@ export async function generateMetadata({
 }) {
   return {
     title: `${params.conf} | HackerTracker`,
+    description: `HackerTracker | ${params.conf} | ${params.content}`,
   };
 }
 
