@@ -1,9 +1,9 @@
+import { BASEURL } from "./const";
+
 const iCalDesc = (event: HTEvent) => {
   const speakers = event.speakers.map((s) => s.name).join(", ");
   return `${event.description} - ${speakers}`;
 };
-
-const url = `https://ht.typeerror.com`;
 
 const iCalDate = (eDate: Date) => {
   const day = `0${eDate.getUTCDate()}`.slice(-2);
@@ -26,7 +26,7 @@ DTEND:${iCalDate(new Date(event.end))}
 STATUS:CONFIRMED
 CATEGORIES:CONFERENCE
 SUMMARY:${event.conference}
-URL:${url}/conferences/${event.conference_id}/event/?id=${event.id}
+URL:${BASEURL}/conferences/${event.conference_id}/event/?id=${event.id}
 LOCATION:${event.location.name}
 DESCRIPTION:${iCalDesc(event).replace(/(\r\n|\n|\r)/gm, " ")}
 END:VEVENT
