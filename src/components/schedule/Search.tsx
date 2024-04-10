@@ -20,7 +20,7 @@ export default function Search({
   const [open, setOpen] = useState(false);
 
   return (
-    <div>
+    <>
       <Button variant="ghost" size="icon">
         <MagnifyingGlassIcon
           className="h-6"
@@ -29,7 +29,7 @@ export default function Search({
           }}
         />
       </Button>
-      <Command className="rounded-lg border shadow-md">
+      <Command className="rounded-lg  shadow-md">
         <CommandDialog open={open} onOpenChange={setOpen}>
           <CommandInput placeholder="Search..." />
           <CommandList>
@@ -55,6 +55,6 @@ export default function Search({
           </CommandList>
         </CommandDialog>
       </Command>
-    </div>
+    </>
   );
 }
