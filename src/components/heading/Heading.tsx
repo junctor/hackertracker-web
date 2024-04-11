@@ -22,7 +22,7 @@ export default function Heading({
       <div className="flex flex-grow justify-end pr-5 items-center mb-1">
         <Button variant="ghost" size="icon" className="mr-1">
           <a
-            href="https://github.com/cak/hackertracker-web"
+            href="https://github.com/junctor/hackertracker-web"
             target="_blank"
             rel="noopener noreferrer"
           >

@@ -1,1 +1,1 @@
-export const BASEURL = "https://cak.github.io/hackertracker-web";
+export const BASEURL = "https://hackertracker.app";
