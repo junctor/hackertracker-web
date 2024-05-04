@@ -1,4 +1,9 @@
-import { ClockIcon, MapIcon } from "@heroicons/react/24/outline";
+import {
+  ClockIcon,
+  MapIcon,
+  CalendarDaysIcon,
+  ArrowUpOnSquareIcon,
+} from "@heroicons/react/24/outline";
 import cal from "../../lib/utils/cal";
 import { eventTime } from "../../lib/utils/dates";
 import ReactMarkdown from "react-markdown";
@@ -10,26 +15,57 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import Link from "next/link";
+import { BASEURL } from "@/lib/utils/const";
 
 function EventDetails({ event }: { event: HTEvent }) {
   return (
-    <div className="mt-2 ml-5 mb-5">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="../schedule">{event.conference}</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-        </BreadcrumbList>
-      </Breadcrumb>
-      <div className="my-3">
-        <h1
-          className={`font-bold text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-5 mr-3 text-[${event.type.color}]`}
-        >
-          {event.title}
-        </h1>
+    <div>
+      <div className="flex">
+        <div className="mt-2 ml-5 mb-5 justify-start flex-auto">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link href="../schedule">{event.conference}</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+            </BreadcrumbList>
+          </Breadcrumb>
+          <div className="my-3">
+            <h1
+              className={`font-bold text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-5 mr-3 text-[${event.type.color}]`}
+            >
+              {event.title}
+            </h1>
+          </div>
+        </div>
+        <div className="mr-10 ml-5 content-center justify-end flex-none">
+          <div className="flex">
+            <a
+              href={`data:text/calendar;charset=utf8,${encodeURIComponent(
+                cal(event)
+              )}`}
+              download={`${event.conference}-${event.id}.ics`}
+            >
+              <CalendarDaysIcon className="h-5 w-5 md:h-7 md:w-7 lg:w-8 lg:h-8 mr-2" />
+            </a>
+            {typeof navigator.share === "function" && (
+              <ArrowUpOnSquareIcon
+                className="h-5 w-5 md:h-7 md:w-7 lg:w-8 lg:h-8 mr-2"
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                onClick={async (): Promise<void> => {
+                  try {
+                    await navigator.share({
+                      title: event.title,
+                      url: `${BASEURL}/conferences/${event.conference}/event/?id=${event.id}`,
+                    });
+                  } catch (e) {}
+                }}
+              />
+            )}
+          </div>
+        </div>
       </div>
       <div className="font-bold">
         <div className="flex items-center w-11/12 my-2 cursor-pointer mx-2">
