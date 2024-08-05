@@ -26,6 +26,13 @@ const config = {
     },
     extend: {
       colors: {
+        "dc-purple": "#686EA0",
+        "dc-teal": "#81C8BD",
+        "dc-yellow": "#ECDA25",
+        "dc-red": "#F8A28B",
+        "dc-text": "#eeeeee",
+        "dc-gray": "#2D2D2D",
+        "dc-border": "#646464",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
