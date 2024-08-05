@@ -19,9 +19,9 @@ import { BASEURL } from "@/lib/utils/const";
 
 function EventDetails({ event }: { event: HTEvent }) {
   return (
-    <div>
+    <div className="mx-5">
       <div className="flex">
-        <div className="mt-2 ml-5 mb-5 justify-start flex-auto">
+        <div className="mt-2 mb-5 justify-start flex-auto">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -40,7 +40,7 @@ function EventDetails({ event }: { event: HTEvent }) {
             </h1>
           </div>
         </div>
-        <div className="mr-10 ml-5 content-center justify-end flex-none">
+        <div className="mr-10 content-center justify-end flex-none">
           <div className="flex">
             <a
               href={`data:text/calendar;charset=utf8,${encodeURIComponent(
@@ -101,7 +101,7 @@ function EventDetails({ event }: { event: HTEvent }) {
         </div>
       </div>
 
-      <div className="mt-10">
+      <div className="mt-10 mx-2">
         <div className="text-sm md:text-base lg:text-lg w-11/12">
           <div className="prose lg:prose-xl whitespace-pre-wrap">
             <ReactMarkdown>{event.description}</ReactMarkdown>
@@ -111,7 +111,7 @@ function EventDetails({ event }: { event: HTEvent }) {
               <h2 className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl">
                 Links
               </h2>
-              <ul className="list-disc text-xs sm:text-sm md:text-base lg:text-lg ml-5 mt-2">
+              <ul className="list-disc text-xs sm:text-sm md:text-base lg:text-lg mt-2">
                 {(event.links ?? []).map((l) => (
                   <li key={l.url}>
                     <a href={l.url}>{l.label}</a>
