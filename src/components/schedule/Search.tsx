@@ -11,6 +11,7 @@ import { Button } from "../ui/button";
 import { MagnifyingGlassIcon } from "@heroicons/react/16/solid";
 import { useState } from "react";
 import Link from "next/link";
+import React from "react";
 
 export default function Search({
   dateGroup,

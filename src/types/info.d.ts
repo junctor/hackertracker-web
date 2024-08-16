@@ -1,6 +1,13 @@
 /* eslint-disable no-use-before-define */
 declare module "@heroicons/*";
 
+interface Timer {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+}
+
 interface EventSearching {
   event: EventSearch;
   active: boolean;
@@ -16,22 +23,19 @@ interface EventData {
   id: number;
   begin: string;
   beginTimestampSeconds: number;
+  endTimestampSeconds: number;
   end: string;
   title: string;
   location: string;
   color: string;
   category: string;
+  tags: HTTags[];
   speakers: string;
 }
 
 interface CategoryData {
   name: string;
   data: HTEventType | undefined;
-}
-
-interface TagData {
-  name: string;
-  data: Tag;
 }
 
 interface Speaker {

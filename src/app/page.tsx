@@ -5,6 +5,7 @@ import useSWR from "swr";
 import { redirect } from "next/navigation";
 import Loading from "@/components/misc/Loading";
 import Error from "@/components/misc/Error";
+import React from "react";
 
 export default function Home() {
   const {
@@ -23,5 +24,5 @@ export default function Home() {
 
   const conf = sortConferences(htData)[0].code;
 
-  return redirect(`/conferences/${conf}/schedule`);
+  return redirect(`/schedule?conf=${conf}`);
 }

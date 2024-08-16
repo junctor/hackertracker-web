@@ -81,7 +81,7 @@ interface HTConference {
   start_timestamp_str: string;
   start_timestamp: Timestamp;
   supportdoc: string | null;
-  tagline_text: string | null;
+  tagline_text: string;
   timezone: string;
   updated_at: Timestamp;
   enable_merch_cart: boolean;
@@ -90,28 +90,28 @@ interface HTConference {
 }
 
 interface HTTag {
-  category: string;
   conference_id: number;
-  conference: string;
-  id: number;
-  is_browsable: false;
   is_single_valued: boolean;
+  conference: string;
+  is_browsable: boolean;
   label: string;
+  id: number;
+  category: string;
   sort_order: number;
-  tags: Tag[];
+  tags: HTTags[];
 }
 
-interface Tag {
-  id: number;
-  description: string;
+interface HTTags {
   color_foreground: string;
   color_background: string;
+  description: string;
   label: string;
+  id: number;
   sort_order: number;
 }
 
 interface HTEvent {
-  android_description: string;
+  andrsoid_description: string;
   begin_timestamp: Timestamp;
   begin: string;
   conference_id: number;
@@ -133,6 +133,7 @@ interface HTEvent {
   type: HTEventType;
   updated_timestamp: Timestamp;
   village_id: number | null;
+  media?: [HTMedia] | null;
 }
 
 interface HTPeople {
@@ -153,7 +154,6 @@ interface HTSpeaker {
   conference_id: number;
   description: string;
   event_ids: [number];
-  events: [HTEvent];
   id: number;
   link: string;
   links: HTSpeakerLink[];
@@ -161,6 +161,7 @@ interface HTSpeaker {
   pronouns: string | null;
   title?: string;
   twitter: string;
+  media: [HTMedia];
 }
 
 interface HTSpeakerLink {
@@ -207,6 +208,15 @@ interface HTLocation {
   short_name: string;
 }
 
+interface HTDocument {
+  conference_id: number;
+  conference: string;
+  updated_at: { seconds: number; nanoseconds: number };
+  body_text: string;
+  title_text: string;
+  id: number;
+}
+
 interface HTNews {
   conference_id: number;
   conference: string;
@@ -216,23 +226,31 @@ interface HTNews {
   id: number;
 }
 
+interface HTMenu {
+  conference_id: number;
+  conference: string;
+  title_text: string;
+  id: number;
+  items: [
+    {
+      applied_tag_ids: [number];
+      function: string;
+      title_text: string;
+      id: number;
+      apple_sfsymbol: string;
+      document_id: null;
+      sort_order: number;
+      google_materialsymbol: string;
+      menu_id: null;
+      prohibit_tag_filter: "Y" | "N";
+    },
+  ];
+}
+
 interface HTProduct {
   code: string;
   description: string;
-  media: [
-    {
-      hash_sha256: string;
-      filetype: string;
-      product_id: number;
-      hash_md5: string;
-      name: string;
-      hash_crc32c: string;
-      filesize: number;
-      asset_id: number;
-      sort_order: number;
-      url: string;
-    },
-  ];
+  media: [HTMedia];
   title: string;
   price_min: number;
   eligibility_restriction_text: null;
@@ -256,26 +274,26 @@ interface HTProduct {
   ];
 }
 
+interface HTMedia {
+  hash_sha256: string;
+  filetype: string;
+  hash_md5: string;
+  orga_id: number;
+  name: string;
+  is_logo: string;
+  hash_crc32c: string;
+  filesize: number;
+  asset_id: number;
+  sort_order: number;
+  url: string;
+}
+
 interface HTOrganization {
   tag_ids: [number];
   conference: string;
   documents: [];
   description: string;
-  media: [
-    {
-      hash_sha256: string;
-      filetype: string;
-      hash_md5: string;
-      orga_id: number;
-      name: string;
-      is_logo: string;
-      hash_crc32c: string;
-      filesize: number;
-      asset_id: number;
-      sort_order: number;
-      url: string;
-    },
-  ];
+  media: [HTMedia];
   people: [];
   conference_id: number;
   updated_at: string;

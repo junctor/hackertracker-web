@@ -17,8 +17,10 @@ import Link from "next/link";
 import { sortConferences } from "@/lib/utils/misc";
 
 export default function Navigation({
+  conf,
   conferences,
 }: {
+  conf: HTConference;
   conferences: HTConference[];
 }) {
   return (
@@ -26,14 +28,22 @@ export default function Navigation({
       <NavigationMenu>
         <NavigationMenuList>
           <NavigationMenuItem>
+            <NavigationMenuLink
+              className={navigationMenuTriggerStyle()}
+              href={`/schedule?conf=${conf.code}`}
+            >
+              {conf.name}
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
             <NavigationMenuTrigger>Conferences</NavigationMenuTrigger>
             <NavigationMenuContent>
-              <ScrollArea className="h-52 rounded-md border">
+              <ScrollArea className="h-60 rounded-md border w-80">
                 <ul>
                   {sortConferences(conferences).map((conference) => (
                     <li key={conference.code}>
                       <Link
-                        href={`../../${conference.code}/schedule`}
+                        href={`/schedule?conf=${conference.code}`}
                         legacyBehavior
                         passHref
                       >
@@ -52,32 +62,26 @@ export default function Navigation({
           <NavigationMenuItem>
             <NavigationMenuTrigger>Mobile</NavigationMenuTrigger>
             <NavigationMenuContent>
-              <ul className="grid grid-cols-2 w-56">
+              <ul className="grid grid-cols-2 w-80">
                 <li>
-                  <Link
+                  <NavigationMenuLink
+                    className={navigationMenuTriggerStyle()}
                     href="https://play.google.com/store/apps/details?id=com.shortstack.hackertracker&hl=en_US"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <NavigationMenuLink
-                      className={navigationMenuTriggerStyle()}
-                    >
-                      Android
-                    </NavigationMenuLink>
-                  </Link>
+                    Android
+                  </NavigationMenuLink>
                 </li>
                 <li>
-                  <Link
+                  <NavigationMenuLink
+                    className={navigationMenuTriggerStyle()}
                     href="https://itunes.apple.com/us/app/hackertracker/id1021141595?mt=8"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <NavigationMenuLink
-                      className={navigationMenuTriggerStyle()}
-                    >
-                      iOS
-                    </NavigationMenuLink>
-                  </Link>
+                    iOS
+                  </NavigationMenuLink>
                 </li>
               </ul>
             </NavigationMenuContent>
