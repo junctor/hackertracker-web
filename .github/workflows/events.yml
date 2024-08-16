@@ -29,7 +29,7 @@ jobs:
         run: |
           npm install --prefix hackertracker-export
           npm run export --prefix hackertracker-export
-          cp -r hackertracker-export/out/ht ./public
+          cp -r hackertracker-export/out/ht ./docs/
 
       - name: Commit changes
         run: |
