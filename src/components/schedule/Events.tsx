@@ -60,7 +60,7 @@ export default function Events({
   return (
     <>
       <div>
-        <div className="ml-2 md:ml-5 items-center grid bg-background mx-2 my-5 align-middle grid-cols-2 gap-1">
+        <div className="ml-2 md:ml-5 items-center grid bg-background mx-2 my-5 align-middle grid-cols-1 md:grid-cols-2 gap-5">
           <div>
             <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-extrabold font-mono ml-2">
               {conf.name} Schedule

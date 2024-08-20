@@ -27,7 +27,7 @@ export default function Navigation({
     <div className="ml-2">
       <NavigationMenu>
         <NavigationMenuList>
-          <NavigationMenuItem>
+          <NavigationMenuItem className="md:block hidden">
             <NavigationMenuLink
               className={navigationMenuTriggerStyle()}
               href={`/schedule?conf=${conf.code}`}
