@@ -19,6 +19,8 @@ function Person({
   events: HTEvent[];
   conf: HTConference;
 }) {
+  const speakerEvents = events.filter(event => person.event_ids.includes(event.id));
+
   return (
     <div className="mx-5">
       <div className="my-2 justify-start flex-auto">
@@ -74,13 +76,13 @@ function Person({
           </ul>
         </div>
       )}
-      {events.length > 0 && (
+      {speakerEvents.length > 0 && (
         <div className="mt-8 text-left">
           <h2 className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl">
             Events
           </h2>
           <div className="items-center bg-dc-gray w-11/12 mt-2 rounded-lg mb-10 pt-2 pb-2">
-            {events.map((e) => (
+            {speakerEvents.map((e) => (
               <div
                 key={e.id}
                 className="ml-3 table mt-2 mb-2 align-middle items-center"
