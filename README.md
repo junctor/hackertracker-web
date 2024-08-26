@@ -1,36 +1,66 @@
 # HackerTracker Web
 
-HackerTracker for the web, for the mobile applications see [junctor/android](https://github.com/junctor/android) (Android) and [BeezleLabs/hackertracker](https://github.com/BeezleLabs/hackertracker) (iOS)
+HackerTracker Web is the web-based interface for the HackerTracker mobile applications. For mobile versions, check out the [Android](https://github.com/junctor/android) and [iOS](https://github.com/BeezleLabs/hackertracker) repositories.
 
-### Install Dependancies
+## Getting Started
+
+### Prerequisites
+
+Ensure you have the following installed:
+
+- [Node.js](https://nodejs.org) (version 14 or later)
+- [npm](https://www.npmjs.com/) (version 6 or later)
+
+### Installation
+
+To install the necessary dependencies, run:
 
 ```bash
-    npm install
+npm install
 ```
 
-### Start Development Server
+### Syncing Static Files
+
+To sync the HackerTracker static files, use:
 
 ```bash
-    npm run dev
+sh ht-public.sh
 ```
 
-### Production Static Export
+### Running the Development Server
+
+Start the development server with:
 
 ```bash
-    npm run export
+npm run dev
 ```
 
-_Command [build](https://nextjs.org/docs/app/building-your-application/deploying/static-exports) static html to a generated `out` directory_
+This will launch the server on \`localhost:3000\` by default.
 
-[deploying static-only docs](https://nextjs.org/docs/pages/building-your-application/deploying#static-only)
+### Building for Production
 
-### HackerTracker Team
+To build and export the site as static HTML for production, use:
+
+```bash
+npm run export
+```
+
+The static HTML files will be generated in the \`out\` directory. For more details, see the [Next.js static export documentation](https://nextjs.org/docs/app/building-your-application/deploying/static-exports).
+
+### Deployment
+
+For information on deploying a static-only Next.js application, refer to the [official Next.js deployment guide](https://nextjs.org/docs/pages/building-your-application/deploying#static-only).
+
+## Technologies Used
+
+- **Framework**: [Next.js](https://nextjs.org)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com), [shadcn/ui](https://ui.shadcn.com)
+
+## Contributors
+
+Meet the HackerTracker Team:
 
 - [Advice-Dog](https://github.com/Advice-Dog)
 - [aNullValue](https://github.com/aNullValue)
 - [cak](https://github.com/cak)
 - [sethlaw](https://github.com/sethlaw)
-
-### Misc
-
-Developed with [Next.js](https://nextjs.org) and styled with [Tailwind CSS](https://tailwindcss.com) + [shadcn/ui](https://ui.shadcn.com).
