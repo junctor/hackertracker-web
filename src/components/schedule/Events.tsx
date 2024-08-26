@@ -7,7 +7,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Search from "./Search";
 import EventCell from "./EventCell";
 import { Table, TableBody, TableCaption } from "@/components/ui/table";
-import { ClockIcon } from "@heroicons/react/16/solid";
+import { ClockIcon, UserGroupIcon } from "@heroicons/react/16/solid";
 
 import {
   Select,
@@ -109,6 +109,13 @@ export default function Events({
               <Button variant="ghost" size="icon">
                 <Link href={`/upcoming?conf=${conf.code}`}>
                   <ClockIcon className="h-6" />
+                </Link>
+              </Button>
+            </div>
+            <div className="flex items-center mx-1">
+              <Button variant="ghost" size="icon">
+                <Link href={`/people?conf=${conf.code}`}>
+                  <UserGroupIcon className="h-6" />
                 </Link>
               </Button>
             </div>
