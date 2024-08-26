@@ -19,7 +19,9 @@ function Person({
   events: HTEvent[];
   conf: HTConference;
 }) {
-  const speakerEvents = events.filter(event => person.event_ids.includes(event.id));
+  const speakerEvents = events.filter((event) =>
+    person.event_ids.includes(event.id)
+  );
 
   return (
     <div className="mx-5">
