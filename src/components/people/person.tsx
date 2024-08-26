@@ -60,7 +60,7 @@ function Person({
           <Markdown content={person.description} />
         </div>
       </div>
-      {person.event_ids.length > 0 && (
+      {person.links.length > 0 && (
         <div className="mt-8 text-left">
           <h2 className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl">
             Links
