@@ -9,14 +9,18 @@ import {
 } from "@/components/ui/command";
 import { Button } from "../ui/button";
 import { useState } from "react";
-import Link from "next/link";
 import React from "react";
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
+import Link from "next/link";
 
 export default function Search({
   dateGroup,
+  confCode,
 }: {
   dateGroup: Map<string, EventData[]>;
+  confCode: string;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -50,7 +54,7 @@ export default function Search({
                 .map((e) => (
                   <CommandItem key={e.id} value={e.title}>
                     <Link
-                      href={`../event?id=${e.id}`}
+                      href={`../event?conf=${confCode}&event=${e.id}`}
                       prefetch={false}
                       className={`hover:text-[${e.color}] font-bold`}
                     >
