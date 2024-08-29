@@ -32,6 +32,12 @@ export default function Search({
       </Button>
       <Command className="rounded-lg  shadow-md">
         <CommandDialog open={open} onOpenChange={setOpen}>
+          <VisuallyHidden>
+            <DialogTitle>Search Dialog</DialogTitle>
+          </VisuallyHidden>
+          <VisuallyHidden>
+            <DialogDescription>Search for events</DialogDescription>
+          </VisuallyHidden>
           <CommandInput placeholder="Search..." />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
