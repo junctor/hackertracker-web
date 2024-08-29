@@ -1,5 +1,4 @@
 /* eslint-disable no-use-before-define */
-declare module "@heroicons/*";
 
 interface Timer {
   days: number;

@@ -1,9 +1,10 @@
 import {
   ClockIcon,
-  MapIcon,
-  CalendarDaysIcon,
-  ArrowUpOnSquareIcon,
-} from "@heroicons/react/24/outline";
+  CalendarIcon,
+  SewingPinIcon,
+  Share2Icon,
+} from "@radix-ui/react-icons";
+
 import cal from "../../lib/utils/cal";
 import { eventTime } from "../../lib/utils/dates";
 import {
@@ -66,10 +67,10 @@ function Event({
               )}`}
               download={`${event.conference}-${event.id}.ics`}
             >
-              <CalendarDaysIcon className="h-5 w-5 md:h-7 md:w-7 lg:w-8 lg:h-8 mr-2" />
+              <CalendarIcon className="h-5 w-5 md:h-7 md:w-7 lg:w-8 lg:h-8 mr-2" />
             </a>
             {typeof navigator.share === "function" && (
-              <ArrowUpOnSquareIcon
+              <Share2Icon
                 className="h-5 w-5 md:h-7 md:w-7 lg:w-8 lg:h-8 mr-2"
                 onClick={async (): Promise<void> => {
                   try {
@@ -108,7 +109,7 @@ function Event({
           </a>
         </div>
         <div className="flex items-center w-11/12 my-2">
-          <MapIcon className="h-5 w-5 md:h-7 md:w-7 lg:w-8 lg:h-8 mr-2" />
+          <SewingPinIcon className="h-5 w-5 md:h-7 md:w-7 lg:w-8 lg:h-8 mr-2" />
           <p className="md:text-base lg:text-lg text-xs">
             {event.location.name}
           </p>

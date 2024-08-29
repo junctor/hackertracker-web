@@ -8,10 +8,10 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Button } from "../ui/button";
-import { MagnifyingGlassIcon } from "@heroicons/react/16/solid";
 import { useState } from "react";
 import Link from "next/link";
 import React from "react";
+import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
 
 export default function Search({
   dateGroup,

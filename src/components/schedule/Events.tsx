@@ -7,8 +7,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Search from "./Search";
 import EventCell from "./EventCell";
 import { Table, TableBody, TableCaption } from "@/components/ui/table";
-import { ClockIcon, UserGroupIcon } from "@heroicons/react/16/solid";
-
 import {
   Select,
   SelectContent,
@@ -19,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ClockIcon, PersonIcon } from "@radix-ui/react-icons";
 import { Button } from "../ui/button";
 import Link from "next/link";
 
@@ -112,14 +111,16 @@ export default function Events({
                 </Link>
               </Button>
             </div>
-            <div className="flex items-center mx-1">
+            <div className="flex items-center">
               <Button variant="ghost" size="icon">
                 <Link href={`/people?conf=${conf.code}`}>
-                  <UserGroupIcon className="h-6" />
+                  <PersonIcon className="h-6" />
                 </Link>
               </Button>
             </div>
-            <Search dateGroup={dateGroup} />
+            <div className="flex items-center">
+              <Search dateGroup={dateGroup} confCode={conf.code} />
+            </div>
           </div>
         </div>
         <div className="mb-5 place-content-center flex ">
