@@ -1,28 +1,31 @@
 "use client";
 
-import { fetcher, sortConferences } from "@/lib/utils/misc";
-import useSWR from "swr";
+import { sortConferences } from "@/lib/utils/misc";
 import { redirect } from "next/navigation";
-import Loading from "@/components/misc/Loading";
-import Error from "@/components/misc/Error";
-import React from "react";
+import {
+  getClosestUpcomingConference,
+  getConferences,
+  getMostRecentPastConference,
+} from "@/fb/fb";
+import firebaseInit from "@/fb/init";
 
-export default function Home() {
-  const {
-    data: htData,
-    error: htError,
-    isLoading: htIsLoading,
-  } = useSWR<HTConference[], Error>("ht/index.json", fetcher);
+export default async function Home() {
+  const fbDb = await firebaseInit();
 
-  if (htIsLoading) {
-    return <Loading />;
+  const [closestUpcomingConference, mostRecentPastConference] =
+    await Promise.all([
+      getClosestUpcomingConference(fbDb),
+      getMostRecentPastConference(fbDb),
+    ]);
+
+  let confs: HTConference[] = [];
+  if (closestUpcomingConference !== null && mostRecentPastConference !== null) {
+    confs = [closestUpcomingConference, mostRecentPastConference];
+  } else {
+    confs = await getConferences(fbDb, 5);
   }
 
-  if (htData === undefined || htError !== undefined) {
-    return <Error msg={htError?.message} />;
-  }
-
-  const conf = sortConferences(htData)[0].code;
+  const conf = sortConferences(confs)[0].code;
 
   return redirect(`/schedule?conf=${conf}`);
 }

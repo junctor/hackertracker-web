@@ -1,15 +1,16 @@
 "use client";
 
 import Loading from "@/components/misc/Loading";
-import { fetcher } from "@/lib/utils/misc";
-import useSWR from "swr";
+
 import Error from "@/components/misc/Error";
 import { useSearchParams } from "next/navigation";
 import Heading from "@/components/heading/Heading";
 import React, { Suspense } from "react";
 import Person from "@/components/people/person";
+import firebaseInit from "@/fb/init";
+import { getConferences, getEvents, getSpeakerById } from "@/fb/fb";
 
-function PersonPageContent() {
+async function PersonPageContent() {
   const searchParams = useSearchParams();
   const confCode = searchParams.get("conf");
   const personId = searchParams.get("person");
@@ -17,59 +18,21 @@ function PersonPageContent() {
   if (confCode === null || personId === null) {
     return <Error msg="No conference or person code provided" />;
   }
-
-  const {
-    data: htIndexData,
-    error: htIndexError,
-    isLoading: htIndexIsLoading,
-  } = useSWR<HTConference[], Error>(`../../../ht/index.json`, fetcher);
-
-  const {
-    data: htEventsData,
-    error: htEventsError,
-    isLoading: htEventsIsLoading,
-  } = useSWR<HTEvent[], Error>(
-    `../../../ht/conferences/${confCode.toUpperCase()}/events.json`,
-    fetcher
-  );
-
-  const {
-    data: htSpeakersData,
-    error: htSpeakersError,
-    isLoading: htSpeakersIsLoading,
-  } = useSWR<HTSpeaker[], Error>(
-    `../../../ht/conferences/${confCode.toUpperCase()}/speakers.json`,
-    fetcher
-  );
-
-  if (htSpeakersIsLoading || htIndexIsLoading || htEventsIsLoading) {
-    return <Loading />;
-  }
-
-  if (
-    htSpeakersError !== undefined ||
-    htIndexError !== undefined ||
-    htSpeakersData === undefined ||
-    htIndexData === undefined ||
-    htEventsData == undefined ||
-    htEventsError !== undefined
-  ) {
-    return <Error />;
-  }
-
-  const conf = htIndexData.find((c) => c.code === confCode);
+  const fbDb = await firebaseInit();
+  const confs = await getConferences(fbDb, 25);
+  const conf = confs.find((c) => c.code === confCode);
 
   if (conf === undefined) {
     return <Error msg="Conference not found" />;
   }
 
-  const person = htSpeakersData?.find(
-    (s) => s.id.toString().toLowerCase() === personId.toLowerCase()
-  );
+  const person = await getSpeakerById(fbDb, conf.code, personId);
 
-  if (person === undefined) {
+  if (person === null) {
     return <Error msg="No person found for id" />;
   }
+
+  const htEvents = await getEvents(fbDb, conf.code);
 
   return (
     <>
@@ -78,8 +41,8 @@ function PersonPageContent() {
       <link rel="icon" href="/favicon.ico" />
 
       <main>
-        <Heading conf={conf} conferences={htIndexData} />
-        <Person person={person} conf={conf} events={htEventsData} />
+        <Heading conf={conf} conferences={confs} />
+        <Person person={person} conf={conf} events={htEvents} />
       </main>
     </>
   );
@@ -87,7 +50,7 @@ function PersonPageContent() {
 
 export default function PersonPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<Loading />}>
       <PersonPageContent />
     </Suspense>
   );
