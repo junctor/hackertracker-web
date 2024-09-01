@@ -73,4 +73,10 @@ const PeoplePageContent = () => {
   );
 };
 
-export default PeoplePageContent;
+export default function PeoplePage() {
+  return (
+    <React.Suspense fallback={<Loading />}>
+      <PeoplePageContent />
+    </React.Suspense>
+  );
+}

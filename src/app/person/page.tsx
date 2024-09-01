@@ -99,4 +99,10 @@ const PersonPageContent = () => {
   );
 };
 
-export default PersonPageContent;
+export default function PersonPage() {
+  return (
+    <React.Suspense fallback={<Loading />}>
+      <PersonPageContent />
+    </React.Suspense>
+  );
+}

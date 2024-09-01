@@ -95,4 +95,10 @@ const EventPageContent = () => {
   );
 };
 
-export default EventPageContent;
+export default function EventPage() {
+  return (
+    <React.Suspense fallback={<Loading />}>
+      <EventPageContent />
+    </React.Suspense>
+  );
+}

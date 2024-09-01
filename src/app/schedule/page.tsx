@@ -91,4 +91,10 @@ const SchedulePageContent = () => {
   );
 };
 
-export default SchedulePageContent;
+export default function SchedulePage() {
+  return (
+    <React.Suspense fallback={<Loading />}>
+      <SchedulePageContent />
+    </React.Suspense>
+  );
+}
