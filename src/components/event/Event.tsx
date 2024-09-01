@@ -53,7 +53,8 @@ function Event({
           </Breadcrumb>
           <div className="my-3">
             <h1
-              className={`font-bold text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-5 mr-3 text-[${event?.type?.color}]`}
+              style={{ color: event?.type?.color }}
+              className="font-bold text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-5 mr-3"
             >
               {event.title}
             </h1>
@@ -123,7 +124,8 @@ function Event({
                 key={tag.id}
               >
                 <span
-                  className={`rounded-full h-4 w-4 md:h-5 md:w-5 lg:w-6 lg:h-6 mr-2 green inline-flex flex-none bg-[${tag.color_background}]`}
+                  style={{ backgroundColor: tag.color_background }}
+                  className="rounded-full h-4 w-4 md:h-5 md:w-5 lg:w-6 lg:h-6 mr-2 green inline-flex flex-none"
                 />
                 <p className={`text-xs md:text-sm lg:text-base`}>{tag.label}</p>
               </div>

@@ -104,13 +104,6 @@ export default function Events({
                 </SelectContent>
               </Select>
             </span>
-            <div className="flex items-center mx-1">
-              <Button variant="ghost" size="icon">
-                <Link href={`/upcoming?conf=${conf.code}`}>
-                  <ClockIcon className="h-6" />
-                </Link>
-              </Button>
-            </div>
             <div className="flex items-center">
               <Button variant="ghost" size="icon">
                 <Link href={`/people?conf=${conf.code}`}>

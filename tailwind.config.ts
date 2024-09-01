@@ -1,5 +1,4 @@
 import type { Config } from "tailwindcss";
-import htSafeList from "./public/ht/colors.json" assert { type: "json" };
 
 const config = {
   darkMode: ["class"],
@@ -10,12 +9,7 @@ const config = {
     "./src/**/*.{ts,tsx}",
   ],
   prefix: "",
-  safelist: [
-    //  Event colors
-    ...htSafeList.colors.map((c) => `text-[${c}]`),
-    ...htSafeList.colors.map((c) => `hover:text-[${c}]`),
-    ...htSafeList.colors.map((c) => `bg-[${c}]`),
-  ],
+  safelist: [],
   theme: {
     container: {
       center: true,
@@ -88,6 +82,7 @@ const config = {
       },
     },
   },
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   plugins: [require("tailwindcss-animate")],
 } satisfies Config;
 

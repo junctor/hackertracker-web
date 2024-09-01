@@ -90,7 +90,8 @@ function Person({
                 className="ml-3 table mt-2 mb-2 align-middle items-center"
               >
                 <div
-                  className={`table-cell h-full w-1 md:w-2 bg-[${e?.type?.color}] rounded-md`}
+                  style={{ backgroundColor: e?.type?.color }}
+                  className="table-cell h-full w-1 md:w-2 rounded-md"
                 />
                 <div className="text-left ml-2">
                   <Link href={`/event?conf=${conf.code}&event=${e.id}`}>

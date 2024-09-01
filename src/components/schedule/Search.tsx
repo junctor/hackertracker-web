@@ -56,7 +56,7 @@ export default function Search({
                     <Link
                       href={`../event?conf=${confCode}&event=${e.id}`}
                       prefetch={false}
-                      className={`hover:text-[${e.color}] font-bold`}
+                      className="font-bold"
                     >
                       {e.title}
                     </Link>

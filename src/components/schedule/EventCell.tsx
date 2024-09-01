@@ -29,9 +29,7 @@ export default function EventCell({
         ))}
       </TableCell>
       <TableCell className="max-w-96 sm:max-w-[640px] md:max-w-full">
-        <h1
-          className={`text-base md:text-lg lg:text-xl font-bold text-left break-words hover:text-[${event.color}]`}
-        >
+        <h1 className="text-base md:text-lg lg:text-xl font-bold text-left break-words">
           {event.title}
         </h1>
         <p className="text-xs md:text-sm lg:text-base font-bold mt-1">
@@ -47,7 +45,8 @@ export default function EventCell({
               ?.map((tag) => (
                 <div className="flex items-center mr-2" key={tag.id}>
                   <span
-                    className={`rounded-full h-2 w-2 md:h-3 md:w-3 lg:h-4 lg:w-4 green inline-flex flex-none mr-1 bg-[${tag.color_background}]`}
+                    style={{ backgroundColor: tag.color_background }}
+                    className="rounded-full h-2 w-2 md:h-3 md:w-3 lg:h-4 lg:w-4 green inline-flex flex-none mr-1"
                   />
                   <p className={`text-xs md:text-sm lg:text-base`}>
                     {tag.label}
