@@ -6,39 +6,85 @@ import Error from "@/components/misc/Error";
 import { useSearchParams } from "next/navigation";
 import Event from "@/components/event/Event";
 import Heading from "@/components/heading/Heading";
-import React, { Suspense } from "react";
+import React, { useEffect, useState } from "react";
 import firebaseInit from "@/fb/init";
 import { getConferences, getEventById, getTags } from "@/fb/fb";
 
-async function EventPageContent() {
+const EventPageContent = () => {
   const searchParams = useSearchParams();
   const confCode = searchParams.get("conf");
   const eventId = searchParams.get("event");
 
-  if (confCode === null || eventId === null) {
-    return <Error msg="No conference or event code provided" />;
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [conf, setConf] = useState<HTConference | null>(null);
+  const [event, setEvent] = useState<HTEvent | null>(null);
+  const [htTags, setHtTags] = useState<HTTag[]>([]);
+  const [confs, setConfs] = useState<HTConference[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (confCode === null || eventId === null) {
+        setError("No conference or event code provided");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const fbDb = await firebaseInit();
+        const confs = await getConferences(fbDb, 25);
+        const foundConf = confs.find((c) => c.code === confCode);
+
+        if (foundConf === undefined) {
+          setError("Conference not found");
+          setLoading(false);
+          return;
+        }
+
+        const foundEvent = await getEventById(fbDb, foundConf.code, eventId);
+
+        if (foundEvent === null) {
+          setError("No event found for id");
+          setLoading(false);
+          return;
+        }
+
+        const tags = await getTags(fbDb, foundConf.code);
+
+        setConf(foundConf);
+        setEvent(foundEvent);
+        setHtTags(tags ?? []);
+        setConfs(confs);
+      } catch {
+        setError("An error occurred while fetching data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [confCode, eventId]);
+
+  if (loading) {
+    return <Loading />;
   }
 
-  const fbDb = await firebaseInit();
-  const confs = await getConferences(fbDb, 25);
-  const conf = confs.find((c) => c.code === confCode);
+  if (error !== null) {
+    return <Error msg={error} />;
+  }
 
-  if (conf === undefined) {
+  if (conf === null) {
     return <Error msg="Conference not found" />;
   }
 
-  const event = await getEventById(fbDb, conf.code, eventId);
-
   if (event === null) {
-    return <Error msg="No event found for id" />;
+    return <Error msg="Event not found" />;
   }
-
-  const htTags = await getTags(fbDb, conf.code);
 
   return (
     <>
-      <title>{`${event.title} | ${conf.name}`}</title>
-      <meta name="description" content={`${event.title} | ${conf.name} `} />
+      <title>{`${event?.title} | ${conf?.name}`}</title>
+      <meta name="description" content={`${event?.title} | ${conf?.name} `} />
       <link rel="icon" href="/favicon.ico" />
 
       <main>
@@ -47,12 +93,6 @@ async function EventPageContent() {
       </main>
     </>
   );
-}
+};
 
-export default function EventPage() {
-  return (
-    <Suspense fallback={<Loading />}>
-      <EventPageContent />
-    </Suspense>
-  );
-}
+export default EventPageContent;

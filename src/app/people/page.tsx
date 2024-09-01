@@ -4,47 +4,73 @@ import Loading from "@/components/misc/Loading";
 import Error from "@/components/misc/Error";
 import { useSearchParams } from "next/navigation";
 import Heading from "@/components/heading/Heading";
-import React, { Suspense } from "react";
+import React, { useEffect, useState } from "react";
 import People from "@/components/people/people";
 import firebaseInit from "@/fb/init";
 import { getConferences, getSpeakers } from "@/fb/fb";
 
-async function PeoplePageContent() {
+const PeoplePageContent = () => {
   const searchParams = useSearchParams();
   const confCode = searchParams.get("conf");
 
-  if (confCode === null) {
-    return <Error msg="No conference provided" />;
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [confs, setConfs] = useState<HTConference[]>([]);
+  const [conf, setConf] = useState<HTConference | null>(null);
+  const [htSpeakers, setHtSpeakers] = useState<HTSpeaker[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (confCode === null) {
+        setError("No conference provided");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const fbDb = await firebaseInit();
+        const fetchedConfs = await getConferences(fbDb, 25);
+        const conf = fetchedConfs.find((c) => c.code === confCode);
+
+        if (conf === undefined) {
+          setError("Conference not found");
+          setLoading(false);
+          return;
+        }
+
+        setConf(conf);
+
+        const speakers = await getSpeakers(fbDb, conf.code);
+        setConfs(fetchedConfs);
+        setHtSpeakers(speakers);
+      } catch {
+        setError("An error occurred while fetching data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [confCode]);
+
+  if (loading) {
+    return <Loading />;
   }
 
-  const fbDb = await firebaseInit();
-  const confs = await getConferences(fbDb, 25);
-  const conf = confs.find((c) => c.code === confCode);
+  if (error !== null) {
+    return <Error msg={error} />;
+  }
 
-  if (conf === undefined) {
+  if (conf === null) {
     return <Error msg="Conference not found" />;
   }
 
-  const htSpeakers = await getSpeakers(fbDb, conf.code);
-
   return (
-    <Suspense fallback={<Loading />}>
-      <title>{`Speakers | ${conf.name}`}</title>
-      <meta name="description" content={`Speakers | ${conf.name} `} />
-      <link rel="icon" href="/favicon.ico" />
-
-      <main>
-        <Heading conf={conf} conferences={confs} />
-        <People people={htSpeakers} conf={conf} />
-      </main>
-    </Suspense>
+    <>
+      <Heading conf={conf} conferences={confs} />
+      <People people={htSpeakers} conf={conf} />
+    </>
   );
-}
+};
 
-export default function PeoplePage() {
-  return (
-    <Suspense fallback={<Loading />}>
-      <PeoplePageContent />
-    </Suspense>
-  );
-}
+export default PeoplePageContent;

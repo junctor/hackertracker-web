@@ -1,31 +1,47 @@
 "use client";
 
 import { sortConferences } from "@/lib/utils/misc";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   getClosestUpcomingConference,
   getConferences,
   getMostRecentPastConference,
 } from "@/fb/fb";
 import firebaseInit from "@/fb/init";
+import { useEffect } from "react";
 
-export default async function Home() {
-  const fbDb = await firebaseInit();
+const Home = () => {
+  const router = useRouter();
 
-  const [closestUpcomingConference, mostRecentPastConference] =
-    await Promise.all([
-      getClosestUpcomingConference(fbDb),
-      getMostRecentPastConference(fbDb),
-    ]);
+  useEffect(() => {
+    const fetchData = async () => {
+      const fbDb = await firebaseInit();
 
-  let confs: HTConference[] = [];
-  if (closestUpcomingConference !== null && mostRecentPastConference !== null) {
-    confs = [closestUpcomingConference, mostRecentPastConference];
-  } else {
-    confs = await getConferences(fbDb, 5);
-  }
+      const [closestUpcomingConference, mostRecentPastConference] =
+        await Promise.all([
+          getClosestUpcomingConference(fbDb),
+          getMostRecentPastConference(fbDb),
+        ]);
 
-  const conf = sortConferences(confs)[0].code;
+      let confs: HTConference[] = [];
+      if (
+        closestUpcomingConference !== null &&
+        mostRecentPastConference !== null
+      ) {
+        confs = [closestUpcomingConference, mostRecentPastConference];
+      } else {
+        confs = await getConferences(fbDb, 5);
+      }
 
-  return redirect(`/schedule?conf=${conf}`);
-}
+      const conf = sortConferences(confs)[0].code;
+
+      router.push(`/schedule?conf=${conf}`);
+    };
+
+    fetchData();
+  }, [router]);
+
+  return null;
+};
+
+export default Home;
