@@ -18,11 +18,13 @@ import EventCell from "../schedule/EventCell";
 
 export default function Upcoming({
   conf,
-  events,
+  onNowEvents,
+  upcomingEvents,
   tags,
 }: {
   conf: HTConference;
-  events: EventData[];
+  onNowEvents: EventData[];
+  upcomingEvents: EventData[];
   tags: HTTag[];
 }) {
   const router = useRouter();
@@ -35,29 +37,21 @@ export default function Upcoming({
     .flatMap((t) => t.tags)
     .find((e) => e.id === parseInt(tagId));
 
-  const nowSeconds = new Date().getTime() / 1000;
-
-  const filteredEvents = (
+  const filteredOnNowEvents = (
     tagId !== "0"
-      ? events.filter((e) => e.tags?.some((t) => t.id == selectedTag))
-      : events
+      ? onNowEvents.filter((e) => e.tags?.some((t) => t.id == selectedTag))
+      : onNowEvents
+  ).sort((a, b) => a.beginTimestampSeconds - b.beginTimestampSeconds);
+
+  const filteredUpcomingEvents = (
+    tagId !== "0"
+      ? upcomingEvents.filter((e) => e.tags?.some((t) => t.id == selectedTag))
+      : upcomingEvents
   ).sort((a, b) => a.beginTimestampSeconds - b.beginTimestampSeconds);
 
   const tabs = new Map([
-    [
-      "On Now",
-      filteredEvents.filter(
-        (e) =>
-          e.beginTimestampSeconds < nowSeconds &&
-          e.endTimestampSeconds > nowSeconds
-      ),
-    ],
-    [
-      "Upcoming",
-      filteredEvents
-        .filter((e) => e.beginTimestampSeconds > nowSeconds)
-        .slice(0, 25),
-    ],
+    ["On Now", filteredOnNowEvents],
+    ["Upcoming", filteredUpcomingEvents],
   ]);
 
   const [tab, setTab] = useState("On Now");
