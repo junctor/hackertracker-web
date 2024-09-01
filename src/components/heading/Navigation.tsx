@@ -41,7 +41,7 @@ export default function Navigation({
               <ScrollArea className="h-60 rounded-md border w-80">
                 <ul>
                   {sortConferences(conferences).map((conference) => (
-                    <li key={conference.code}>
+                    <li key={conference.code} className="my-3">
                       <Link
                         href={`/schedule?conf=${conference.code}`}
                         legacyBehavior
@@ -50,7 +50,12 @@ export default function Navigation({
                         <NavigationMenuLink
                           className={navigationMenuTriggerStyle()}
                         >
-                          {conference.name}
+                          <div>
+                            <h4 className="text-base font-bold">
+                              {conference.name}
+                            </h4>
+                            <p className="text-xs">{`${conference.start_date} - ${conference.end_date}`}</p>
+                          </div>
                         </NavigationMenuLink>
                       </Link>
                     </li>
