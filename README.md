@@ -1,6 +1,6 @@
 # HackerTracker Web
 
-HackerTracker Web is the web-based interface for the HackerTracker mobile applications. For mobile versions, check out the [Android](https://github.com/junctor/android) and [iOS](https://github.com/BeezleLabs/hackertracker) repositories.
+HackerTracker Web is the web-based interface for the HackerTracker mobile applications. For mobile versions, check out the [Android](https://github.com/junctor/android) and [iOS](https://github.com/junctor/hackertracker) repositories.
 
 ## Getting Started
 
@@ -17,14 +17,6 @@ To install the necessary dependencies, run:
 
 ```bash
 npm install
-```
-
-### Syncing Static Files
-
-To sync the HackerTracker static files, use:
-
-```bash
-sh ht-public.sh
 ```
 
 ### Running the Development Server
@@ -45,11 +37,15 @@ To build and export the site as static HTML for production, use:
 npm run export
 ```
 
-The static HTML files will be generated in the \`out\` directory. For more details, see the [Next.js static export documentation](https://nextjs.org/docs/app/building-your-application/deploying/static-exports).
+The static HTML files will be generated in the \`docs\` directory. For more details, see the [Next.js static export documentation](https://nextjs.org/docs/app/building-your-application/deploying/static-exports).
 
 ### Deployment
 
 For information on deploying a static-only Next.js application, refer to the [official Next.js deployment guide](https://nextjs.org/docs/pages/building-your-application/deploying#static-only).
+
+### Usage
+
+After setting up the development environment, you can access the web interface at `localhost:3000`. Use the navigation menu to explore different sections such as events, schedules, and more.
 
 ## Technologies Used
 
