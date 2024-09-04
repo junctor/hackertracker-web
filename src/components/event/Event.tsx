@@ -90,7 +90,7 @@ function Event({
         </div>
       </div>
       <div className="font-bold">
-        <div className="flex items-center w-11/12 my-2 cursor-pointer">
+        <div className="flex items-center my-2 cursor-pointer">
           <a
             className="flex"
             href={`data:text/calendar;charset=utf8,${encodeURIComponent(
@@ -99,7 +99,7 @@ function Event({
             download={`${event.conference}-${event.id}.ics`}
           >
             <ClockIcon className="h-5 w-5 md:h-7 md:w-7 lg:w-8 lg:h-8 mr-2" />
-            <p className="md:text-base lg:text-lg text-xs">
+            <p className="md:text-sm lg:text-base text-xs">
               {event.end_timestamp.seconds !== event.begin_timestamp.seconds
                 ? `${eventTime(new Date(event.begin), false)} - ${eventTime(
                     new Date(event.end),
@@ -109,31 +109,31 @@ function Event({
             </p>
           </a>
         </div>
-        <div className="flex items-center w-11/12 my-2">
+        <div className="flex items-center my-2">
           <SewingPinIcon className="h-5 w-5 md:h-7 md:w-7 lg:w-8 lg:h-8 mr-2" />
-          <p className="md:text-base lg:text-lg text-xs">
+          <p className="md:text-sm lg:text-base text-xs">
             {event.location.name}
           </p>
         </div>
-        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1 md:gap-2 lg:gap-3">
+        <div className="inline-grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-0 md:gap-1 gap-y-2 md:gap-y-3 w-10/12">
           {eventTags
             ?.sort((a, b) => (a.sort_order > b.sort_order ? 1 : -1))
             ?.map((tag) => (
               <div
-                className="flex items-center mr-4 md:mr-5 lg:mr-6"
+                className="flex items-center mr-3 md:mr-4 lg:mr-5"
                 key={tag.id}
               >
                 <span
                   style={{ backgroundColor: tag.color_background }}
-                  className="rounded-full h-4 w-4 md:h-5 md:w-5 lg:w-6 lg:h-6 mr-2 green inline-flex flex-none"
+                  className="rounded-full h-3 w-3 md:h-4 md:w-4 mr-2 green inline-flex flex-none"
                 />
-                <p className={`text-xs md:text-sm lg:text-base`}>{tag.label}</p>
+                <p className="text-xs md:text-sm">{tag.label}</p>
               </div>
             ))}
         </div>
       </div>
       <div className="mt-10">
-        <div className="text-sm md:text-base lg:text-lg w-11/12">
+        <div className="text-sm md:text-base">
           <Markdown content={event.description} />
           {(event.links ?? []).length > 0 && (
             <div className="mt-5 text-left">
@@ -156,7 +156,7 @@ function Event({
           <h2 className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl">
             People
           </h2>
-          <div className="items-center w-11/12 mt-1 mb-2 pt-2 pb-2">
+          <div className="items-center mt-1 mb-2 pt-2 pb-2">
             {event.speakers
               .sort(
                 (a) =>
