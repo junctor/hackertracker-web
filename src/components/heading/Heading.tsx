@@ -17,7 +17,10 @@ export default function Heading({
   const { theme } = useTheme();
 
   return (
-    <header className="flex sticky top-0 z-50 pb-2 bg-background align-middle flex-wrap pt-3">
+    <header
+      className="flex sticky top-0 z-50 pb-2 bg-background align-middle flex-wrap pt-3"
+      style={{ height: "60px" }}
+    >
       <h1 className="md:text-2xl lg: text-3xl  font-bold px-5 md:block hidden">
         HackerTracker
       </h1>

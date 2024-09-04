@@ -1,4 +1,4 @@
-import { timeDisplayParts } from "../../lib/utils/dates";
+import { eventTimeTable } from "../../lib/utils/dates";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { useRouter } from "next/navigation";
 import React from "react";
@@ -11,49 +11,52 @@ export default function EventCell({
   event: EventData;
 }) {
   const router = useRouter();
+  const eventUrl = `../event?conf=${conf}&event=${event.id}`;
 
   return (
     <TableRow
       id={`e-${event.id}`}
       className="cursor-pointer"
-      onClick={() => router.push(`../event?conf=${conf}&event=${event.id}`)}
+      onClick={() => router.push(eventUrl)}
     >
-      <TableCell className="text-center align-middle w-24">
-        {timeDisplayParts(event.begin).map((part) => (
-          <p
-            key={part}
-            className="text-xs sm:text-sm md:text-sm lg:text-base font-bold"
-          >
-            {part}
-          </p>
-        ))}
+      <TableCell className="relative align-middle">
+        <div
+          className="absolute top-1 bottom-1 left-1 w-1 md:w-2 lg:w-3 rounded"
+          style={{ background: event.color }}
+        />
       </TableCell>
-      <TableCell className="max-w-96 sm:max-w-[640px] md:max-w-full">
-        <h1 className="text-base md:text-lg lg:text-xl font-bold text-left break-words">
-          {event.title}
-        </h1>
-        <p className="text-xs md:text-sm lg:text-base font-bold mt-1">
-          {event.speakers}
-        </p>
-        <p className="text-xs md:text-sm lg:text-base text-gray-400 mt-1">
-          {event.location}
-        </p>
+      <TableCell className="align-middle">
+        <p className="text-xs md:text-sm">{eventTimeTable(event.begin)}</p>
+      </TableCell>
+      <TableCell className="align-middle hidden md:table-cell">
+        <p className="text-xs md:text-sm">{eventTimeTable(event.end)}</p>
+      </TableCell>
+      <TableCell className="align-middle">
         <div>
-          <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-0.5 md:gap-1 lg:gap-2 mt-2">
-            {event.tags
-              ?.sort((a, b) => (a.sort_order > b.sort_order ? 1 : -1))
-              ?.map((tag) => (
-                <div className="flex items-center mr-2" key={tag.id}>
-                  <span
-                    style={{ backgroundColor: tag.color_background }}
-                    className="rounded-full h-2 w-2 md:h-3 md:w-3 lg:h-4 lg:w-4 green inline-flex flex-none mr-1"
-                  />
-                  <p className={`text-xs md:text-sm lg:text-base`}>
-                    {tag.label}
-                  </p>
-                </div>
-              ))}
-          </div>
+          <a href={eventUrl}>
+            <h1 className="text-sm md:text-base font-bold break-words max-w-96 drop-shadow-sm	">
+              {event.title}
+            </h1>
+            <p className="text-xs md:text-sm mt-1 italic">{event.speakers}</p>
+          </a>
+        </div>
+      </TableCell>
+      <TableCell className="align-middle">
+        <p className="text-xs md:text-sm">{event.location}</p>
+      </TableCell>
+      <TableCell className="align-middle">
+        <div>
+          {event.tags
+            ?.sort((a, b) => (a.sort_order > b.sort_order ? 1 : -1))
+            ?.map((tag) => (
+              <div className="flex items-center mr-2" key={tag.id}>
+                <span
+                  style={{ backgroundColor: tag.color_background }}
+                  className="rounded-full h-2 w-2 green inline-flex flex-none m-1"
+                />
+                <p className="text-xs">{tag.label}</p>
+              </div>
+            ))}
         </div>
       </TableCell>
     </TableRow>

@@ -1,14 +1,12 @@
 "use client";
 
 import Error from "@/components/misc/Error";
-import { createDateGroup } from "@/lib/utils/dates";
 import Events from "@/components/schedule/Events";
 import { useSearchParams } from "next/navigation";
 import Heading from "@/components/heading/Heading";
 import React, { useEffect, useState } from "react";
 import firebaseInit from "../../fb/init";
 import { getConferences, getEvents, getTags } from "../../fb/fb";
-import { toEventsData } from "@/lib/utils/misc";
 import Loading from "@/components/misc/Loading";
 
 const SchedulePageContent = () => {
@@ -19,7 +17,7 @@ const SchedulePageContent = () => {
   const [error, setError] = useState<string | null>(null);
   const [conf, setConf] = useState<HTConference | null>(null);
   const [confs, setConfs] = useState<HTConference[]>([]);
-  const [eventData, setEventData] = useState<EventData[]>([]);
+  const [events, setEvents] = useState<HTEvent[]>([]);
   const [htTags, setHtTags] = useState<HTTag[]>([]);
 
   useEffect(() => {
@@ -46,11 +44,9 @@ const SchedulePageContent = () => {
           getTags(fbDb, foundConf.code),
         ]);
 
-        const eventData = toEventsData(htEvents, htTags ?? []);
-
         setConf(foundConf);
         setConfs(fetchedConfs);
-        setEventData(eventData);
+        setEvents(htEvents);
         setHtTags(htTags ?? []);
       } catch {
         setError("An error occurred while fetching data");
@@ -81,11 +77,7 @@ const SchedulePageContent = () => {
 
       <main>
         <Heading conf={conf} conferences={confs} />
-        <Events
-          dateGroup={createDateGroup(eventData)}
-          conf={conf}
-          tags={htTags}
-        />
+        <Events events={events} conf={conf} tags={htTags} />
       </main>
     </>
   );

@@ -82,6 +82,32 @@ export function eventWeekday(time: string): string {
   return date.toLocaleString("en-US", options);
 }
 
+export function eventTimeTable(date: string, tz = true): string {
+  const time = new Date(date);
+  const options: Intl.DateTimeFormatOptions = {
+    timeZoneName: tz ? "short" : undefined,
+    hour12: false,
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  };
+
+  return time.toLocaleTimeString("en-US", options);
+}
+
+export function eventDayTable(date: string): string {
+  const time = new Date(date);
+  const options: Intl.DateTimeFormatOptions = {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  };
+
+  return time.toLocaleString("en-US", options);
+}
+
 export function eventTime(time: Date, tz = true): string {
   const options: Intl.DateTimeFormatOptions = {
     timeZoneName: tz ? "short" : undefined,
