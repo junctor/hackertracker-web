@@ -100,12 +100,12 @@ function Person({
                         {e.title}
                       </p>
 
-                      <p className="text-xs sm:text-sm md:text-sm lg:text-base text-gray-400">
+                      <p className="text-xs sm:text-sm md:text-sm lg:text-base">
                         {`${eventTime(new Date(e.begin), false)} - ${eventTime(
                           new Date(e.end)
                         )}`}
                       </p>
-                      <p className="text-xs sm:text-sm md:text-sm lg:text-base text-gray-400">
+                      <p className="text-xs sm:text-sm md:text-sm lg:text-base">
                         {e.location.name}
                       </p>
                     </button>
