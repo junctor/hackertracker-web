@@ -95,7 +95,7 @@ export default function EventsTable({
             }}
             data-day={day}
           >
-            <h2 className="font-bold text-lg md:text-xl my-2">
+            <h2 className="font-bold text-lg md:text-xl m-5">
               {eventDayTable(day)}
             </h2>
           </div>
