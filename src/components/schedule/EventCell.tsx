@@ -49,7 +49,7 @@ export default function EventCell({
           {event.tags
             ?.sort((a, b) => (a.sort_order > b.sort_order ? 1 : -1))
             ?.map((tag) => (
-              <div className="flex items-center mr-2" key={tag.id}>
+              <div className="flex mr-2" key={tag.id}>
                 <span
                   style={{ backgroundColor: tag.color_background }}
                   className="rounded-full h-2 w-2 green inline-flex flex-none m-1"
