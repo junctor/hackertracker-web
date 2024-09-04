@@ -115,7 +115,7 @@ function Event({
             {event.location.name}
           </p>
         </div>
-        <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-1 md:gap-2 lg:gap-3">
+        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1 md:gap-2 lg:gap-3">
           {eventTags
             ?.sort((a, b) => (a.sort_order > b.sort_order ? 1 : -1))
             ?.map((tag) => (
