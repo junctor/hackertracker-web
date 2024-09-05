@@ -117,7 +117,11 @@ function Event({
         </div>
         <div className="inline-grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-0 md:gap-1 gap-y-2 md:gap-y-3 w-10/12">
           {eventTags
-            ?.sort((a, b) => (a.sort_order > b.sort_order ? 1 : -1))
+            .sort((a, b) =>
+              a.sort_order !== b.sort_order
+                ? a.sort_order - b.sort_order
+                : a.label.localeCompare(b.label)
+            )
             ?.map((tag) => (
               <div
                 className="flex items-center mr-3 md:mr-4 lg:mr-5"
