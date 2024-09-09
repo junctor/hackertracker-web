@@ -30,7 +30,7 @@ export default function Events({
   return (
     <>
       <div>
-        <div className="ml-2 md:ml-5 items-center grid bg-background mx-2 my-5 align-middle grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="ml-2 md:ml-5 items-center grid bg-background mx-2 my-5 align-middle grid-cols-1 md:grid-cols-2 gap-5 pr-3">
           <div>
             <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-extrabold font-mono ml-2">
               {conf.name}
@@ -42,11 +42,11 @@ export default function Events({
               <TagsFilter tagId={tagId} tags={tags} conf={conf} />
             </span>
             <div className="flex items-center">
+            <Link href={`/people?conf=${conf.code}`}>
               <Button variant="ghost" size="icon">
-                <Link href={`/people?conf=${conf.code}`}>
                   <PersonIcon className="h-6" />
-                </Link>
               </Button>
+            </Link>
             </div>
             <div className="flex items-center">
               <Search dateGroup={dateGroup} confCode={conf.code} />

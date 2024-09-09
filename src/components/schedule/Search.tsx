@@ -26,15 +26,15 @@ export default function Search({
 
   return (
     <>
-      <Button variant="ghost" size="icon">
-        <MagnifyingGlassIcon
-          className="h-6"
-          onClick={() => {
-            setOpen(!open);
-          }}
-        />
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => {
+          setOpen(!open);
+        }}>
+        <MagnifyingGlassIcon className="h-6" />
       </Button>
-      <Command className="rounded-lg  shadow-md">
+      <Command className="rounded-lg shadow-md w-0">
         <CommandDialog open={open} onOpenChange={setOpen}>
           <VisuallyHidden>
             <DialogTitle>Search Dialog</DialogTitle>
