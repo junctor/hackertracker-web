@@ -11,7 +11,7 @@ export default function People({
 }) {
   const router = useRouter();
 
-  const handleCardClick = (speakerId: string) => {
+  const handleCardClick = (speakerId: number) => {
     router.push(`/person?conf=${conf.code}&person=${speakerId}`);
   };
 
