@@ -8,12 +8,12 @@ HackerTracker Web is the web-based interface for the HackerTracker mobile applic
 
 Ensure you have the following installed:
 
-- [Node.js](https://nodejs.org) (version 14 or later)
-- [npm](https://www.npmjs.com/) (version 6 or later)
+- [Node.js](https://nodejs.org) (version 18 or later recommended)
+- [npm](https://www.npmjs.com/) (version 8 or later)
 
 ### Installation
 
-To install the necessary dependencies, run:
+Install the necessary dependencies:
 
 ```bash
 npm install
@@ -27,30 +27,34 @@ Start the development server with:
 npm run dev
 ```
 
-This will launch the server on \`localhost:3000\` by default.
+By default, Vite serves the app at `http://localhost:5173`.
 
 ### Building for Production
 
-To build and export the site as static HTML for production, use:
+To create an optimized production build:
 
 ```bash
-npm run export
+npm run build
 ```
 
-The static HTML files will be generated in the \`docs\` directory. For more details, see the [Next.js static export documentation](https://nextjs.org/docs/app/building-your-application/deploying/static-exports).
+Preview the build locally with:
 
-### Deployment
+```bash
+npm run preview
+```
 
-For information on deploying a static-only Next.js application, refer to the [official Next.js deployment guide](https://nextjs.org/docs/pages/building-your-application/deploying#static-only).
+The static assets will be generated in the `dist` directory. These can be deployed directly to GitHub Pages or any static host.
 
 ### Usage
 
-After setting up the development environment, you can access the web interface at `localhost:3000`. Use the navigation menu to explore different sections such as events, schedules, and more.
+After setting up the development environment, open the app at `http://localhost:5173` (or your configured dev server URL). Use the navigation menu to explore conferences, schedules, events, and more.
 
 ## Technologies Used
 
-- **Framework**: [Next.js](https://nextjs.org)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com), [shadcn/ui](https://ui.shadcn.com)
+- **Bundler / Dev Server**: [Vite](https://vitejs.dev)
+- **Routing**: [React Router](https://reactrouter.com)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com), [Headless UI](https://headlessui.dev)
+- **Language**: [TypeScript](https://www.typescriptlang.org)
 
 ## Contributors
 
