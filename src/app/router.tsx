@@ -2,9 +2,9 @@ import { Routes, Route } from "react-router";
 
 import { Suspense, lazy } from "react";
 
-const ConferenceRoute = lazy(() =>
-  import("../features/conferences/Conferences").then((module) => ({
-    default: module.Conferences,
+const SplashRoute = lazy(() =>
+  import("../features/splash/Splash").then((module) => ({
+    default: module.Splash,
   }))
 );
 
@@ -15,7 +15,7 @@ export default function AppRouter() {
         path="/"
         element={
           <Suspense fallback={<>Loading…</>}>
-            <ConferenceRoute />
+            <SplashRoute />
           </Suspense>
         }
       />
