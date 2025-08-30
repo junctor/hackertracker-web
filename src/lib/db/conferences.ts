@@ -6,8 +6,8 @@ import {
   orderBy,
   query,
   where,
+  Timestamp,
 } from "firebase/firestore/lite";
-import { Timestamp } from "firebase/firestore";
 import { db } from "../firebase";
 import type { HTConference } from "@/types/db";
 
@@ -47,21 +47,19 @@ const toConference = (id: string, data: unknown): HTConference => {
 
 export async function getConferences(count = 50): Promise<HTConference[]> {
   const ref = collection(db, "conferences");
-  const q = query(ref, orderBy("updated_at", "desc"), limit(count));
+  const q = query(ref, orderBy("start_timestamp", "desc"), limit(count));
   const snap = await getDocs(q);
   return snap.docs.map((doc) => toConference(doc.id, doc.data()));
 }
 
-export async function getClosestUpcomingConference(): Promise<HTConference | null> {
+export async function getUpcomingConferences(): Promise<HTConference[]> {
   const ref = collection(db, "conferences");
   const q = query(
     ref,
-    where("start_date", ">=", Timestamp.now()),
-    orderBy("start_date", "asc"),
-    limit(1)
+    where("start_timestamp", ">=", new Date()),
+    orderBy("start_timestamp", "asc"),
+    limit(50)
   );
-  const s = await getDocs(q);
-  if (s.empty) return null;
-  const d = s.docs[0];
-  return toConference(d.id, d.data());
+  const snap = await getDocs(q);
+  return snap.docs.map((doc) => toConference(doc.id, doc.data()));
 }

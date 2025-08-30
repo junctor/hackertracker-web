@@ -1,4 +1,4 @@
-import { Conferences } from "../conferences/Conferences";
+import { UpcomingConferences } from "../conferences/UpcomingConferences";
 
 export function Splash() {
   return (
@@ -37,10 +37,7 @@ export function Splash() {
       </header>
 
       <section className="w-full max-w-5xl mx-auto px-4">
-        <h2 className="mb-4 text-left text-lg font-semibold text-neutral-200">
-          Latest Conferences
-        </h2>
-        <Conferences count={12} />
+        <UpcomingConferences />
         <div className="mt-6 text-center">
           <a
             href="/conferences"
