@@ -22,7 +22,7 @@ export const ConferenceCard = React.memo(function ConferenceCard({
       aria-label={conference.name}
     >
       <div className="flex items-start justify-between gap-3">
-        <h3 className="min-w-0 flex-1 truncate text-lg font-semibold text-neutral-100 group-hover:text-emerald-400 transition-colors">
+        <h3 className="min-w-0 flex-1 truncate text-lg font-semibold text-neutral-100 group-hover:text-cyan-400 transition-colors">
           {conference.name}
         </h3>
       </div>

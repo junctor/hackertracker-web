@@ -1,27 +1,25 @@
-import { getConferences } from "@/lib/db";
 import { useEffect, useState } from "react";
-import { type HTConference } from "@/types/db";
-import { ConferenceCard } from "./ConferenceCell";
+import type { HTConference } from "@/types/db";
+import { getConferences } from "@/lib/db";
+import { DisplayConferences } from "./DisplayConferences";
+import { HTHeader } from "@/components/HTHeader";
+import { HTFooter } from "@/components/HTFooter";
 
-export function Conferences({ count = 100 }: { count?: number }) {
+export function Conferences() {
   const [conferences, setConferences] = useState<HTConference[]>([]);
 
   useEffect(() => {
-    const fetchConferences = async () => {
-      const conferences = await getConferences(count);
-      setConferences(conferences);
-    };
-
-    fetchConferences();
-  }, [count]);
+    (async () => setConferences(await getConferences(500)))();
+  }, []);
 
   return (
-    <div>
-      <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 [grid-auto-rows:1fr]">
-        {conferences.map((c) => (
-          <ConferenceCard key={c.id} conference={c} />
-        ))}
+    <>
+      <HTHeader />
+      <div className="mx-10 mt-10">
+        <h2 className="text-xl font-semibold text-white">Conferences</h2>
+        <DisplayConferences conferences={conferences} />
       </div>
-    </div>
+      <HTFooter />
+    </>
   );
 }
