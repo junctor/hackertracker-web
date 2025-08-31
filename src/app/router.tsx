@@ -8,6 +8,24 @@ const SplashRoute = lazy(() =>
   }))
 );
 
+const ConferencesRoute = lazy(() =>
+  import("../features/conferences/Conferences").then((module) => ({
+    default: module.Conferences,
+  }))
+);
+
+const AboutRoute = lazy(() =>
+  import("../pages/About").then((module) => ({
+    default: module.About,
+  }))
+);
+
+const SupportRoute = lazy(() =>
+  import("../pages/Support").then((module) => ({
+    default: module.Support,
+  }))
+);
+
 export default function AppRouter() {
   return (
     <Routes>
@@ -16,6 +34,30 @@ export default function AppRouter() {
         element={
           <Suspense fallback={<>Loading…</>}>
             <SplashRoute />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/conferences"
+        element={
+          <Suspense fallback={<>Loading…</>}>
+            <ConferencesRoute />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/about"
+        element={
+          <Suspense fallback={<>Loading…</>}>
+            <AboutRoute />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/support"
+        element={
+          <Suspense fallback={<>Loading…</>}>
+            <SupportRoute />
           </Suspense>
         }
       />
