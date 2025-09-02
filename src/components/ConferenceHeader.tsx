@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment } from "react";
 import { Link, useLocation } from "react-router";
 import {
   Popover,
@@ -9,11 +9,11 @@ import {
 import {
   Bars3Icon,
   XMarkIcon,
-  Squares2X2Icon,
-  InformationCircleIcon,
-  LifebuoyIcon,
+  HomeIcon,
+  ArrowTopRightOnSquareIcon,
   CodeBracketSquareIcon,
 } from "@heroicons/react/24/outline";
+import type { HTConference } from "@/types/db";
 
 type NavItem = {
   key: string;
@@ -22,60 +22,44 @@ type NavItem = {
   external?: boolean;
   icon: React.ElementType;
 };
-type HeaderVariant = "default" | "splash";
 
-const items: NavItem[] = [
-  {
-    key: "confs",
-    label: "Conferences",
-    to: "/conferences",
-    icon: Squares2X2Icon,
-  },
-  { key: "about", label: "About", to: "/about", icon: InformationCircleIcon },
-  { key: "support", label: "Support", to: "/support", icon: LifebuoyIcon },
-  {
-    key: "github",
-    label: "GitHub",
-    to: "https://github.com/junctor/hackertracker-web",
-    external: true,
-    icon: CodeBracketSquareIcon,
-  },
-];
-
-export function HTHeader({ variant = "default" }: { variant?: HeaderVariant }) {
+export function ConferenceHeader({ conference }: { conference: HTConference }) {
   const { pathname } = useLocation();
-  const [scrolled, setScrolled] = useState(false);
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  const base =
-    "sticky top-0 h-14 z-50 border-b border-neutral-800 transition-colors backdrop-blur";
-  const bg =
-    variant === "splash"
-      ? scrolled
-        ? "bg-neutral-950/80"
-        : "bg-transparent"
-      : scrolled
-        ? "bg-neutral-950/90"
-        : "bg-neutral-950/80";
-  const headerClass = `${base} ${bg}`;
+  const items: NavItem[] = [
+    {
+      key: "ht",
+      label: "HackerTracker",
+      to: "/",
+      icon: HomeIcon,
+    },
+    {
+      key: "conf",
+      label: "Conference",
+      to: conference.link,
+      external: true,
+      icon: ArrowTopRightOnSquareIcon,
+    },
+    {
+      key: "github",
+      label: "GitHub",
+      to: "https://github.com/junctor/hackertracker-web",
+      external: true,
+      icon: CodeBracketSquareIcon,
+    },
+  ];
 
   return (
-    <header className={headerClass}>
+    <header className="sticky top-0 h-14 z-50 border-b border-neutral-800 bg-neutral-950/90 backdrop-blur">
       <div className="flex w-full items-center justify-between h-14 px-4 sm:px-6 lg:px-10">
-        {/* Brand */}
-        <Link
-          to="/"
-          aria-label="HackerTracker Home"
-          className="bg-gradient-to-r from-cyan-400 via-white to-red-500 bg-clip-text text-transparent text-xl sm:text-2xl font-extrabold tracking-tight"
-        >
-          HackerTracker
-        </Link>
+        {/* Left: Conference name / brand */}
+        <div className="min-w-0">
+          <span className="block truncate text-base sm:text-lg font-semibold text-white">
+            {conference.name}
+          </span>
+          {/* Optional subline: uncomment if you want the code/timezone visible */}
+          {/* <span className="text-xs text-neutral-400">{conference.code} · {conference.timezone}</span> */}
+        </div>
 
         {/* Desktop nav */}
         <nav className="hidden sm:flex items-center gap-3">
@@ -115,13 +99,6 @@ export function HTHeader({ variant = "default" }: { variant?: HeaderVariant }) {
 
         {/* Mobile: Browse + Popover */}
         <div className="flex items-center gap-2 sm:hidden">
-          <Link
-            to="/conferences"
-            className="rounded-full border border-neutral-700 bg-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-200 hover:bg-neutral-800"
-          >
-            Browse
-          </Link>
-
           <Popover className="relative">
             {({ open }) => (
               <>

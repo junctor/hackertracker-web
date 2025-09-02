@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router";
+import LoadingPage from "@/components/LoadingPage";
 
 import { Suspense, lazy } from "react";
 
@@ -26,13 +27,19 @@ const SupportRoute = lazy(() =>
   }))
 );
 
+const ScheduleRoute = lazy(() =>
+  import("../features/schedule/Schedule").then((module) => ({
+    default: module.Schedule,
+  }))
+);
+
 export default function AppRouter() {
   return (
     <Routes>
       <Route
         path="/"
         element={
-          <Suspense fallback={<>Loading…</>}>
+          <Suspense fallback={<LoadingPage />}>
             <SplashRoute />
           </Suspense>
         }
@@ -40,15 +47,23 @@ export default function AppRouter() {
       <Route
         path="/conferences"
         element={
-          <Suspense fallback={<>Loading…</>}>
+          <Suspense fallback={<LoadingPage />}>
             <ConferencesRoute />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/schedule"
+        element={
+          <Suspense fallback={<LoadingPage />}>
+            <ScheduleRoute />
           </Suspense>
         }
       />
       <Route
         path="/about"
         element={
-          <Suspense fallback={<>Loading…</>}>
+          <Suspense fallback={<LoadingPage />}>
             <AboutRoute />
           </Suspense>
         }
@@ -56,7 +71,7 @@ export default function AppRouter() {
       <Route
         path="/support"
         element={
-          <Suspense fallback={<>Loading…</>}>
+          <Suspense fallback={<LoadingPage />}>
             <SupportRoute />
           </Suspense>
         }

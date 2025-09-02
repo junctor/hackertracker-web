@@ -1,6 +1,8 @@
 // src/lib/db/conferences.ts
 import {
   collection,
+  doc,
+  getDoc,
   getDocs,
   limit,
   orderBy,
@@ -18,6 +20,16 @@ export async function getConferences(count = 50): Promise<HTConference[]> {
     const data = doc.data() as HTConference;
     return data;
   });
+}
+
+export async function getConferenceById(
+  code: string
+): Promise<HTConference | null> {
+  const ref = doc(db, "conferences", code);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return null;
+  const data = snap.data() as HTConference;
+  return data;
 }
 
 export async function getUpcomingConferences(): Promise<HTConference[]> {
