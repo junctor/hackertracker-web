@@ -110,6 +110,7 @@ export function ConferenceHeader({ conference }: { conference: HTConference }) {
     bookmarksHref,
     isBookmarks,
     peopleHref,
+    isPeople,
     conference.link,
   ]);
 
