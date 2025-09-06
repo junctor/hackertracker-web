@@ -58,7 +58,7 @@ export function Event() {
       try {
         const [conf, evt, tags] = await Promise.all([
           getConferenceByCode(confCode),
-          getEventById(confCode, eventId),
+          getEventById(confCode, Number(eventId)),
           getTags(confCode),
         ]);
         if (cancelled) return;

@@ -22,22 +22,22 @@ export async function getEvents(conf: string): Promise<HTEvent[]> {
 
 export async function getEventById(
   conf: string,
-  eventId: string
+  eventId: number
 ): Promise<HTEvent | null> {
-  const ref = doc(db, "conferences", conf, "events", eventId);
+  const ref = doc(db, "conferences", conf, "events", eventId.toString());
   const snap = await getDoc(ref);
   return snap.exists() ? (snap.data() as HTEvent) : null;
 }
 
 export async function getEventsByIds(
   conf: string,
-  eventIds: string[]
+  eventIds: number[]
 ): Promise<HTEvent[]> {
   if (!eventIds.length) return [];
 
   const results = await Promise.all(
     eventIds.map(async (id) => {
-      const ref = doc(db, "conferences", conf, "events", id);
+      const ref = doc(db, "conferences", conf, "events", id.toString());
       const snap = await getDoc(ref);
       return snap.exists() ? (snap.data() as HTEvent) : null;
     })
@@ -48,7 +48,7 @@ export async function getEventsByIds(
 
 export async function getEventsByIdsIn(
   conf: string,
-  eventIds: (string | number)[]
+  eventIds: number[]
 ): Promise<HTEvent[]> {
   const ids = (eventIds ?? []).map(String).slice(0, 10); // Firestore limit = 10
   if (ids.length === 0) return [];
