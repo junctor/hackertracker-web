@@ -64,7 +64,7 @@ export function DisplayConferences({
     );
     return {
       upcoming: future.sort(byStartAsc),
-      updated: [...conferences].sort(byUpdatedDesc), // full list, newest edits first
+      updated: [...conferences].sort(byUpdatedDesc).slice(0, 8),
       past: history.sort(byStartDesc),
     };
   }, [conferences]);
