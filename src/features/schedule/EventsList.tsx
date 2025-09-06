@@ -92,10 +92,11 @@ export default function EventsList({
       {/* Top toolbar */}
       <div className="sticky top-0 z-40 flex items-center justify-between border-b border-gray-700 bg-gray-950/80 p-2 backdrop-blur">
         {/* Left side */}
-        <h1 className="text-lg sm:text-xl font-bold ml-2">{pageTitle}</h1>
+        <h1 className="text-lg sm:text-xl font-bold ml-5">{pageTitle}</h1>
 
         {/* Right side */}
-        <div className="flex gap-2 mx-32">
+        {/* <div className="flex gap-2 mx-32"> */}
+        <div className="mr-1 sm:mr-3 md:mr-4 lg:mr-6">
           {pageTitle == "Schedule" && (
             <NavLink
               to={`/bookmarks?conf=${confCode}`}
