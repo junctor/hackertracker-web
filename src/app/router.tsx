@@ -33,6 +33,18 @@ const ScheduleRoute = lazy(() =>
   }))
 );
 
+const BookmarksRoute = lazy(() =>
+  import("../features/bookmarks/Bookmarks").then((module) => ({
+    default: module.Bookmarks,
+  }))
+);
+
+const EventRoute = lazy(() =>
+  import("../features/event/Event").then((module) => ({
+    default: module.Event,
+  }))
+);
+
 export default function AppRouter() {
   return (
     <Routes>
@@ -57,6 +69,22 @@ export default function AppRouter() {
         element={
           <Suspense fallback={<LoadingPage />}>
             <ScheduleRoute />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/bookmarks"
+        element={
+          <Suspense fallback={<LoadingPage />}>
+            <BookmarksRoute />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/event"
+        element={
+          <Suspense fallback={<LoadingPage />}>
+            <EventRoute />
           </Suspense>
         }
       />

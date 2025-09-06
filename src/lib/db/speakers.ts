@@ -13,9 +13,18 @@ export async function getSpeakers(conf: string): Promise<HTPerson[]> {
 
 export async function getSpeakerById(
   conf: string,
-  id: string
+  id: number
 ): Promise<HTPerson | null> {
-  const ref = doc(db, "conferences", conf, "speakers", id);
+  const ref = doc(db, "conferences", conf, "speakers", id.toString());
   const snap = await getDoc(ref);
   return snap.exists() ? (snap.data() as HTPerson) : null;
+}
+
+export async function getSpeakersByIds(
+  conf: string,
+  ids: number[]
+): Promise<HTPerson[]> {
+  const promises = ids.map((id) => getSpeakerById(conf, id));
+  const results = await Promise.all(promises);
+  return results.filter((speaker): speaker is HTPerson => speaker !== null);
 }

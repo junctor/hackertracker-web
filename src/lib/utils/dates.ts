@@ -90,20 +90,6 @@ export function tabDateTitle(day: string): string {
   });
 }
 
-export function eventTime(value: string | Date, showTz = true): string {
-  const date = typeof value === "string" ? new Date(value) : value;
-  return date.toLocaleTimeString(LOCALE, {
-    timeZone: TZ,
-    hour12: false,
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZoneName: showTz ? "short" : undefined,
-  });
-}
-
 export function newsTime(time: Date): string {
   const options: Intl.DateTimeFormatOptions = {
     timeZone: TZ,
@@ -117,34 +103,61 @@ export function newsTime(time: Date): string {
   return time.toLocaleTimeString(LOCALE, options);
 }
 
-export function formatSessionTime(begin: Date, end: Date): string {
+function eventTime(dt: Date, showZone: boolean, tz?: string, locale?: string) {
+  return new Intl.DateTimeFormat(locale, {
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: tz,
+    ...(showZone ? { timeZoneName: "short" } : {}),
+  }).format(dt);
+}
+
+export function formatSessionTime(
+  begin: Date,
+  end: Date,
+  tz?: string,
+  locale?: string
+): string {
   const sameDate = begin.toDateString() === end.toDateString();
 
   if (sameDate) {
-    const dateStr = begin.toLocaleDateString(LOCALE, {
-      timeZone: TZ,
+    const dateStr = begin.toLocaleDateString(locale, {
+      timeZone: tz,
       weekday: "short",
       month: "short",
       day: "numeric",
     });
 
-    const startTime = begin.toLocaleTimeString(LOCALE, {
-      timeZone: TZ,
-      hour12: false,
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const startTime = eventTime(begin, false, tz, locale);
+    const endTime = eventTime(end, true, tz, locale); // zone shown once at end
 
-    const endTime = end.toLocaleTimeString(LOCALE, {
-      timeZone: TZ,
-      hour12: false,
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZoneName: "short",
-    });
-
+    // If exact same minute, collapse to single time with zone
+    if (startTime.slice(0, 5) === endTime.slice(0, 5)) {
+      return `${dateStr} at ${endTime}`;
+    }
     return `${dateStr} at ${startTime} – ${endTime}`;
   }
 
-  return `${eventTime(begin, false)} – ${eventTime(end, true)}`;
+  // Different dates: show both fully, zone on the second
+  const left = begin.toLocaleString(locale, {
+    timeZone: tz,
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const right = end.toLocaleString(locale, {
+    timeZone: tz,
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZoneName: "short",
+  });
+  return `${left} – ${right}`;
 }
