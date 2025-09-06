@@ -255,7 +255,7 @@ export default function EventDetails({
             {people.map((p) => (
               <Link
                 key={p.id}
-                to={`/person?id=${p.id}`}
+                to={`/person?conf=${confCode}&person=${p.id}`}
                 className="inline-flex items-center gap-2 rounded-full bg-gray-800/50 px-3 py-1 text-sm text-gray-200 ring-1 ring-white/10 transition-colors duration-200 hover:bg-indigo-600/50"
                 title={p.name}
               >

@@ -14,6 +14,7 @@ import {
   CodeBracketSquareIcon,
   BookmarkSquareIcon,
   CalendarDaysIcon,
+  UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import type { HTConference } from "@/types/db";
 
@@ -42,6 +43,7 @@ export function ConferenceHeader({ conference }: { conference: HTConference }) {
   const confCode = conference.code;
   const scheduleHref = `/schedule?conf=${encodeURIComponent(confCode)}`;
   const bookmarksHref = `/bookmarks?conf=${encodeURIComponent(confCode)}`;
+  const peopleHref = `/people?conf=${encodeURIComponent(confCode)}`;
 
   // Active states (path + query awareness)
   const isSchedule =
@@ -49,6 +51,9 @@ export function ConferenceHeader({ conference }: { conference: HTConference }) {
     (params.get("conf") ?? confCode) === confCode;
   const isBookmarks =
     pathname.startsWith("/bookmarks") &&
+    (params.get("conf") ?? confCode) === confCode;
+  const isPeople =
+    pathname.startsWith("/people") &&
     (params.get("conf") ?? confCode) === confCode;
 
   const items: NavItem[] = useMemo(() => {
@@ -66,6 +71,13 @@ export function ConferenceHeader({ conference }: { conference: HTConference }) {
         to: bookmarksHref,
         icon: BookmarkSquareIcon,
         ariaCurrent: isBookmarks,
+      },
+      {
+        key: "people",
+        label: "People",
+        to: peopleHref,
+        icon: UserGroupIcon,
+        ariaCurrent: isPeople,
       },
       {
         key: "home",
@@ -92,7 +104,14 @@ export function ConferenceHeader({ conference }: { conference: HTConference }) {
       });
     }
     return base;
-  }, [scheduleHref, bookmarksHref, conference.link, isSchedule, isBookmarks]);
+  }, [
+    scheduleHref,
+    isSchedule,
+    bookmarksHref,
+    isBookmarks,
+    peopleHref,
+    conference.link,
+  ]);
 
   const baseHeader =
     "sticky top-0 h-14 z-50 border-b border-neutral-800 transition-colors backdrop-blur supports-[backdrop-filter]:backdrop-blur";

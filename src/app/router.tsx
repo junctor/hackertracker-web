@@ -51,6 +51,12 @@ const PeopleRoute = lazy(() =>
   }))
 );
 
+const PersonRoute = lazy(() =>
+  import("../features/person/Person").then((module) => ({
+    default: module.Person,
+  }))
+);
+
 export default function AppRouter() {
   return (
     <Routes>
@@ -91,6 +97,14 @@ export default function AppRouter() {
         element={
           <Suspense fallback={<LoadingPage />}>
             <PeopleRoute />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/person"
+        element={
+          <Suspense fallback={<LoadingPage />}>
+            <PersonRoute />
           </Suspense>
         }
       />
