@@ -45,6 +45,12 @@ const EventRoute = lazy(() =>
   }))
 );
 
+const PeopleRoute = lazy(() =>
+  import("../features/people/People").then((module) => ({
+    default: module.People,
+  }))
+);
+
 export default function AppRouter() {
   return (
     <Routes>
@@ -77,6 +83,14 @@ export default function AppRouter() {
         element={
           <Suspense fallback={<LoadingPage />}>
             <BookmarksRoute />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/people"
+        element={
+          <Suspense fallback={<LoadingPage />}>
+            <PeopleRoute />
           </Suspense>
         }
       />
