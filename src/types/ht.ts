@@ -1,6 +1,7 @@
 export interface ProcessedEvent {
   id: number;
-  content_id?: number;
+  timeZone: string;
+  description: string;
   title: string;
   begin: string | number | Date;
   end?: string | number | Date | null;
@@ -10,6 +11,7 @@ export interface ProcessedEvent {
   color: string | null;
   tags: ProcessedTag[];
   speakers: string | null;
+  links: { label: string; url: string }[];
 }
 
 export interface ProcessedTag {
