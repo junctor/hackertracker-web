@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import {
   BookmarkIcon as BookmarkOutline,
   ArrowLeftIcon,
@@ -26,11 +26,9 @@ export default function EventDetails({
   conference: HTConference;
   people: HTPerson[];
 }) {
-  const nav = useNavigate();
   const zone = event.timeZone;
   const locale = undefined;
   const confCode = conference.code;
-  const backLink = `/schedule?conf=${confCode}`;
 
   const [bookmark, setBookmark] = useState<boolean>(() =>
     loadConfBookmarks(confCode).has(event.id)
@@ -46,11 +44,6 @@ export default function EventDetails({
       ({ "--event-color": event.color ?? "#9ca3af" }) as React.CSSProperties,
     [event.color]
   );
-
-  const handleBack = () => {
-    if (backLink) nav(backLink);
-    else nav(-1);
-  };
 
   const handleShare = async () => {
     const url = `/event?conf=${confCode}&event=${event.id}`;
@@ -111,13 +104,13 @@ export default function EventDetails({
     >
       {/* Header actions */}
       <div className="mb-6 flex items-start justify-between gap-3">
-        <button
-          onClick={handleBack}
-          className="inline-flex items-center gap-2 rounded-lg border border-gray-700/70 bg-gray-900/20 px-3 py-2 text-sm transition-colors duration-200 hover:bg-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+        <Link
+          to={`/schedule?conf=${encodeURIComponent(confCode)}`}
+          className="inline-flex items-center gap-2 rounded-lg border border-gray-700 px-3 py-2 text-sm text-gray-200 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
-          <ArrowLeftIcon className="h-5 w-5" />
-          <span className="hidden sm:inline">Back</span>
-        </button>
+          <ArrowLeftIcon className="h-5 w-5" aria-hidden="true" />
+          <span className="sr-only md:not-sr-only">Schedule</span>
+        </Link>
 
         <div className="flex items-center gap-2">
           <button

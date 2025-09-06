@@ -6,27 +6,7 @@ import {
   MapPinIcon,
   CalendarDaysIcon,
 } from "@heroicons/react/24/outline";
-import type { HTEvent, HTPerson } from "@/types/db";
-
-/** Types (match your data) */
-export type PersonLink = {
-  title: string;
-  url: string;
-  sort_order?: number | null;
-};
-export type PersonEvent = {
-  id: number | string;
-  title: string;
-  begin: string | number | Date;
-  end: string | number | Date;
-  location?: { name?: string | null } | string | null;
-  content_id: number | string;
-  color?: string | null;
-};
-export type Affiliation = {
-  organization?: string | null;
-  title?: string | null;
-};
+import type { HTConference, HTEvent, HTPerson } from "@/types/db";
 
 /** ---------- utilities ---------- */
 
@@ -75,12 +55,11 @@ function nonEmpty<T>(x: T | null | undefined): x is T {
 /** ---------- component ---------- */
 
 export default function PersonDetails({
-  confCode,
+  conference,
   person,
   events,
-  timeZone, // optional: pass conference TZ like "America/Los_Angeles"
 }: {
-  confCode: string;
+  conference: HTConference;
   person: HTPerson;
   events: HTEvent[];
   timeZone?: string;
@@ -131,11 +110,11 @@ export default function PersonDetails({
 
             {/* Back to People */}
             <Link
-              to={`/people?conf=${encodeURIComponent(confCode)}`}
+              to={`/people?conf=${encodeURIComponent(conference.code)}`}
               className="inline-flex items-center gap-2 rounded-lg border border-gray-700 px-3 py-2 text-sm text-gray-200 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <ArrowLeftIcon className="h-5 w-5" aria-hidden="true" />
-              <span className="sr-only md:not-sr-only">Back</span>
+              <span className="sr-only md:not-sr-only">People</span>
             </Link>
           </div>
 
@@ -206,13 +185,13 @@ export default function PersonDetails({
           </h2>
           <ul role="list" className="space-y-4">
             {sortedEvents.map((e) => {
-              const when = fmtTimeRange(e.begin, e.end, timeZone);
+              const when = fmtTimeRange(e.begin, e.end, conference.timezone);
               const where = getLocationName(e.location);
               const id = String(e.id);
               return (
                 <li key={`${id}-${e.title}`}>
                   <Link
-                    to={`/event?conf=${encodeURIComponent(confCode)}&event=${encodeURIComponent(
+                    to={`/event?conf=${encodeURIComponent(conference.code)}&event=${encodeURIComponent(
                       id
                     )}`}
                     className="group block rounded-xl border border-gray-700 bg-gray-700/60 transition hover:bg-gray-600/60 focus:outline-none focus:ring-2 focus:ring-indigo-500"
