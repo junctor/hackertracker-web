@@ -1,14 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense, startTransition } from "react";
 import { useSearchParams } from "react-router";
-import { getConferenceById, getEvents, getTags } from "@/lib/db";
+import { getConferenceByCode, getEvents, getTags } from "@/lib/db";
 import { buildScheduleBucketsByDay } from "@/lib/utils/schedule";
 import type { GroupedSchedule } from "@/types/ht";
 import type { HTConference, HTEvent, HTTagGroup } from "@/types/db";
-import EventsList from "./EventsList";
 import { ConferenceHeader } from "@/components/ConferenceHeader";
 import LoadingPage from "@/components/LoadingPage";
 import ErrorPage from "@/components/ErrorPage";
 import { HTFooter } from "@/components/HTFooter";
+
+const EventsList = lazy(() => import("./EventsList"));
 
 export function Schedule() {
   const [searchParams] = useSearchParams();
@@ -18,6 +19,17 @@ export function Schedule() {
   const [conference, setConference] = useState<HTConference | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Page title management
+  useEffect(() => {
+    if (loading) {
+      document.title = "Loading schedule… | Hacker Tracker";
+    } else if (conference) {
+      document.title = `Schedule · ${conference.name} | Hacker Tracker`;
+    } else {
+      document.title = "Schedule | Hacker Tracker";
+    }
+  }, [loading, conference]);
 
   useEffect(() => {
     if (!confCode) return;
@@ -29,23 +41,22 @@ export function Schedule() {
       setError(null);
       try {
         const [conf, evs, tags] = await Promise.all([
-          getConferenceById(confCode),
+          getConferenceByCode(confCode),
           getEvents(confCode),
           getTags(confCode),
         ]);
-
         if (cancelled) return;
 
-        setConference(conf);
-
-        const tz = conf?.timezone || "UTC";
-        const groupedSchedule = buildScheduleBucketsByDay(
-          evs as HTEvent[],
-          tags as HTTagGroup[],
-          tz
-        );
-
-        setGrouped(groupedSchedule);
+        startTransition(() => {
+          setConference(conf);
+          const tz = conf?.timezone || "UTC";
+          const groupedSchedule = buildScheduleBucketsByDay(
+            evs as HTEvent[],
+            tags as HTTagGroup[],
+            tz
+          );
+          setGrouped(groupedSchedule);
+        });
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Failed to load schedule";
         if (!cancelled) setError(msg);
@@ -61,17 +72,25 @@ export function Schedule() {
 
   if (loading) return <LoadingPage />;
 
-  if (!loading && !conference && error && conference === null) {
+  if (!conference && error) {
     return <ErrorPage msg="Conference not found." />;
   }
 
   return (
-    <>
+    <div className="min-h-dvh flex flex-col">
       {conference && <ConferenceHeader conference={conference} />}
-      {grouped && confCode && (
-        <EventsList dateGroup={grouped} confCode={confCode} />
-      )}
+      <main className="flex-1">
+        {grouped && confCode ? (
+          <Suspense fallback={<LoadingPage />}>
+            <EventsList
+              dateGroup={grouped}
+              confCode={confCode}
+              pageTitle="Schedule"
+            />
+          </Suspense>
+        ) : null}
+      </main>
       <HTFooter />
-    </>
+    </div>
   );
 }

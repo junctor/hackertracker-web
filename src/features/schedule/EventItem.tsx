@@ -1,18 +1,20 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect, memo } from "react";
 import { useNavigate } from "react-router";
 import { BookmarkIcon as BookmarkOutline } from "@heroicons/react/24/outline";
 import { BookmarkIcon as BookmarkSolid } from "@heroicons/react/24/solid";
 import type { ProcessedEvent } from "@/types/ht";
 
-function fmtTime(value: string | number | Date) {
+function fmtTime(value: string | number | Date, tz?: string, withZone = false) {
   const d = new Date(value);
   return new Intl.DateTimeFormat(undefined, {
     hour: "numeric",
     minute: "2-digit",
+    timeZone: tz,
+    ...(withZone ? { timeZoneName: "short" } : {}),
   }).format(d);
 }
 
-export default function EventItem({
+function EventItemBase({
   event,
   isBookmarked,
   confCode,
@@ -25,15 +27,19 @@ export default function EventItem({
 }) {
   const nav = useNavigate();
 
+  const [optimistic, setOptimistic] = useState(isBookmarked);
+  useEffect(() => setOptimistic(isBookmarked), [isBookmarked]);
+
   const barStyle = useMemo(
     () => ({ "--event-color": event.color ?? "#fff" }) as React.CSSProperties,
     [event.color]
   );
 
-  const go = () => nav(`/event?conf=${confCode}&id=${event.id}`);
+  const go = () => nav(`/event?conf=${confCode}&event=${event.id}`);
 
   const toggle = (e: React.MouseEvent) => {
     e.stopPropagation();
+    setOptimistic((v) => !v);
     onToggle?.();
   };
 
@@ -54,11 +60,13 @@ export default function EventItem({
         <div className="col-span-12 sm:col-span-3">
           <p className="text-base font-semibold text-gray-100">
             <time dateTime={new Date(event.begin).toISOString()}>
-              {fmtTime(event.begin)}
+              {fmtTime(event.begin, event.timeZone, true)}
             </time>
           </p>
           {event.end && (
-            <p className="text-sm text-gray-400">{fmtTime(event.end)}</p>
+            <p className="text-sm text-gray-400">
+              {fmtTime(event.end, event.timeZone, false)} {/* no zone here */}
+            </p>
           )}
         </div>
 
@@ -94,11 +102,11 @@ export default function EventItem({
         <div className="col-span-12 sm:col-span-1 flex items-start justify-end">
           <button
             onClick={toggle}
-            aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
-            aria-pressed={isBookmarked}
+            aria-label={optimistic ? "Remove bookmark" : "Add bookmark"}
+            aria-pressed={optimistic}
             className="rounded p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
           >
-            {isBookmarked ? (
+            {optimistic ? (
               <BookmarkSolid className="h-5 w-5 text-indigo-400" />
             ) : (
               <BookmarkOutline className="h-5 w-5 text-gray-500" />
@@ -109,3 +117,13 @@ export default function EventItem({
     </li>
   );
 }
+
+const EventItem = memo(
+  EventItemBase,
+  (prev, next) =>
+    prev.event.id === next.event.id &&
+    prev.isBookmarked === next.isBookmarked &&
+    prev.confCode === next.confCode
+);
+
+export default EventItem;
