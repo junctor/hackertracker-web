@@ -1,5 +1,4 @@
 import { useEffect, useState, Suspense, startTransition } from "react";
-import { useSearchParams } from "react-router";
 import { getConferenceByCode, getEventsByIds, getSpeakerById } from "@/lib/db";
 import type { HTConference, HTEvent, HTPerson } from "@/types/db";
 import { ConferenceHeader } from "@/components/ConferenceHeader";
@@ -7,11 +6,10 @@ import LoadingPage from "@/components/LoadingPage";
 import ErrorPage from "@/components/ErrorPage";
 import { HTFooter } from "@/components/HTFooter";
 import PersonDetails from "./PersonDetails";
+import { useNormalizedParams } from "@/lib/utils/params";
 
 export function Person() {
-  const [searchParams] = useSearchParams();
-  const confCode = searchParams.get("conf");
-  const personId = searchParams.get("person");
+  const { confCode, personId } = useNormalizedParams();
 
   const [person, setPerson] = useState<HTPerson | null>(null);
   const [conference, setConference] = useState<HTConference | null>(null);
@@ -79,10 +77,10 @@ export function Person() {
     <div className="min-h-dvh flex flex-col">
       {conference && <ConferenceHeader conference={conference} />}
       <main className="flex-1">
-        {person && confCode ? (
+        {person && conference ? (
           <Suspense fallback={<LoadingPage message="Loading people..." />}>
             <PersonDetails
-              confCode={confCode}
+              conference={conference}
               person={person}
               events={events}
             />

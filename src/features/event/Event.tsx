@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router";
+import { useEffect, useState } from "react";
 import {
   getConferenceByCode,
   getEventById,
@@ -20,17 +19,10 @@ import LoadingPage from "@/components/LoadingPage";
 import ErrorPage from "@/components/ErrorPage";
 import { HTFooter } from "@/components/HTFooter";
 import EventDetails from "./EventDetails";
+import { useNormalizedParams } from "@/lib/utils/params";
 
 export function Event() {
-  const [searchParams] = useSearchParams();
-
-  const { confCode, eventId } = useMemo(
-    () => ({
-      confCode: searchParams.get("conf") ?? undefined,
-      eventId: searchParams.get("event") ?? undefined,
-    }),
-    [searchParams]
-  );
+  const { confCode, eventId } = useNormalizedParams();
 
   const [event, setEvent] = useState<ProcessedEvent | null>(null);
   const [people, setPeople] = useState<HTPerson[]>([]);

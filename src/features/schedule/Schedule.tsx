@@ -1,5 +1,4 @@
 import { useEffect, useState, lazy, Suspense, startTransition } from "react";
-import { useSearchParams } from "react-router";
 import { getConferenceByCode, getEvents, getTags } from "@/lib/db";
 import { buildScheduleBucketsByDay } from "@/lib/utils/schedule";
 import type { GroupedSchedule } from "@/types/ht";
@@ -8,12 +7,12 @@ import { ConferenceHeader } from "@/components/ConferenceHeader";
 import LoadingPage from "@/components/LoadingPage";
 import ErrorPage from "@/components/ErrorPage";
 import { HTFooter } from "@/components/HTFooter";
+import { useNormalizedParams } from "@/lib/utils/params";
 
 const EventsList = lazy(() => import("./EventsList"));
 
 export function Schedule() {
-  const [searchParams] = useSearchParams();
-  const confCode = searchParams.get("conf");
+  const { confCode } = useNormalizedParams();
 
   const [grouped, setGrouped] = useState<GroupedSchedule | null>(null);
   const [conference, setConference] = useState<HTConference | null>(null);
