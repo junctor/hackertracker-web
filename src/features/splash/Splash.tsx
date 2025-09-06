@@ -1,11 +1,17 @@
+import { useEffect } from "react";
 import { HTHeader } from "@/components/HTHeader";
 import { UpcomingConferences } from "../conferences/UpcomingConferences";
+import { HTFooter } from "@/components/HTFooter";
 
 export function Splash() {
+  useEffect(() => {
+    document.title = "Hacker Tracker — Schedules for hackers, by hackers";
+  }, []);
+
   return (
-    <>
+    <div className="min-h-dvh flex flex-col">
       <HTHeader />
-      <main className="min-h-screen flex flex-col items-center justify-center px-4 text-center text-white">
+      <main className="flex-1 flex flex-col items-center justify-center px-4 text-center text-white">
         {/* add top padding to clear the fixed nav */}
         <header className="my-5 pt-16 sm:pt-20">
           <h1
@@ -53,6 +59,7 @@ export function Splash() {
           </div>
         </section>
       </main>
-    </>
+      <HTFooter />
+    </div>
   );
 }

@@ -22,7 +22,6 @@ type NavItem = {
   external?: boolean;
   icon: React.ElementType;
 };
-type HeaderVariant = "default" | "splash";
 
 const items: NavItem[] = [
   {
@@ -42,7 +41,11 @@ const items: NavItem[] = [
   },
 ];
 
-export function HTHeader({ variant = "default" }: { variant?: HeaderVariant }) {
+export function HTHeader({
+  variant = "default",
+}: {
+  variant?: "default" | "splash";
+}) {
   const { pathname } = useLocation();
   const [scrolled, setScrolled] = useState(false);
 
@@ -54,7 +57,7 @@ export function HTHeader({ variant = "default" }: { variant?: HeaderVariant }) {
   }, []);
 
   const base =
-    "sticky top-0 h-14 z-50 border-b border-neutral-800 transition-colors backdrop-blur";
+    "sticky top-0 h-14 z-50 border-b border-neutral-800 transition-colors backdrop-blur supports-[backdrop-filter]:backdrop-blur";
   const bg =
     variant === "splash"
       ? scrolled
@@ -62,11 +65,18 @@ export function HTHeader({ variant = "default" }: { variant?: HeaderVariant }) {
         : "bg-transparent"
       : scrolled
         ? "bg-neutral-950/90"
-        : "bg-neutral-950/80";
-  const headerClass = `${base} ${bg}`;
+        : "bg-neutral-950/70";
 
   return (
-    <header className={headerClass}>
+    <header className={`${base} ${bg}`}>
+      {/* Skip link for keyboard nav */}
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[100] rounded bg-neutral-900 px-3 py-2 text-sm text-white shadow"
+      >
+        Skip to content
+      </a>
+
       <div className="flex w-full items-center justify-between h-14 px-4 sm:px-6 lg:px-10">
         {/* Brand */}
         <Link
@@ -78,42 +88,46 @@ export function HTHeader({ variant = "default" }: { variant?: HeaderVariant }) {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden sm:flex items-center gap-3">
-          {items.map(({ key, label, to, external, icon: Icon }) =>
-            external ? (
+        <nav className="hidden sm:flex items-center gap-2">
+          {items.map(({ key, label, to, external, icon: Icon }) => {
+            const active = pathname === to;
+            const common =
+              "inline-flex items-center gap-2 rounded-lg border border-neutral-800 px-3 py-2 text-sm transition-colors";
+            const classes = external
+              ? `${common} bg-neutral-900/60 text-neutral-300 hover:bg-neutral-900 hover:text-white`
+              : active
+                ? `${common} bg-neutral-900 text-white`
+                : `${common} bg-neutral-900/60 text-neutral-300 hover:bg-neutral-900 hover:text-white`;
+            return external ? (
               <a
                 key={key}
                 href={to}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900/60 px-3 py-2 text-sm text-neutral-300 hover:bg-neutral-900 hover:text-white transition-colors"
+                className={classes}
                 aria-label={label}
                 title={label}
               >
                 <Icon className="h-5 w-5" />
-                <span className="hidden sm:inline">{label}</span>
+                <span className="hidden md:inline">{label}</span>
               </a>
             ) : (
               <Link
                 key={key}
                 to={to}
-                className={[
-                  "inline-flex items-center gap-2 rounded-lg border border-neutral-800 px-3 py-2 text-sm transition-colors",
-                  pathname === to
-                    ? "bg-neutral-900 text-white"
-                    : "bg-neutral-900/60 text-neutral-300 hover:bg-neutral-900 hover:text-white",
-                ].join(" ")}
+                className={classes}
                 aria-label={label}
                 title={label}
+                aria-current={active ? "page" : undefined}
               >
                 <Icon className="h-5 w-5" />
-                <span className="hidden sm:inline">{label}</span>
+                <span className="hidden md:inline">{label}</span>
               </Link>
-            )
-          )}
+            );
+          })}
         </nav>
 
-        {/* Mobile: Browse + Popover */}
+        {/* Mobile */}
         <div className="flex items-center gap-2 sm:hidden">
           <Link
             to="/conferences"
@@ -126,7 +140,7 @@ export function HTHeader({ variant = "default" }: { variant?: HeaderVariant }) {
             {({ open }) => (
               <>
                 <PopoverButton
-                  aria-label="Open menu"
+                  aria-label={open ? "Close menu" : "Open menu"}
                   className={[
                     "inline-flex h-9 w-9 items-center justify-center rounded-md border border-neutral-700 bg-neutral-900 hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50",
                     open ? "ring-1 ring-cyan-400/40" : "",
@@ -180,6 +194,7 @@ export function HTHeader({ variant = "default" }: { variant?: HeaderVariant }) {
                                 ? "bg-neutral-900 text-white"
                                 : "text-neutral-300 hover:bg-neutral-900 hover:text-white",
                             ].join(" ")}
+                            aria-current={pathname === to ? "page" : undefined}
                           >
                             <Icon className="h-5 w-5" />
                             {label}
