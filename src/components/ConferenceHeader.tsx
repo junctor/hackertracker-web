@@ -1,5 +1,5 @@
-import { Fragment } from "react";
-import { Link, useLocation } from "react-router";
+import { Fragment, useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useSearchParams } from "react-router";
 import {
   Popover,
   Transition,
@@ -12,6 +12,8 @@ import {
   HomeIcon,
   ArrowTopRightOnSquareIcon,
   CodeBracketSquareIcon,
+  BookmarkSquareIcon,
+  CalendarDaysIcon,
 } from "@heroicons/react/24/outline";
 import type { HTConference } from "@/types/db";
 
@@ -21,49 +23,98 @@ type NavItem = {
   to: string;
   external?: boolean;
   icon: React.ElementType;
+  ariaCurrent?: boolean;
 };
 
 export function ConferenceHeader({ conference }: { conference: HTConference }) {
   const { pathname } = useLocation();
+  const [params] = useSearchParams();
+  const [scrolled, setScrolled] = useState(false);
 
-  const items: NavItem[] = [
-    {
-      key: "ht",
-      label: "HackerTracker",
-      to: "/",
-      icon: HomeIcon,
-    },
-    {
-      key: "conf",
-      label: "Conference",
-      to: conference.link,
-      external: true,
-      icon: ArrowTopRightOnSquareIcon,
-    },
-    {
-      key: "github",
-      label: "GitHub",
-      to: "https://github.com/junctor/hackertracker-web",
-      external: true,
-      icon: CodeBracketSquareIcon,
-    },
-  ];
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Build first-class, conference-aware items
+  const confCode = conference.code;
+  const scheduleHref = `/schedule?conf=${encodeURIComponent(confCode)}`;
+  const bookmarksHref = `/bookmarks?conf=${encodeURIComponent(confCode)}`;
+
+  // Active states (path + query awareness)
+  const isSchedule =
+    pathname.startsWith("/schedule") &&
+    (params.get("conf") ?? confCode) === confCode;
+  const isBookmarks =
+    pathname.startsWith("/bookmarks") &&
+    (params.get("conf") ?? confCode) === confCode;
+
+  const items: NavItem[] = useMemo(() => {
+    const base: NavItem[] = [
+      {
+        key: "schedule",
+        label: "Schedule",
+        to: scheduleHref,
+        icon: CalendarDaysIcon,
+        ariaCurrent: isSchedule,
+      },
+      {
+        key: "bookmarks",
+        label: "Bookmarks",
+        to: bookmarksHref,
+        icon: BookmarkSquareIcon,
+        ariaCurrent: isBookmarks,
+      },
+      {
+        key: "home",
+        label: "HackerTracker",
+        to: "/",
+        icon: HomeIcon,
+      },
+      {
+        key: "github",
+        label: "GitHub",
+        to: "https://github.com/junctor/hackertracker-web",
+        external: true,
+        icon: CodeBracketSquareIcon,
+      },
+    ];
+
+    if (conference.link) {
+      base.splice(2, 0, {
+        key: "conf",
+        label: "Conference",
+        to: conference.link!,
+        external: true,
+        icon: ArrowTopRightOnSquareIcon,
+      });
+    }
+    return base;
+  }, [scheduleHref, bookmarksHref, conference.link, isSchedule, isBookmarks]);
+
+  const baseHeader =
+    "sticky top-0 h-14 z-50 border-b border-neutral-800 transition-colors backdrop-blur supports-[backdrop-filter]:backdrop-blur";
+  const bg = scrolled ? "bg-neutral-950/90" : "bg-neutral-950/70";
 
   return (
-    <header className="sticky top-0 h-14 z-50 border-b border-neutral-800 bg-neutral-950/90 backdrop-blur">
+    <header className={`${baseHeader} ${bg}`}>
       <div className="flex w-full items-center justify-between h-14 px-4 sm:px-6 lg:px-10">
         {/* Left: Conference name / brand */}
         <div className="min-w-0">
-          <span className="block truncate text-base sm:text-lg font-semibold text-white">
+          <Link
+            to={scheduleHref}
+            className="block truncate text-lg sm:text-xl font-extrabold text-white hover:opacity-90"
+            aria-label={`${conference.name} — view schedule`}
+          >
             {conference.name}
-          </span>
-          {/* Optional subline: uncomment if you want the code/timezone visible */}
-          {/* <span className="text-xs text-neutral-400">{conference.code} · {conference.timezone}</span> */}
+          </Link>
         </div>
 
         {/* Desktop nav */}
-        <nav className="hidden sm:flex items-center gap-3">
-          {items.map(({ key, label, to, external, icon: Icon }) =>
+        <nav className="hidden sm:flex items-center gap-2">
+          {items.map(({ key, label, to, external, icon: Icon, ariaCurrent }) =>
             external ? (
               <a
                 key={key}
@@ -75,7 +126,7 @@ export function ConferenceHeader({ conference }: { conference: HTConference }) {
                 title={label}
               >
                 <Icon className="h-5 w-5" />
-                <span className="hidden sm:inline">{label}</span>
+                <span className="hidden md:inline">{label}</span>
               </a>
             ) : (
               <Link
@@ -83,27 +134,28 @@ export function ConferenceHeader({ conference }: { conference: HTConference }) {
                 to={to}
                 className={[
                   "inline-flex items-center gap-2 rounded-lg border border-neutral-800 px-3 py-2 text-sm transition-colors",
-                  pathname === to
+                  ariaCurrent
                     ? "bg-neutral-900 text-white"
                     : "bg-neutral-900/60 text-neutral-300 hover:bg-neutral-900 hover:text-white",
                 ].join(" ")}
                 aria-label={label}
                 title={label}
+                aria-current={ariaCurrent ? "page" : undefined}
               >
                 <Icon className="h-5 w-5" />
-                <span className="hidden sm:inline">{label}</span>
+                <span className="hidden md:inline">{label}</span>
               </Link>
             )
           )}
         </nav>
 
-        {/* Mobile: Browse + Popover */}
+        {/* Mobile: Popover menu */}
         <div className="flex items-center gap-2 sm:hidden">
           <Popover className="relative">
             {({ open }) => (
               <>
                 <PopoverButton
-                  aria-label="Open menu"
+                  aria-label={open ? "Close menu" : "Open menu"}
                   className={[
                     "inline-flex h-9 w-9 items-center justify-center rounded-md border border-neutral-700 bg-neutral-900 hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50",
                     open ? "ring-1 ring-cyan-400/40" : "",
@@ -133,35 +185,44 @@ export function ConferenceHeader({ conference }: { conference: HTConference }) {
                 >
                   <PopoverPanel className="absolute right-0 mt-2 w-56 origin-top-right rounded-lg border border-neutral-800 bg-neutral-950/95 p-2 shadow-lg backdrop-blur">
                     <div className="space-y-1 text-sm">
-                      {items.map(({ key, label, to, external, icon: Icon }) =>
-                        external ? (
-                          <PopoverButton
-                            key={key}
-                            as="a"
-                            href={to}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-neutral-300 hover:bg-neutral-900 hover:text-white transition-colors"
-                          >
-                            <Icon className="h-5 w-5" />
-                            {label}
-                          </PopoverButton>
-                        ) : (
-                          <PopoverButton
-                            key={key}
-                            as={Link}
-                            to={to}
-                            className={[
-                              "flex w-full items-center gap-2 rounded-md px-3 py-2 text-left transition-colors",
-                              pathname === to
-                                ? "bg-neutral-900 text-white"
-                                : "text-neutral-300 hover:bg-neutral-900 hover:text-white",
-                            ].join(" ")}
-                          >
-                            <Icon className="h-5 w-5" />
-                            {label}
-                          </PopoverButton>
-                        )
+                      {items.map(
+                        ({
+                          key,
+                          label,
+                          to,
+                          external,
+                          icon: Icon,
+                          ariaCurrent,
+                        }) =>
+                          external ? (
+                            <PopoverButton
+                              key={key}
+                              as="a"
+                              href={to}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-neutral-300 hover:bg-neutral-900 hover:text-white transition-colors"
+                            >
+                              <Icon className="h-5 w-5" />
+                              {label}
+                            </PopoverButton>
+                          ) : (
+                            <PopoverButton
+                              key={key}
+                              as={Link}
+                              to={to}
+                              className={[
+                                "flex w-full items-center gap-2 rounded-md px-3 py-2 text-left transition-colors",
+                                ariaCurrent
+                                  ? "bg-neutral-900 text-white"
+                                  : "text-neutral-300 hover:bg-neutral-900 hover:text-white",
+                              ].join(" ")}
+                              aria-current={ariaCurrent ? "page" : undefined}
+                            >
+                              <Icon className="h-5 w-5" />
+                              {label}
+                            </PopoverButton>
+                          )
                       )}
                     </div>
                   </PopoverPanel>
