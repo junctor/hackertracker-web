@@ -1,4 +1,3 @@
-// src/lib/db/conferences.ts
 import {
   collection,
   doc,
@@ -22,7 +21,7 @@ export async function getConferences(count = 50): Promise<HTConference[]> {
   });
 }
 
-export async function getConferenceById(
+export async function getConferenceByCode(
   code: string
 ): Promise<HTConference | null> {
   const ref = doc(db, "conferences", code);
@@ -36,8 +35,8 @@ export async function getUpcomingConferences(): Promise<HTConference[]> {
   const ref = collection(db, "conferences");
   const q = query(
     ref,
-    where("start_timestamp", ">=", new Date()),
-    orderBy("start_timestamp", "asc"),
+    where("end_timestamp", ">=", new Date()),
+    orderBy("end_timestamp", "asc"),
     limit(50)
   );
   const snap = await getDocs(q);
