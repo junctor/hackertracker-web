@@ -69,7 +69,7 @@ export function Schedule() {
     };
   }, [confCode]);
 
-  if (loading) return <LoadingPage />;
+  if (loading) return <LoadingPage message="Loading schedule..." />;
 
   if (!conference && error) {
     return <ErrorPage msg="Conference not found." />;
@@ -80,7 +80,7 @@ export function Schedule() {
       {conference && <ConferenceHeader conference={conference} />}
       <main className="flex-1">
         {grouped && confCode ? (
-          <Suspense fallback={<LoadingPage />}>
+          <Suspense fallback={<LoadingPage message="Loading events..." />}>
             <EventsList
               dateGroup={grouped}
               confCode={confCode}

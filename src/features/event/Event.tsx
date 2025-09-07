@@ -108,7 +108,7 @@ export function Event() {
     return (
       <div className="min-h-screen flex flex-col bg-gray-950">
         <main className="flex-1">
-          <LoadingPage />
+          <LoadingPage message="Loading event..." />
         </main>
         <HTFooter />
       </div>

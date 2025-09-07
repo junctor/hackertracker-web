@@ -71,7 +71,7 @@ export default function AppRouter() {
       <Route
         path="/conferences"
         element={
-          <Suspense fallback={<LoadingPage />}>
+          <Suspense fallback={<LoadingPage message="Loading conferences..." />}>
             <ConferencesRoute />
           </Suspense>
         }
@@ -79,7 +79,7 @@ export default function AppRouter() {
       <Route
         path="/schedule"
         element={
-          <Suspense fallback={<LoadingPage />}>
+          <Suspense fallback={<LoadingPage message="Loading schedule..." />}>
             <ScheduleRoute />
           </Suspense>
         }
@@ -87,7 +87,7 @@ export default function AppRouter() {
       <Route
         path="/bookmarks"
         element={
-          <Suspense fallback={<LoadingPage />}>
+          <Suspense fallback={<LoadingPage message="Loading bookmarks..." />}>
             <BookmarksRoute />
           </Suspense>
         }
@@ -95,7 +95,7 @@ export default function AppRouter() {
       <Route
         path="/people"
         element={
-          <Suspense fallback={<LoadingPage />}>
+          <Suspense fallback={<LoadingPage message="Loading people..." />}>
             <PeopleRoute />
           </Suspense>
         }
@@ -103,7 +103,7 @@ export default function AppRouter() {
       <Route
         path="/person"
         element={
-          <Suspense fallback={<LoadingPage />}>
+          <Suspense fallback={<LoadingPage message="Loading person..." />}>
             <PersonRoute />
           </Suspense>
         }
@@ -111,7 +111,7 @@ export default function AppRouter() {
       <Route
         path="/event"
         element={
-          <Suspense fallback={<LoadingPage />}>
+          <Suspense fallback={<LoadingPage message="Loading event..." />}>
             <EventRoute />
           </Suspense>
         }
@@ -119,7 +119,7 @@ export default function AppRouter() {
       <Route
         path="/about"
         element={
-          <Suspense fallback={<LoadingPage />}>
+          <Suspense fallback={<LoadingPage message="Loading about..." />}>
             <AboutRoute />
           </Suspense>
         }
@@ -127,7 +127,7 @@ export default function AppRouter() {
       <Route
         path="/support"
         element={
-          <Suspense fallback={<LoadingPage />}>
+          <Suspense fallback={<LoadingPage message="Loading support..." />}>
             <SupportRoute />
           </Suspense>
         }
