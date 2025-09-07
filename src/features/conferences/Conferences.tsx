@@ -9,6 +9,7 @@ export function Conferences() {
   const [conferences, setConferences] = useState<HTConference[]>([]);
 
   useEffect(() => {
+    document.title = "Conferences · Hacker Tracker";
     (async () => setConferences(await getConferences(500)))();
   }, []);
 

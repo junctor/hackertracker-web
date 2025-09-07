@@ -70,7 +70,7 @@ export function DisplayConferences({
   }, [conferences]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 my-10">
       {/* Upcoming */}
       <section id="upcoming" className="space-y-4">
         <h2 className="text-lg font-semibold text-neutral-200">

@@ -152,7 +152,7 @@ export default function EventsList({
       </div>
 
       {/* Sticky day tabs */}
-      <div className="sticky top-14 z-30 flex flex-wrap justify-center gap-2 border-b border-gray-700 bg-gray-950/80 py-2 backdrop-blur">
+      <div className="sticky top-14 z-30 flex flex-wrap justify-center gap-2 border-b border-gray-700 bg-gray-950 py-2 backdrop-blur">
         {days.map(({ day }) => {
           const active = activeDays.includes(day);
           return (
