@@ -12,10 +12,10 @@ import {
 import { BookmarkIcon as BookmarkSolid } from "@heroicons/react/24/solid";
 import type { ProcessedEvent } from "@/types/ht";
 import { loadConfBookmarks, toggleBookmark } from "@/lib/utils/storage";
-import { generateICalFromProcessed } from "@/lib/utils/cal";
 import { formatSessionTime } from "@/lib/utils/dates";
 import type { HTConference, HTPerson } from "@/types/db";
 import Markdown from "@/components/Markdown";
+import generateICal from "@/lib/utils/cal";
 
 export default function EventDetails({
   event,
@@ -61,7 +61,7 @@ export default function EventDetails({
   };
 
   const handleCalendar = () => {
-    const ics = generateICalFromProcessed(event, conference);
+    const ics = generateICal(event, conference);
     const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
     const href = URL.createObjectURL(blob);
     const a = document.createElement("a");
