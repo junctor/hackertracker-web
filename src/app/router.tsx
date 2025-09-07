@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router";
 import LoadingPage from "@/components/LoadingPage";
 
 import { Suspense, lazy } from "react";
+import NotFound from "@/components/NotFound";
 
 const SplashRoute = lazy(() =>
   import("../features/splash/Splash").then((module) => ({
@@ -132,6 +133,7 @@ export default function AppRouter() {
           </Suspense>
         }
       />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
