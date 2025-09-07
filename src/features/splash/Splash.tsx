@@ -1,7 +1,8 @@
 import { useEffect } from "react";
+import { Link } from "react-router";
 import { HTHeader } from "@/components/HTHeader";
-import { UpcomingConferences } from "../conferences/UpcomingConferences";
 import { HTFooter } from "@/components/HTFooter";
+import { UpcomingConferences } from "../conferences/UpcomingConferences";
 
 export function Splash() {
   useEffect(() => {
@@ -9,14 +10,33 @@ export function Splash() {
   }, []);
 
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div className="min-h-dvh flex flex-col bg-gray-950">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50
+                   rounded-md bg-white/90 px-3 py-2 text-sm font-semibold text-gray-900 shadow"
+      >
+        Skip to content
+      </a>
+
       <HTHeader />
-      <main className="flex-1 flex flex-col items-center justify-center px-4 text-center text-white">
-        {/* add top padding to clear the fixed nav */}
-        <header className="my-5 pt-16 sm:pt-20">
+
+      {/* subtle background depth */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 -z-10
+                   bg-[radial-gradient(60%_40%_at_50%_0%,rgba(56,189,248,0.12),transparent_60%),radial-gradient(50%_50%_at_80%_10%,rgba(244,63,94,0.10),transparent_60%)]"
+      />
+
+      <main
+        id="main"
+        className="flex-1 flex flex-col items-center justify-center px-4 text-center text-white"
+      >
+        <header className="w-full max-w-6xl mx-auto pt-10 sm:pt-16">
           <h1
-            className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-extrabold leading-tight 
-  bg-gradient-to-r from-cyan-400 via-white to-red-500 bg-clip-text text-transparent"
+            className="text-5xl sm:text-6xl md:text-7xl font-extrabold leading-tight
+                       bg-gradient-to-r from-cyan-400 via-white to-rose-400 bg-clip-text text-transparent
+                       drop-shadow-[0_1px_1px_rgba(0,0,0,0.55)]"
           >
             Hacker Tracker
           </h1>
@@ -47,15 +67,15 @@ export function Splash() {
           </div>
         </header>
 
-        <section className="w-full max-w-5xl mx-auto px-4">
+        <section className="w-full max-w-6xl mx-auto px-2 sm:px-4 mt-10 mb-12">
           <UpcomingConferences />
-          <div className="mt-6 text-center">
-            <a
-              href="/conferences"
-              className="text-blue-500 hover:underline font-medium"
+          <div className="mt-8">
+            <Link
+              to="/conferences"
+              className="text-cyan-300 hover:text-white underline-offset-4 hover:underline font-medium"
             >
               View all conferences
-            </a>
+            </Link>
           </div>
         </section>
       </main>
