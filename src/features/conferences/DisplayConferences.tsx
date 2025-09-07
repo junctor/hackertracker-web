@@ -77,7 +77,7 @@ export function DisplayConferences({
           Upcoming Conferences
         </h2>
         {upcoming.length ? (
-          <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 [grid-auto-rows:1fr]">
+          <div className="grid gap-4 sm:gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 [grid-auto-rows:1fr]">
             {upcoming.map((c) => (
               <ConferenceCard key={c.id} conference={c} />
             ))}
@@ -93,7 +93,7 @@ export function DisplayConferences({
           Recently Updated
         </h2>
         {updated.length ? (
-          <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 [grid-auto-rows:1fr]">
+          <div className="grid gap-4 sm:gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 [grid-auto-rows:1fr]">
             {updated.map((c) => (
               <ConferenceCard key={c.id} conference={c} />
             ))}
@@ -109,7 +109,7 @@ export function DisplayConferences({
           Past Conferences
         </h2>
         {past.length ? (
-          <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 [grid-auto-rows:1fr]">
+          <div className="grid gap-4 sm:gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 [grid-auto-rows:1fr]">
             {past.map((c) => (
               <ConferenceCard key={c.id} conference={c} />
             ))}

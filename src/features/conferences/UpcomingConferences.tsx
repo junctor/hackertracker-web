@@ -20,7 +20,7 @@ export function UpcomingConferences() {
       <h2 className="mb-4 text-left text-lg font-semibold text-neutral-200">
         Upcoming Conferences
       </h2>
-      <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 [grid-auto-rows:1fr]">
+      <div className="grid gap-4 sm:gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 [grid-auto-rows:1fr]">
         {conferences.map((c) => (
           <ConferenceCard key={c.id} conference={c} />
         ))}

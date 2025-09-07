@@ -16,8 +16,8 @@ export function Conferences() {
   return (
     <>
       <HTHeader />
-      <div className="mx-10 mt-10">
-        <h2 className="text-xl font-semibold text-white">Conferences</h2>
+      <div className="px-4 sm:px-6 lg:px-10 mt-10">
+        <h2 className="text-xl font-semibold text-neutral-100">Conferences</h2>
         <DisplayConferences conferences={conferences} />
       </div>
       <HTFooter />
