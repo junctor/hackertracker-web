@@ -1,0 +1,73 @@
+type LoadingPageProps = {
+  fullscreen?: boolean;
+  message?: string;
+};
+
+export default function LoadingPage({
+  fullscreen = true,
+  message = "Fetching content…",
+}: LoadingPageProps) {
+  const wrap = fullscreen
+    ? "relative grid min-h-[calc(100dvh-0px)] place-items-center"
+    : "relative grid place-items-center py-10";
+
+  return (
+    <section
+      className={`${wrap} text-center`}
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <div
+        aria-hidden
+        className="scanlines absolute inset-0 pointer-events-none"
+      />
+      <div
+        aria-hidden
+        className="vignette absolute inset-0 pointer-events-none"
+      />
+
+      <div className="mx-auto px-4">
+        <div className="relative inline-block select-none isolation-isolate">
+          <h1
+            className="
+              relative text-4xl md:text-5xl font-extrabold tracking-tight
+              text-transparent bg-clip-text
+              bg-[linear-gradient(90deg,#22d3ee_0%,#e879f9_20%,#f59e0b_40%,#22c55e_60%,#60a5fa_80%,#22d3ee_100%)]
+              bg-[length:300%_100%]
+              motion-safe:animate-[slide_5s_linear_infinite]
+              [filter:drop-shadow(0_0_10px_rgba(232,121,249,0.45))]
+            "
+          >
+            HT
+            <span
+              aria-hidden
+              className="
+                pointer-events-none absolute inset-y-0 -inset-x-8 mix-blend-screen
+                [background:linear-gradient(90deg,transparent_0%,rgba(34,211,238,.25)_45%,rgba(255,255,255,.5)_50%,rgba(232,121,249,.25)_55%,transparent_100%)]
+                motion-safe:animate-[sweep_1.8s_ease-in-out_infinite]
+              "
+            />
+          </h1>
+
+          <span
+            aria-hidden
+            className="absolute inset-0 text-cyan-300 mix-blend-screen opacity-95 translate-x-[1.5px] -translate-y-[0.8px]"
+          >
+            HT
+          </span>
+          <span
+            aria-hidden
+            className="absolute inset-0 text-fuchsia-400 mix-blend-screen opacity-95 -translate-x-[1.5px] translate-y-[0.8px]"
+          >
+            HT
+          </span>
+        </div>
+
+        <p className="mt-3 font-mono text-xs md:text-sm text-gray-300/80">
+          {message}
+        </p>
+      </div>
+    </section>
+  );
+}
