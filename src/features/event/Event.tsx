@@ -30,7 +30,20 @@ export function Event() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Early validation of required params
+  // Title reflects state
+  useEffect(() => {
+    if (error && !conference) {
+      document.title = "Error · Event | Hacker Tracker";
+    } else if (loading) {
+      document.title = "Loading event… | Hacker Tracker";
+    } else if (conference && event) {
+      document.title = `${event.title} · ${conference.name} | Hacker Tracker`;
+    } else {
+      document.title = "Event | Hacker Tracker";
+    }
+  }, [loading, conference, event, error]);
+
+  // Validate required params early
   useEffect(() => {
     if (!confCode || !eventId) {
       setError("Missing required URL parameters.");
@@ -44,49 +57,49 @@ export function Event() {
 
     async function run() {
       if (!confCode || !eventId) return;
+
       setLoading(true);
       setError(null);
+      setEvent(null);
+      setPeople([]);
+      setConference(null);
 
       try {
-        const [conf, evt, tags] = await Promise.all([
-          getConferenceByCode(confCode),
-          getEventById(confCode, Number(eventId)),
-          getTags(confCode),
-        ]);
+        const conf = await getConferenceByCode(confCode);
         if (cancelled) return;
-
         if (!conf) {
-          setConference(null);
-          setEvent(null);
           setError("Conference not found");
           return;
         }
+        setConference(conf);
+
+        const evt = await getEventById(confCode, Number(eventId));
+        if (cancelled) return;
         if (!evt) {
-          setConference(conf);
-          setEvent(null);
           setError("Event not found");
           return;
         }
 
-        // Safe extraction of speaker ids
-        const speakerIds = (evt as HTEvent).speakers?.map((s) => s.id) ?? [];
-        const speakers = speakerIds.length
-          ? await getSpeakersByIds(confCode, speakerIds)
-          : [];
+        const [tags, speakers] = await Promise.all([
+          getTags(confCode),
+          (evt as HTEvent).speakers?.length
+            ? getSpeakersByIds(
+                confCode,
+                (evt as HTEvent).speakers!.map((s) => s.id)
+              )
+            : Promise.resolve([] as HTPerson[]),
+        ]);
+        if (cancelled) return;
 
         const tagMap = new Map<number, HTTag>();
         (tags as HTTagGroup[]).forEach((group) => {
-          group.tags?.forEach((tag) => tagMap.set(tag.id, tag));
+          group.tags?.forEach((t) => tagMap.set(t.id, t));
         });
 
         const processed = toProcessedEvent(evt as HTEvent, tagMap);
 
         setPeople(speakers);
-        setConference(conf);
         setEvent(processed);
-
-        // Set title without creating a fetch re-run dependency loop
-        document.title = `${processed.title} - ${conf.name}`;
       } catch (e) {
         if (!cancelled) {
           const msg = e instanceof Error ? e.message : "Failed to load event";
@@ -103,7 +116,6 @@ export function Event() {
     };
   }, [confCode, eventId]);
 
-  // Loading
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-950">
@@ -115,7 +127,6 @@ export function Event() {
     );
   }
 
-  // Fatal errors (no conference context)
   if (error && !conference) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-950">
@@ -127,7 +138,6 @@ export function Event() {
     );
   }
 
-  // Success (or event-specific error with conference present)
   return (
     <div className="min-h-screen flex flex-col bg-gray-950">
       <main className="flex-1">

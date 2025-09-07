@@ -17,68 +17,79 @@ export function Person() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Page title management
   useEffect(() => {
-    if (loading) {
-      document.title = "Loading person | Hacker Tracker";
+    if (error) {
+      document.title = "Error · Person | Hacker Tracker";
+    } else if (loading) {
+      document.title = "Loading person… | Hacker Tracker";
     } else if (conference && person) {
       document.title = `${person.name} · ${conference.name} | Hacker Tracker`;
     } else {
       document.title = "Person | Hacker Tracker";
     }
-  }, [loading, conference, person]);
+  }, [loading, conference, person, error]);
 
   useEffect(() => {
-    if (!confCode) return;
-
     let cancelled = false;
-
-    (async () => {
+    async function run() {
+      if (!confCode || !personId) {
+        setError("Missing required URL parameters.");
+        return;
+      }
       setLoading(true);
       setError(null);
+      setPerson(null);
+      setConference(null);
+      setEvents([]);
+
       try {
-        const [conf, p] = await Promise.all([
-          getConferenceByCode(confCode),
-          getSpeakerById(confCode, Number(personId)),
-        ]);
+        const conf = await getConferenceByCode(confCode);
         if (cancelled) return;
+        if (!conf) {
+          setError(`Conference not found.`);
+          return;
+        }
+        setConference(conf);
+
+        const p = await getSpeakerById(confCode, Number(personId));
+        if (cancelled) return;
+        if (!p) {
+          setError("Person not found.");
+          return;
+        }
 
         let personEvents: HTEvent[] = [];
-
-        if (p?.event_ids?.length) {
-          personEvents = await getEventsByIds(confCode, p?.event_ids);
+        if (p.event_ids?.length) {
+          personEvents = await getEventsByIds(confCode, p.event_ids);
+          if (cancelled) return;
         }
 
         startTransition(() => {
-          setConference(conf);
           setPerson(p);
           setEvents(personEvents);
         });
       } catch (e) {
-        const msg = e instanceof Error ? e.message : "Failed to load people";
+        const msg = e instanceof Error ? e.message : "Failed to load person";
         if (!cancelled) setError(msg);
       } finally {
         if (!cancelled) setLoading(false);
       }
-    })();
-
+    }
+    run();
     return () => {
       cancelled = true;
     };
   }, [confCode, personId]);
 
-  if (loading) return <LoadingPage message="Loading people..." />;
-
-  if (!conference && error) {
-    return <ErrorPage msg="People not found." />;
-  }
+  if (loading) return <LoadingPage message="Loading person..." />;
+  if (error) return <ErrorPage msg={error} />;
 
   return (
     <div className="min-h-dvh flex flex-col">
       {conference && <ConferenceHeader conference={conference} />}
       <main className="flex-1">
         {person && conference ? (
-          <Suspense fallback={<LoadingPage message="Loading people..." />}>
+          <Suspense fallback={<LoadingPage message="Loading person..." />}>
             <PersonDetails
               conference={conference}
               person={person}

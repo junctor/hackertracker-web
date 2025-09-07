@@ -21,44 +21,63 @@ export function Bookmarks() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Page title management
   useEffect(() => {
-    if (loading) {
+    if (error) {
+      document.title = "Error · Bookmarks | Hacker Tracker";
+    } else if (loading) {
       document.title = "Loading bookmarks… | Hacker Tracker";
     } else if (conference) {
       document.title = `Bookmarks · ${conference.name} | Hacker Tracker`;
     } else {
       document.title = "Bookmarks | Hacker Tracker";
     }
-  }, [loading, conference]);
+  }, [loading, conference, error]);
 
   useEffect(() => {
-    if (!confCode) return;
-
     let cancelled = false;
 
-    (async () => {
+    async function run() {
+      if (!confCode) {
+        setError("Missing required URL parameters.");
+        return;
+      }
       setLoading(true);
       setError(null);
+      setGrouped(null);
+      setConference(null);
+
       try {
-        const [conf, evs, tags] = await Promise.all([
-          getConferenceByCode(confCode),
+        const conf = await getConferenceByCode(confCode);
+        if (cancelled) return;
+        if (!conf) {
+          setError(`Conference not found.`);
+          return;
+        }
+        setConference(conf);
+
+        const bookmarks = loadConfBookmarks(confCode); // Set<number>
+        if (bookmarks.size === 0) {
+          setGrouped({});
+          return;
+        }
+
+        const [evs, tags] = await Promise.all([
           getEvents(confCode),
           getTags(confCode),
         ]);
         if (cancelled) return;
 
-        const tz = conf?.timezone || "UTC";
-        const bookmarks = loadConfBookmarks(confCode);
-        const bookmarkedEvents = evs.filter((e) => bookmarks.has(e.id));
+        const tz = conf.timezone || "UTC";
+        const bookmarkedEvents = (evs as HTEvent[]).filter((e) =>
+          bookmarks.has(e.id)
+        );
+        const groupedSchedule = buildScheduleBucketsByDay(
+          bookmarkedEvents,
+          tags as HTTagGroup[],
+          tz
+        );
 
         startTransition(() => {
-          setConference(conf);
-          const groupedSchedule = buildScheduleBucketsByDay(
-            bookmarkedEvents as HTEvent[],
-            tags as HTTagGroup[],
-            tz
-          );
           setGrouped(groupedSchedule);
         });
       } catch (e) {
@@ -67,8 +86,9 @@ export function Bookmarks() {
       } finally {
         if (!cancelled) setLoading(false);
       }
-    })();
+    }
 
+    run();
     return () => {
       cancelled = true;
     };
@@ -76,9 +96,7 @@ export function Bookmarks() {
 
   if (loading) return <LoadingPage message="Loading bookmarks..." />;
 
-  if (!conference && error) {
-    return <ErrorPage msg="Conference not found." />;
-  }
+  if (error) return <ErrorPage msg={error} />;
 
   return (
     <div className="min-h-dvh flex flex-col">
@@ -106,7 +124,6 @@ export function Bookmarks() {
           </div>
         )}
       </main>
-
       <HTFooter />
     </div>
   );

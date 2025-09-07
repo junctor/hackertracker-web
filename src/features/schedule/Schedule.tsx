@@ -19,41 +19,53 @@ export function Schedule() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Page title management
   useEffect(() => {
-    if (loading) {
+    if (error) {
+      document.title = "Error · Schedule | Hacker Tracker";
+    } else if (loading) {
       document.title = "Loading schedule… | Hacker Tracker";
     } else if (conference) {
       document.title = `Schedule · ${conference.name} | Hacker Tracker`;
     } else {
       document.title = "Schedule | Hacker Tracker";
     }
-  }, [loading, conference]);
+  }, [loading, conference, error]);
 
   useEffect(() => {
-    if (!confCode) return;
-
     let cancelled = false;
 
-    (async () => {
+    async function load() {
+      if (!confCode) return;
       setLoading(true);
       setError(null);
+      setGrouped(null);
+      setConference(null);
+
       try {
-        const [conf, evs, tags] = await Promise.all([
-          getConferenceByCode(confCode),
+        const conf = await getConferenceByCode(confCode);
+        if (cancelled) return;
+
+        if (!conf) {
+          setError(`Conference not found.`);
+          return;
+        }
+
+        setConference(conf);
+
+        const [evs, tags] = await Promise.all([
           getEvents(confCode),
           getTags(confCode),
         ]);
         if (cancelled) return;
 
+        const tz = conf.timezone || "UTC";
+        const groupedSchedule = buildScheduleBucketsByDay(
+          evs as HTEvent[],
+          tags as HTTagGroup[],
+          tz
+        );
+
         startTransition(() => {
-          setConference(conf);
-          const tz = conf?.timezone || "UTC";
-          const groupedSchedule = buildScheduleBucketsByDay(
-            evs as HTEvent[],
-            tags as HTTagGroup[],
-            tz
-          );
           setGrouped(groupedSchedule);
         });
       } catch (e) {
@@ -62,8 +74,9 @@ export function Schedule() {
       } finally {
         if (!cancelled) setLoading(false);
       }
-    })();
+    }
 
+    load();
     return () => {
       cancelled = true;
     };
@@ -71,9 +84,7 @@ export function Schedule() {
 
   if (loading) return <LoadingPage message="Loading schedule..." />;
 
-  if (!conference && error) {
-    return <ErrorPage msg="Conference not found." />;
-  }
+  if (error) return <ErrorPage msg={error} />;
 
   return (
     <div className="min-h-dvh flex flex-col">
