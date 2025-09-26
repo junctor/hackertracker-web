@@ -102,11 +102,11 @@ export function Bookmarks() {
     <div className="min-h-dvh flex flex-col">
       {conference && <ConferenceHeader conference={conference} />}
       <main className="flex-1">
-        {confCode && grouped && Object.keys(grouped).length > 0 ? (
+        {conference && grouped && Object.keys(grouped).length > 0 ? (
           <Suspense fallback={<LoadingPage message="Loading events..." />}>
             <EventsList
               dateGroup={grouped}
-              confCode={confCode}
+              conf={conference}
               pageTitle="Bookmarks"
             />
           </Suspense>
