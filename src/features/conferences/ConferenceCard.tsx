@@ -9,8 +9,8 @@ export const ConferenceCard = React.memo(function ConferenceCard({
   conference: HTConference;
 }) {
   const start =
-    toDate(conference.start_date) ?? toDate(conference.start_timestamp);
-  const end = toDate(conference.end_date) ?? toDate(conference.end_timestamp);
+    toDate(conference.start_timestamp) ?? toDate(conference.start_date);
+  const end = toDate(conference.end_timestamp) ?? toDate(conference.end_date);
   const range = formatDateRange(start, end, conference.timezone);
   const tz = tzAbbrev(conference.timezone);
 
