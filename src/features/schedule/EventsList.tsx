@@ -8,33 +8,23 @@ import {
 import EventItem from "./EventItem";
 import type { GroupedSchedule } from "@/types/ht";
 import { loadConfBookmarks, toggleBookmark } from "@/lib/utils/storage";
-
-const fmtTab = (day: string) =>
-  new Intl.DateTimeFormat(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  }).format(new Date(day));
-
-const fmtHeading = (day: string) =>
-  new Intl.DateTimeFormat(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  }).format(new Date(day));
+import { fmtHeading, fmtTab } from "@/lib/utils/schedule";
+import type { HTConference } from "@/types/db";
 
 export default function EventsList({
   dateGroup,
-  confCode,
+  conf,
   pageTitle,
 }: {
   dateGroup: GroupedSchedule;
-  confCode: string;
+  conf: HTConference;
   pageTitle: string;
 }) {
   const TAB_TOP = 60;
   const TAB_HEIGHT = 56;
   const SCROLL_OFFSET = TAB_TOP + TAB_HEIGHT;
+
+  const confCode = conf.code;
 
   const days = useMemo(
     () => Object.entries(dateGroup).map(([day, events]) => ({ day, events })),
@@ -167,7 +157,7 @@ export default function EventsList({
                   : "border border-gray-700 text-gray-200 hover:bg-gray-900",
               ].join(" ")}
             >
-              {fmtTab(day)}
+              {fmtTab(day, conf.timezone || "UTC")}
             </button>
           );
         })}
@@ -184,7 +174,7 @@ export default function EventsList({
           className="px-4 sm:px-5"
         >
           <h2 className="ml-1 mt-6 mb-3 scroll-mt-[116px] text-xl font-bold text-gray-100 md:text-2xl">
-            {fmtHeading(day)}
+            {fmtHeading(day, conf.timezone || "UTC")}
           </h2>
           <ul className="mb-8 grid gap-3">
             {events.map((evt) => (

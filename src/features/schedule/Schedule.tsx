@@ -90,11 +90,11 @@ export function Schedule() {
     <div className="min-h-dvh flex flex-col">
       {conference && <ConferenceHeader conference={conference} />}
       <main className="flex-1">
-        {grouped && confCode ? (
+        {grouped && conference ? (
           <Suspense fallback={<LoadingPage message="Loading events..." />}>
             <EventsList
               dateGroup={grouped}
-              confCode={confCode}
+              conf={conference}
               pageTitle="Schedule"
             />
           </Suspense>
