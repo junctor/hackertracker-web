@@ -1,6 +1,8 @@
 const CACHE_PREFIX = "htw:v1";
 
-export const DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000;
+// Conference schedule data changes infrequently, so prefer fast navigation
+// over frequent Firestore revalidation.
+export const DEFAULT_CACHE_TTL_MS = 4 * 60 * 60 * 1000;
 
 type CacheEntry<T> = {
   storedAt: number;
@@ -35,15 +37,12 @@ function isCacheEntry(value: unknown): value is CacheEntry<unknown> {
   return typeof candidate.storedAt === "number" && "value" in candidate;
 }
 
-function isFresh(entry: CacheEntry<unknown>, ttlMs: number) {
+function isFresh(entry: CacheEntry<unknown>, ttlMs: number): boolean {
   const age = Date.now() - entry.storedAt;
   return Number.isFinite(entry.storedAt) && age >= 0 && age <= ttlMs;
 }
 
-function isValidValue<T>(
-  value: unknown,
-  validate?: CacheValidator<T>
-): value is T {
+function isValidValue<T>(value: unknown, validate?: CacheValidator<T>): value is T {
   try {
     return validate ? validate(value) : true;
   } catch {
@@ -54,7 +53,7 @@ function isValidValue<T>(
 function readMemory<T>(
   storageKey: string,
   ttlMs: number,
-  validate?: CacheValidator<T>
+  validate?: CacheValidator<T>,
 ): T | undefined {
   try {
     const entry = memoryCache.get(storageKey);
@@ -74,7 +73,7 @@ function readMemory<T>(
 function readLocalStorage<T>(
   storageKey: string,
   ttlMs: number,
-  validate?: CacheValidator<T>
+  validate?: CacheValidator<T>,
 ): T | undefined {
   const storage = getBrowserStorage();
   if (!storage) return undefined;
@@ -119,10 +118,7 @@ function readLocalStorage<T>(
   }
 }
 
-export function getCached<T>(
-  key: string,
-  options: CacheReadOptions<T> = {}
-): T | undefined {
+export function getCached<T>(key: string, options: CacheReadOptions<T> = {}): T | undefined {
   const storageKey = namespacedKey(key);
   const ttlMs = options.ttlMs ?? DEFAULT_CACHE_TTL_MS;
   const memoryValue = readMemory<T>(storageKey, ttlMs, options.validate);
@@ -132,7 +128,7 @@ export function getCached<T>(
   return readLocalStorage<T>(storageKey, ttlMs, options.validate);
 }
 
-export function setCached<T>(key: string, value: T) {
+export function setCached<T>(key: string, value: T): void {
   const storageKey = namespacedKey(key);
   const entry: CacheEntry<T> = {
     storedAt: Date.now(),
