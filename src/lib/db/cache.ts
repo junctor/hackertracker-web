@@ -39,6 +39,8 @@ function isCacheEntry(value: unknown): value is CacheEntry<unknown> {
 }
 
 function isFresh(entry: CacheEntry<unknown>, ttlMs: number): boolean {
+  if (ttlMs <= 0) return false;
+
   const age = Date.now() - entry.storedAt;
   return Number.isFinite(entry.storedAt) && age >= 0 && age <= ttlMs;
 }
