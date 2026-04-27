@@ -17,6 +17,7 @@ type CacheReadOptions<T> = {
 };
 
 const memoryCache = new Map<string, CacheEntry<unknown>>();
+let hasPrunedCache = false;
 
 const namespacedKey = (key: string) => `${CACHE_PREFIX}:${key}`;
 
@@ -40,6 +41,55 @@ function isCacheEntry(value: unknown): value is CacheEntry<unknown> {
 function isFresh(entry: CacheEntry<unknown>, ttlMs: number): boolean {
   const age = Date.now() - entry.storedAt;
   return Number.isFinite(entry.storedAt) && age >= 0 && age <= ttlMs;
+}
+
+export function pruneCache(ttlMs = DEFAULT_CACHE_TTL_MS): void {
+  const storage = getBrowserStorage();
+  if (!storage) return;
+
+  const prefix = `${CACHE_PREFIX}:`;
+  const keysToRemove: string[] = [];
+
+  try {
+    for (let i = 0; i < storage.length; i += 1) {
+      const key = storage.key(i);
+      if (!key || !key.startsWith(prefix)) continue;
+
+      const raw = storage.getItem(key);
+      if (!raw) {
+        keysToRemove.push(key);
+        continue;
+      }
+
+      try {
+        const parsed: unknown = JSON.parse(raw);
+
+        if (!isCacheEntry(parsed) || !isFresh(parsed, ttlMs)) {
+          keysToRemove.push(key);
+        }
+      } catch {
+        keysToRemove.push(key);
+      }
+    }
+
+    for (const key of keysToRemove) {
+      try {
+        storage.removeItem(key);
+        memoryCache.delete(key);
+      } catch {
+        // Ignore cleanup failures.
+      }
+    }
+  } catch {
+    // Ignore pruning failures.
+  }
+}
+
+function pruneCacheOnce(): void {
+  if (hasPrunedCache) return;
+
+  hasPrunedCache = true;
+  pruneCache();
 }
 
 function isValidValue<T>(value: unknown, validate?: CacheValidator<T>): value is T {
@@ -119,6 +169,8 @@ function readLocalStorage<T>(
 }
 
 export function getCached<T>(key: string, options: CacheReadOptions<T> = {}): T | undefined {
+  pruneCacheOnce();
+
   const storageKey = namespacedKey(key);
   const ttlMs = options.ttlMs ?? DEFAULT_CACHE_TTL_MS;
   const memoryValue = readMemory<T>(storageKey, ttlMs, options.validate);
@@ -129,6 +181,8 @@ export function getCached<T>(key: string, options: CacheReadOptions<T> = {}): T 
 }
 
 export function setCached<T>(key: string, value: T): void {
+  pruneCacheOnce();
+
   const storageKey = namespacedKey(key);
   const entry: CacheEntry<T> = {
     storedAt: Date.now(),
