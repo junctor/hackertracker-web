@@ -7,9 +7,11 @@
     "dev": "vp dev",
     "build": "tsc -b && vp build",
     "postbuild": "cp dist/index.html dist/404.html",
-    "lint": "vp lint .",
-    "preview": "vp preview",
-    "prepare": "vp config"
+    "check": "vp check",
+    "lint": "vp lint",
+    "fmt": "vp fmt",
+    "fmt:check": "vp fmt --check",
+    "preview": "vp preview"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.7",
