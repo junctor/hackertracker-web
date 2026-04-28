@@ -66,7 +66,7 @@ export default function PeopleList({ confCode, people }: { confCode: string; peo
           onSubmit={(e) => e.preventDefault()}
           className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center"
         >
-          <label className="relative block">
+          <label className="relative block w-full sm:w-80">
             <MagnifyingGlassIcon
               className="pointer-events-none absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 text-gray-500"
               aria-hidden="true"
@@ -76,18 +76,18 @@ export default function PeopleList({ confCode, people }: { confCode: string; peo
               value={query}
               onChange={(e) => setQuery(e.currentTarget.value)}
               placeholder="Search people…"
-              className="w-full rounded-lg border border-gray-700 bg-gray-900 py-2 pr-3 pl-10 text-gray-100 placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none sm:w-80"
+              className="ui-input-base ui-focus-ring pl-10 focus:outline-none"
               aria-label="Search people"
             />
           </label>
 
-          <label className="flex items-center gap-2">
+          <label className="flex w-full items-center gap-2 sm:w-auto">
             <span className="sr-only">Sort people</span>
             <FunnelIcon className="h-4 w-4 text-gray-500" aria-hidden="true" />
             <select
               value={sortMode}
               onChange={(e) => setSortMode(e.currentTarget.value as SortMode)}
-              className="rounded-lg border border-gray-700 bg-gray-900 px-2 py-2 text-sm text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="ui-input-base ui-focus-ring py-2 text-sm focus:outline-none"
             >
               <option value="name-asc">Name (A–Z)</option>
               <option value="name-desc">Name (Z–A)</option>
@@ -304,7 +304,7 @@ function EmptyState({ query, onClear }: { query: string; onClear: () => void }) 
           <button
             type="button"
             onClick={onClear}
-            className="ui-focus-ring mt-4 inline-flex min-h-10 items-center justify-center rounded-lg border border-white/10 bg-white/[0.03] px-4 text-sm font-semibold text-gray-200 hover:border-white/14 hover:bg-white/[0.05] hover:text-gray-100 focus:outline-none"
+            className="ui-btn-base ui-btn-secondary ui-focus-ring ui-empty-state-action focus:outline-none"
           >
             Clear search
           </button>
