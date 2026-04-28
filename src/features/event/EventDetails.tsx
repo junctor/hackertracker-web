@@ -91,140 +91,158 @@ export default function EventDetails({
 
   const begin = new Date(event.begin);
   const end = new Date(event.end ?? event.begin);
+  const visibleTags = event.tags.slice(0, 6);
+  const hiddenTagCount = event.tags.length - visibleTags.length;
+  const bookmarkLabel = bookmark
+    ? `Remove bookmark for ${event.title}`
+    : `Add bookmark for ${event.title}`;
 
   return (
     <article
       role="article"
       aria-labelledby="event-title"
-      className="relative mx-auto max-w-3xl px-4 py-6 text-gray-100"
+      className="relative mx-auto max-w-3xl space-y-8 px-4 py-6 text-gray-100 sm:py-8"
       style={barStyle}
     >
-      {/* Header actions */}
-      <div className="mb-6 flex items-start justify-between gap-3">
-        <Link
-          to={`/schedule?conf=${encodeURIComponent(confCode)}`}
-          className="inline-flex items-center gap-2 rounded-lg border border-gray-700 px-3 py-2 text-sm text-gray-200 hover:bg-gray-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-        >
-          <ArrowLeftIcon className="h-5 w-5" aria-hidden="true" />
-          <span className="sr-only md:not-sr-only">Schedule</span>
-        </Link>
+      <header className="ui-card relative overflow-hidden">
+        <span aria-hidden="true" className="ui-accent-rail" />
+        <span aria-hidden="true" className="ui-accent-rail-overlay" />
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleCalendar}
-            className="rounded-lg border border-gray-700/70 bg-gray-900/20 p-2 transition-colors duration-200 hover:bg-gray-900 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 focus-visible:outline-none"
-            title="Add to calendar"
-            aria-label="Add to calendar"
-          >
-            <CalendarDaysIcon className="h-5 w-5" />
-          </button>
-
-          <div className="relative">
-            <button
-              onClick={handleShare}
-              className="rounded-lg border border-gray-700/70 bg-gray-900/20 p-2 transition-colors duration-200 hover:bg-gray-900 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 focus-visible:outline-none"
-              title="Share"
-              aria-label="Share"
+        <div className="relative z-10 flex flex-col gap-5 px-5 py-5 pl-6 sm:px-6 sm:py-6 sm:pl-7">
+          <div className="flex items-start justify-between gap-3">
+            <Link
+              to={`/schedule?conf=${encodeURIComponent(confCode)}`}
+              className="ui-focus-ring inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 text-sm font-semibold text-gray-300 hover:border-white/14 hover:bg-white/[0.05] hover:text-gray-100"
             >
-              <ShareIcon className="h-5 w-5" />
-            </button>
+              <ArrowLeftIcon className="h-4.5 w-4.5" aria-hidden="true" />
+              <span className="sr-only sm:not-sr-only">Schedule</span>
+            </Link>
+
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                type="button"
+                onClick={handleCalendar}
+                className="ui-icon-btn ui-focus-ring h-11 w-11"
+                title="Add to calendar"
+                aria-label="Add to calendar"
+              >
+                <CalendarDaysIcon className="h-5 w-5" aria-hidden="true" />
+              </button>
+
+              <button
+                type="button"
+                onClick={handleShare}
+                className="ui-icon-btn ui-focus-ring h-11 w-11"
+                title="Share"
+                aria-label="Share event link"
+              >
+                <ShareIcon className="h-5 w-5" aria-hidden="true" />
+              </button>
+
+              <button
+                type="button"
+                onClick={handleBookmark}
+                aria-pressed={bookmark}
+                aria-label={bookmarkLabel}
+                className={[
+                  "ui-icon-btn ui-focus-ring h-11 w-11",
+                  bookmarkPulse ? "scale-110" : "",
+                ].join(" ")}
+                title={bookmark ? "Bookmarked" : "Bookmark"}
+              >
+                {bookmark ? (
+                  <BookmarkSolid className="h-5 w-5" aria-hidden="true" />
+                ) : (
+                  <BookmarkOutline className="h-5 w-5" aria-hidden="true" />
+                )}
+              </button>
+            </div>
           </div>
 
-          <button
-            onClick={handleBookmark}
-            aria-pressed={bookmark}
-            aria-label={bookmark ? "Remove bookmark" : "Add bookmark"}
-            className={[
-              "relative rounded-lg border border-gray-700/70 bg-gray-900/20 p-2 transition-transform duration-200 hover:bg-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900",
-              bookmarkPulse ? "scale-110" : "",
-            ].join(" ")}
-            title={bookmark ? "Bookmarked" : "Bookmark"}
-          >
-            {bookmark ? (
-              <BookmarkSolid className="h-5 w-5 text-indigo-400" />
-            ) : (
-              <BookmarkOutline className="h-5 w-5 text-gray-400" />
-            )}
-          </button>
-        </div>
-      </div>
+          <div className="space-y-3">
+            <h1
+              id="event-title"
+              className="text-3xl leading-tight font-extrabold tracking-tight md:text-4xl"
+            >
+              {event.title}
+            </h1>
 
-      {/* Event identity */}
-      <div className="relative pl-5">
-        <span
-          aria-hidden="true"
-          className="absolute top-0 bottom-0 left-0 w-[clamp(0.3rem,2vw,0.9rem)] rounded-r-md bg-gradient-to-b from-[var(--event-color)] to-indigo-600/40"
-        />
+            <div className="space-y-2 text-gray-300">
+              <p className="text-lg font-medium">
+                <time dateTime={begin.toISOString()}>
+                  {formatSessionTime(begin, end, zone, locale)}
+                </time>
+              </p>
 
-        <div className="ml-1">
-          {/* Title */}
-          <h1
-            id="event-title"
-            className="text-3xl leading-tight font-extrabold tracking-tight md:text-4xl"
-          >
-            {event.title}
-          </h1>
+              {event.location && (
+                <p className="flex min-w-0 items-center gap-2 text-sm">
+                  <MapPinIcon className="h-5 w-5 shrink-0 text-gray-400" aria-hidden="true" />
+                  <span className="truncate">{event.location}</span>
+                </p>
+              )}
+            </div>
 
-          {/* Meta */}
-          <div className="mt-3 space-y-2 text-gray-300">
-            <div className="text-lg font-medium">{formatSessionTime(begin, end, zone, locale)}</div>
-
-            {event.location && (
-              <div className="flex items-center gap-2 text-sm">
-                <MapPinIcon className="h-5 w-5 shrink-0" />
-                <span className="truncate">{event.location}</span>
-              </div>
+            {visibleTags.length > 0 && (
+              <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
+                {visibleTags.map((tag) => (
+                  <li
+                    key={tag.id}
+                    className="ui-tag-chip"
+                    style={{
+                      backgroundColor: tag.color_background ?? "rgba(255,255,255,0.08)",
+                      color: tag.color_foreground ?? "#fff",
+                    }}
+                    title={tag.label}
+                  >
+                    <span className="max-w-[12rem] truncate">{tag.label}</span>
+                  </li>
+                ))}
+                {hiddenTagCount > 0 && (
+                  <li className="ui-tag-chip bg-white/3 text-gray-300">+{hiddenTagCount} more</li>
+                )}
+              </ul>
             )}
           </div>
-
-          {/* Tags */}
-          {event.tags?.length > 0 && (
-            <ul className="mt-4 flex flex-wrap gap-2">
-              {event.tags.map((tag) => (
-                <li
-                  key={tag.id}
-                  className="rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide uppercase shadow-sm ring-1 ring-white/10 ring-inset"
-                  style={{
-                    backgroundColor: tag.color_background ?? "rgba(255,255,255,0.06)",
-                    color: tag.color_foreground ?? "#fff",
-                  }}
-                  title={tag.label}
-                >
-                  <span className="inline-block max-w-[12rem] truncate align-middle">
-                    {tag.label}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
         </div>
-      </div>
+      </header>
 
-      {/* Description */}
       {event.description && (
-        <section className="mt-8">
-          <h2 className="mb-3 text-2xl font-semibold text-gray-200">Description</h2>
-          <div className="prose prose-invert max-w-none text-gray-300">
-            <Markdown content={event.description} />
+        <section aria-labelledby="description-title" className="space-y-4">
+          <h2
+            id="description-title"
+            className="text-sm font-semibold tracking-[0.02em] text-gray-300"
+          >
+            Description
+          </h2>
+          <div className="ui-card px-5 py-5 sm:px-6">
+            <div className="prose prose-invert prose-p:leading-7 max-w-none text-gray-300">
+              <Markdown content={event.description} />
+            </div>
           </div>
         </section>
       )}
 
-      {/* Links */}
       {event.links.length > 0 && (
-        <section className="mt-8">
-          <h2 className="mb-3 text-2xl font-semibold text-gray-200">Links</h2>
-          <ul className="space-y-2">
+        <section aria-labelledby="links-title" className="space-y-4">
+          <h2 id="links-title" className="text-sm font-semibold tracking-[0.02em] text-gray-300">
+            Links
+          </h2>
+          <ul className="space-y-2.5">
             {event.links.map((l) => (
-              <li key={l.url} className="group">
+              <li key={l.url}>
                 <a
                   href={l.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-indigo-300 decoration-indigo-500/40 underline-offset-2 transition-colors duration-200 group-hover:text-indigo-200 group-hover:decoration-indigo-400"
+                  className="ui-card ui-card-interactive ui-focus-ring group flex min-w-0 items-center justify-between gap-4 px-4 py-3.5 sm:px-5"
                 >
-                  <ArrowTopRightOnSquareIcon className="h-4 w-4 shrink-0" />
-                  <span className="truncate">{l.label}</span>
+                  <span className="truncate text-sm font-medium text-[#6CCDBB] transition-colors group-hover:text-white sm:text-[0.95rem]">
+                    {l.label}
+                  </span>
+                  <ArrowTopRightOnSquareIcon
+                    className="h-4 w-4 shrink-0 text-[#6CCDBB] transition-colors group-hover:text-white"
+                    aria-hidden="true"
+                  />
                 </a>
               </li>
             ))}
@@ -232,30 +250,26 @@ export default function EventDetails({
         </section>
       )}
 
-      {/* People */}
       {people.length > 0 && (
-        <section className="mt-8">
-          <h2 className="mb-3 text-2xl font-semibold text-gray-200">People</h2>
-          <div className="flex flex-wrap gap-2">
-            {people.map((p) => (
-              <Link
-                key={p.id}
-                to={`/person?conf=${confCode}&person=${p.id}`}
-                className="inline-flex items-center gap-2 rounded-full bg-gray-800/50 px-3 py-1 text-sm text-gray-200 ring-1 ring-white/10 transition-colors duration-200 hover:bg-indigo-600/50"
-                title={p.name}
-              >
-                <span className="inline-grid size-6 place-items-center rounded-full bg-gray-700/80 text-[10px] font-semibold">
-                  {p.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .slice(0, 2)
-                    .toUpperCase()}
-                </span>
-                <UserIcon className="h-4 w-4 text-indigo-300" />
-                <span className="max-w-[12rem] truncate">{p.name}</span>
-              </Link>
-            ))}
+        <section aria-labelledby="people-title" className="space-y-3">
+          <h2 id="people-title" className="text-sm font-semibold tracking-[0.02em] text-gray-300">
+            People
+          </h2>
+          <div className="ui-card px-4 py-4 sm:px-5">
+            <ul className="m-0 flex list-none flex-wrap gap-2.5 p-0">
+              {people.map((p) => (
+                <li key={p.id}>
+                  <Link
+                    to={`/person?conf=${confCode}&person=${p.id}`}
+                    className="ui-pill-link ui-focus-ring"
+                    title={p.name}
+                  >
+                    <UserIcon className="h-4 w-4 text-[#6CCDBB]" aria-hidden="true" />
+                    <span className="max-w-[12rem] truncate">{p.name}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
       )}
