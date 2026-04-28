@@ -109,7 +109,7 @@ export function Bookmarks() {
             {confCode && (
               <Link
                 to={`/schedule?conf=${confCode}`}
-                className="ui-btn-base ui-btn-secondary ui-focus-ring ui-empty-state-action focus:outline-none"
+                className="ui-btn-base ui-btn-secondary ui-focus-ring ui-empty-state-action focus-visible:outline-none"
               >
                 Browse Schedule
               </Link>
