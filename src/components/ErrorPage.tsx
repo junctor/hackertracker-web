@@ -9,52 +9,34 @@ export default function ErrorPage({ msg }: { msg?: string }) {
       <HTHeader />
 
       <main id="main" className="flex flex-1 items-center justify-center px-6">
-        <div className="relative text-center">
-          {/* Glitchy title */}
-          <div className="isolation-isolate relative inline-block select-none">
-            <h1 className="relative text-4xl font-extrabold tracking-tight text-red-400 motion-safe:animate-[glitch_2s_steps(12,end)_infinite] md:text-6xl">
-              ERROR
-              <span
-                aria-hidden
-                className="absolute inset-0 text-cyan-300 opacity-95 mix-blend-screen motion-safe:animate-[rgb_2.4s_ease-in-out_infinite]"
-              >
-                ERROR
-              </span>
-              <span
-                aria-hidden
-                className="absolute inset-0 -translate-x-[2px] translate-y-[1px] text-fuchsia-400 opacity-95 mix-blend-screen motion-safe:animate-[rgb_2.4s_ease-in-out_infinite]"
-                style={{ animationDelay: "0.15s" }}
-              >
-                ERROR
-              </span>
-            </h1>
-          </div>
+        <div className="ui-card relative w-full max-w-2xl px-6 py-7 text-center sm:px-8 sm:py-9">
+          <h1 className="text-3xl font-semibold text-balance text-gray-100 sm:text-4xl">
+            We couldn&apos;t load this page
+          </h1>
 
-          {/* Message */}
           {msg ? (
             <pre
               role="alert"
-              className="mx-auto mt-6 max-w-xl overflow-x-auto rounded-lg border border-red-700/70 bg-red-950/30 p-4 text-left font-mono text-xs text-red-200 md:text-sm"
+              className="mx-auto mt-6 max-h-[40dvh] max-w-xl overflow-auto rounded-xl border border-red-400/20 bg-red-950/25 p-4 text-left font-mono text-xs leading-6 whitespace-pre-wrap text-red-100 md:text-sm"
             >
               {msg}
             </pre>
           ) : (
-            <p className="mt-6 text-base text-gray-300">
-              Something went sideways. Try again or head back home.
+            <p role="alert" className="mx-auto mt-3 max-w-xl text-sm leading-6 text-gray-300">
+              Try again in a moment, or head back home.
             </p>
           )}
 
-          {/* Actions */}
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link
               to="/"
-              className="rounded-md border border-gray-600/70 px-4 py-2 text-sm font-semibold text-gray-100 transition-colors hover:border-gray-500 hover:bg-gray-800/70 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+              className="ui-btn-base ui-btn-secondary ui-focus-ring focus-visible:outline-none"
             >
               Return Home
             </Link>
             <Link
               to="/support"
-              className="rounded-md border border-gray-600/70 px-4 py-2 text-sm font-semibold text-gray-100 transition-colors hover:border-gray-500 hover:bg-gray-800/70 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+              className="ui-btn-base ui-btn-secondary ui-focus-ring focus-visible:outline-none"
             >
               Contact Support
             </Link>
