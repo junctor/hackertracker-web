@@ -1,4 +1,4 @@
-import React from "react";
+import React, { type TableHTMLAttributes } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -10,26 +10,32 @@ type CodeProps = {
   children?: React.ReactNode;
 };
 
+type TableProps = TableHTMLAttributes<HTMLTableElement>;
+
 export default function Markdown({ content }: { content: string }) {
   return (
-    <div className="prose dark:prose-invert prose-sm sm:prose-base md:prose-lg prose-headings:text-gray-100 prose-p:text-gray-200 prose-li:text-gray-200 prose-strong:text-gray-100 prose-a:text-indigo-300 hover:prose-a:text-indigo-200 prose-code:text-gray-100 prose-hr:border-gray-700 break-words antialiased md:max-w-none">
+    <div className="prose prose-invert prose-sm sm:prose-base md:prose-lg prose-headings:text-slate-100 prose-p:text-slate-200 prose-li:text-slate-200 prose-strong:text-slate-100 prose-a:text-(--ht-accent-primary) hover:prose-a:text-(--ht-accent-success) prose-code:text-slate-100 prose-hr:border-slate-700/80 max-w-none break-words text-slate-200 antialiased">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          a: (props) => (
-            <a
-              {...props}
-              className="text-indigo-300 decoration-indigo-500/40 underline-offset-2 hover:text-indigo-200 hover:decoration-indigo-400 focus:ring-1 focus:ring-indigo-400 focus:outline-none"
-            />
-          ),
+          a: (props) => {
+            const className = [props.className, "ui-link ui-focus-ring focus-visible:outline-none"]
+              .filter(Boolean)
+              .join(" ");
+
+            return <a {...props} className={className} />;
+          },
 
           code: ({ inline, className, children, ...other }: CodeProps) =>
             inline ? (
-              <code {...other} className="rounded bg-gray-700 px-1 font-mono text-sm text-gray-100">
+              <code
+                {...other}
+                className="rounded bg-slate-700/80 px-1 font-mono text-sm text-slate-100"
+              >
                 {children}
               </code>
             ) : (
-              <pre className="my-5 overflow-x-auto rounded-lg bg-gray-900 p-4 text-gray-100">
+              <pre className="my-5 overflow-x-auto rounded-lg bg-slate-900 p-4 text-slate-100">
                 <code className={className}>{children}</code>
               </pre>
             ),
@@ -37,15 +43,19 @@ export default function Markdown({ content }: { content: string }) {
           blockquote: (props) => (
             <blockquote
               {...props}
-              className="border-l-4 border-indigo-500 pl-4 text-gray-200 italic"
+              className="border-l-4 border-[#105F66] pl-4 text-slate-200 italic"
             />
           ),
 
-          hr: (props) => <hr {...props} className="my-8 border-t border-gray-700" />,
+          hr: (props) => <hr {...props} className="my-8 border-t border-slate-700/80" />,
 
           img: (props) => <img {...props} className="mx-auto my-5 rounded-md shadow-sm" />,
 
-          div: (props) => <div {...props} className={styles.markdown} />,
+          table: ({ className, ...props }: TableProps) => (
+            <div className={styles.tableScroll}>
+              <table {...props} className={[className, styles.table].filter(Boolean).join(" ")} />
+            </div>
+          ),
         }}
       >
         {content}
