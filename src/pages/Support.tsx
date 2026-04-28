@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+
 import { HTFooter } from "@/components/HTFooter";
 import { HTHeader } from "@/components/HTHeader";
 
@@ -8,7 +9,7 @@ export function Support() {
   }, []);
 
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div className="flex min-h-dvh flex-col">
       <HTHeader />
 
       <main id="main" className="flex-1">
@@ -19,8 +20,7 @@ export function Support() {
               Support & Contributing
             </h1>
             <p className="mt-2 max-w-3xl text-neutral-300">
-              Conferences, contributors, and curious folks — here’s how to work
-              with Hacker Tracker.
+              Conferences, contributors, and curious folks — here’s how to work with Hacker Tracker.
             </p>
 
             {/* Quick links */}
@@ -29,7 +29,7 @@ export function Support() {
                 href="https://discord.gg/jJNSZYdnF7"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-200 hover:border-neutral-700 hover:bg-neutral-850"
+                className="hover:bg-neutral-850 inline-flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-200 hover:border-neutral-700"
               >
                 <span className="i-lucide-message-circle" />
                 Join Discord
@@ -38,7 +38,7 @@ export function Support() {
                 href="https://github.com/junctor"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-200 hover:border-neutral-700 hover:bg-neutral-850"
+                className="hover:bg-neutral-850 inline-flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-200 hover:border-neutral-700"
               >
                 <span className="i-lucide-github" />
                 GitHub org
@@ -47,7 +47,7 @@ export function Support() {
                 href="https://defcon.social/@aNullValue"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-200 hover:border-neutral-700 hover:bg-neutral-850"
+                className="hover:bg-neutral-850 inline-flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-200 hover:border-neutral-700"
               >
                 Contact @aNullValue
               </a>
@@ -58,15 +58,12 @@ export function Support() {
         <div className="mx-auto max-w-5xl px-4 py-10">
           {/* Conferences section */}
           <section aria-labelledby="conferences" className="mb-12">
-            <h2
-              id="conferences"
-              className="text-lg font-semibold text-neutral-200"
-            >
+            <h2 id="conferences" className="text-lg font-semibold text-neutral-200">
               How can a conference use Hacker Tracker?
             </h2>
             <p className="mt-2 max-w-3xl text-neutral-300">
-              If you represent a conference and want to make your information
-              available in Hacker Tracker, please reach out to{" "}
+              If you represent a conference and want to make your information available in Hacker
+              Tracker, please reach out to{" "}
               <a
                 href="https://defcon.social/@aNullValue"
                 className="underline hover:text-white"
@@ -146,13 +143,9 @@ export function Support() {
                       {repo.name}
                     </a>
                   ) : (
-                    <div className="font-medium text-neutral-400">
-                      {repo.name}
-                    </div>
+                    <div className="font-medium text-neutral-400">{repo.name}</div>
                   )}
-                  {repo.note && (
-                    <p className="mt-1 text-sm text-neutral-500">{repo.note}</p>
-                  )}
+                  {repo.note && <p className="mt-1 text-sm text-neutral-500">{repo.note}</p>}
                 </div>
               ))}
             </div>
@@ -168,31 +161,28 @@ export function Support() {
               <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4">
                 <h3 className="font-medium text-neutral-100">Security</h3>
                 <p className="mt-1 text-sm text-neutral-400">
-                  Found a vulnerability? Use GitHub’s{" "}
-                  <em>Report a vulnerability</em> in the appropriate repo.
+                  Found a vulnerability? Use GitHub’s <em>Report a vulnerability</em> in the
+                  appropriate repo.
                 </p>
               </div>
               <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4">
-                <h3 className="font-medium text-neutral-100">
-                  Bugs & Features
-                </h3>
+                <h3 className="font-medium text-neutral-100">Bugs & Features</h3>
                 <p className="mt-1 text-sm text-neutral-400">
-                  Open an issue in the relevant repo. If it spans multiple
-                  repos, one report is enough.
+                  Open an issue in the relevant repo. If it spans multiple repos, one report is
+                  enough.
                 </p>
               </div>
               <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4 md:col-span-2">
                 <h3 className="font-medium text-neutral-100">Contributing</h3>
                 <p className="mt-1 text-sm text-neutral-400">
-                  Interested in contributing? Reach out to any of us. We don’t
-                  yet have a formal onboarding process, but we’d love to
-                  collaborate.
+                  Interested in contributing? Reach out to any of us. We don’t yet have a formal
+                  onboarding process, but we’d love to collaborate.
                 </p>
                 <a
                   href="https://discord.gg/jJNSZYdnF7"
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-3 inline-flex items-center rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-200 hover:border-neutral-700 hover:bg-neutral-850"
+                  className="hover:bg-neutral-850 mt-3 inline-flex items-center rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-200 hover:border-neutral-700"
                 >
                   Join our Discord
                 </a>

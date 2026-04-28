@@ -1,6 +1,4 @@
-export function toDate(
-  v?: string | Date | { seconds: number; nanoseconds?: number } | null
-) {
+export function toDate(v?: string | Date | { seconds: number; nanoseconds?: number } | null) {
   if (!v) return undefined;
   if (v instanceof Date) return v;
   if (typeof v === "string") {
@@ -11,11 +9,7 @@ export function toDate(
   return undefined;
 }
 
-export function formatDateRange(
-  start?: Date,
-  end?: Date,
-  timeZone?: string
-): string | undefined {
+export function formatDateRange(start?: Date, end?: Date, timeZone?: string): string | undefined {
   if (!start && !end) return undefined;
 
   const opts: Intl.DateTimeFormatOptions = {
@@ -27,10 +21,7 @@ export function formatDateRange(
 
   if (start && end) {
     const sameYear = start.getUTCFullYear() === end.getUTCFullYear();
-    const fmtA = new Intl.DateTimeFormat(
-      undefined,
-      sameYear ? opts : yearOpts
-    ).format(start);
+    const fmtA = new Intl.DateTimeFormat(undefined, sameYear ? opts : yearOpts).format(start);
     const fmtB = new Intl.DateTimeFormat(undefined, yearOpts).format(end);
     return `${fmtA}–${fmtB}`;
   }
@@ -113,12 +104,7 @@ function eventTime(dt: Date, showZone: boolean, tz?: string, locale?: string) {
   }).format(dt);
 }
 
-export function formatSessionTime(
-  begin: Date,
-  end: Date,
-  tz?: string,
-  locale?: string
-): string {
+export function formatSessionTime(begin: Date, end: Date, tz?: string, locale?: string): string {
   const sameDate = begin.toDateString() === end.toDateString();
 
   if (sameDate) {

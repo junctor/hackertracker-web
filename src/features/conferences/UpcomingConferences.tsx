@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
-import { getUpcomingConferences } from "@/lib/db";
+
 import type { HTConference } from "@/types/db";
+
+import { getUpcomingConferences } from "@/lib/db";
+
 import { ConferenceCard } from "./ConferenceCard";
 
 export function UpcomingConferences() {
@@ -10,7 +13,7 @@ export function UpcomingConferences() {
 
   useEffect(() => {
     const ac = new AbortController();
-    (async () => {
+    void (async () => {
       try {
         setLoading(true);
         setErr(null);
@@ -28,16 +31,12 @@ export function UpcomingConferences() {
   if (loading) {
     return (
       <section aria-label="Upcoming conferences" className="space-y-4">
-        <Header
-          title="Upcoming Conferences"
-          count={undefined}
-          id="upcoming-mini"
-        />
-        <div className="grid items-stretch gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <Header title="Upcoming Conferences" count={undefined} id="upcoming-mini" />
+        <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className="h-full rounded-lg border border-neutral-800 bg-neutral-900/50 p-4 animate-pulse"
+              className="h-full animate-pulse rounded-lg border border-neutral-800 bg-neutral-900/50 p-4"
             />
           ))}
         </div>
@@ -58,12 +57,8 @@ export function UpcomingConferences() {
 
   return (
     <section aria-label="Upcoming conferences" className="space-y-4">
-      <Header
-        title="Upcoming Conferences"
-        count={conferences.length}
-        id="upcoming-mini"
-      />
-      <div className="grid items-stretch gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      <Header title="Upcoming Conferences" count={conferences.length} id="upcoming-mini" />
+      <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
         {conferences.map((c) => (
           <div key={c.id} className="h-full">
             <ConferenceCard conference={c} />
@@ -74,31 +69,23 @@ export function UpcomingConferences() {
   );
 }
 
-function Header({
-  title,
-  count,
-  id,
-}: {
-  title: string;
-  count?: number;
-  id: string;
-}) {
+function Header({ title, count, id }: { title: string; count?: number; id: string }) {
   return (
     <>
       <div className="flex items-center justify-between">
         <h2
           id={`${id}-title`}
-          className="group inline-flex items-center gap-2 text-base sm:text-lg font-semibold text-neutral-100"
+          className="group inline-flex items-center gap-2 text-base font-semibold text-neutral-100 sm:text-lg"
         >
           {title}
           {typeof count === "number" && (
-            <span className="rounded-full bg-neutral-800 text-neutral-300 text-xs px-2 py-0.5">
+            <span className="rounded-full bg-neutral-800 px-2 py-0.5 text-xs text-neutral-300">
               {count}
             </span>
           )}
           <a
             href={`#${id}`}
-            className="opacity-0 group-hover:opacity-100 transition-opacity text-neutral-500 hover:text-neutral-300"
+            className="text-neutral-500 opacity-0 transition-opacity group-hover:opacity-100 hover:text-neutral-300"
             aria-label={`Link to section ${title}`}
           >
             #

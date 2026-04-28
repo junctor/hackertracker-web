@@ -1,11 +1,14 @@
 import { useEffect, useState, Suspense, startTransition } from "react";
 import { useSearchParams } from "react-router";
-import { getConferenceByCode, getSpeakers } from "@/lib/db";
+
 import type { HTConference, HTPerson } from "@/types/db";
+
 import { ConferenceHeader } from "@/components/ConferenceHeader";
-import LoadingPage from "@/components/LoadingPage";
 import ErrorPage from "@/components/ErrorPage";
 import { HTFooter } from "@/components/HTFooter";
+import LoadingPage from "@/components/LoadingPage";
+import { getConferenceByCode, getSpeakers } from "@/lib/db";
+
 import PeopleList from "../people/PeopleList";
 
 export function People() {
@@ -33,7 +36,7 @@ export function People() {
 
     let cancelled = false;
 
-    (async () => {
+    void (async () => {
       setLoading(true);
       setError(null);
       try {
@@ -67,7 +70,7 @@ export function People() {
   }
 
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div className="flex min-h-dvh flex-col">
       {conference && <ConferenceHeader conference={conference} />}
       <main className="flex-1">
         {people.length && confCode ? (

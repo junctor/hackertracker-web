@@ -21,7 +21,7 @@ export const isBookmarked = (confCode: string, eventId: number) =>
 export const toggleBookmark = (
   confCode: string,
   eventId: number,
-  setState: React.Dispatch<React.SetStateAction<Set<number>>>
+  setState: React.Dispatch<React.SetStateAction<Set<number>>>,
 ) => {
   setState((prev) => {
     const next = new Set(prev);

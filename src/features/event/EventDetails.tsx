@@ -1,5 +1,3 @@
-import React, { useMemo, useState, useEffect } from "react";
-import { Link } from "react-router";
 import {
   BookmarkIcon as BookmarkOutline,
   ArrowLeftIcon,
@@ -10,12 +8,16 @@ import {
   ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
 import { BookmarkIcon as BookmarkSolid } from "@heroicons/react/24/solid";
-import type { ProcessedEvent } from "@/types/ht";
-import { loadConfBookmarks, toggleBookmark } from "@/lib/utils/storage";
-import { formatSessionTime } from "@/lib/utils/dates";
+import React, { useMemo, useState, useEffect } from "react";
+import { Link } from "react-router";
+
 import type { HTConference, HTPerson } from "@/types/db";
+import type { ProcessedEvent } from "@/types/ht";
+
 import Markdown from "@/components/Markdown";
 import generateICal from "@/lib/utils/cal";
+import { formatSessionTime } from "@/lib/utils/dates";
+import { loadConfBookmarks, toggleBookmark } from "@/lib/utils/storage";
 
 export default function EventDetails({
   event,
@@ -31,7 +33,7 @@ export default function EventDetails({
   const confCode = conference.code;
 
   const [bookmark, setBookmark] = useState<boolean>(() =>
-    loadConfBookmarks(confCode).has(event.id)
+    loadConfBookmarks(confCode).has(event.id),
   );
   const [bookmarkPulse, setBookmarkPulse] = useState(false);
 
@@ -40,9 +42,8 @@ export default function EventDetails({
   }, [confCode, event.id]);
 
   const barStyle = useMemo(
-    () =>
-      ({ "--event-color": event.color ?? "#9ca3af" }) as React.CSSProperties,
-    [event.color]
+    () => ({ "--event-color": event.color ?? "#9ca3af" }) as React.CSSProperties,
+    [event.color],
   );
 
   const handleShare = async () => {
@@ -55,9 +56,7 @@ export default function EventDetails({
     } catch {
       /* fall through */
     }
-    await navigator.clipboard.writeText(
-      new URL(url, window.location.origin).toString()
-    );
+    await navigator.clipboard.writeText(new URL(url, window.location.origin).toString());
   };
 
   const handleCalendar = () => {
@@ -80,9 +79,7 @@ export default function EventDetails({
     window.setTimeout(() => setBookmarkPulse(false), 220);
 
     // toggleBookmark requires a setState signature; provide a no-op that returns the prior Set
-    const fakeSetState: React.Dispatch<React.SetStateAction<Set<number>>> = (
-      updater
-    ) => {
+    const fakeSetState: React.Dispatch<React.SetStateAction<Set<number>>> = (updater) => {
       const prev = loadConfBookmarks(confCode);
       return typeof updater === "function"
         ? (updater as (p: Set<number>) => Set<number>)(prev)
@@ -106,7 +103,7 @@ export default function EventDetails({
       <div className="mb-6 flex items-start justify-between gap-3">
         <Link
           to={`/schedule?conf=${encodeURIComponent(confCode)}`}
-          className="inline-flex items-center gap-2 rounded-lg border border-gray-700 px-3 py-2 text-sm text-gray-200 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="inline-flex items-center gap-2 rounded-lg border border-gray-700 px-3 py-2 text-sm text-gray-200 hover:bg-gray-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
         >
           <ArrowLeftIcon className="h-5 w-5" aria-hidden="true" />
           <span className="sr-only md:not-sr-only">Schedule</span>
@@ -115,7 +112,7 @@ export default function EventDetails({
         <div className="flex items-center gap-2">
           <button
             onClick={handleCalendar}
-            className="rounded-lg border border-gray-700/70 bg-gray-900/20 p-2 transition-colors duration-200 hover:bg-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+            className="rounded-lg border border-gray-700/70 bg-gray-900/20 p-2 transition-colors duration-200 hover:bg-gray-900 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 focus-visible:outline-none"
             title="Add to calendar"
             aria-label="Add to calendar"
           >
@@ -125,7 +122,7 @@ export default function EventDetails({
           <div className="relative">
             <button
               onClick={handleShare}
-              className="rounded-lg border border-gray-700/70 bg-gray-900/20 p-2 transition-colors duration-200 hover:bg-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+              className="rounded-lg border border-gray-700/70 bg-gray-900/20 p-2 transition-colors duration-200 hover:bg-gray-900 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 focus-visible:outline-none"
               title="Share"
               aria-label="Share"
             >
@@ -156,23 +153,21 @@ export default function EventDetails({
       <div className="relative pl-5">
         <span
           aria-hidden="true"
-          className="absolute left-0 top-0 bottom-0 w-[clamp(0.3rem,2vw,0.9rem)] rounded-r-md bg-gradient-to-b from-[var(--event-color)] to-indigo-600/40"
+          className="absolute top-0 bottom-0 left-0 w-[clamp(0.3rem,2vw,0.9rem)] rounded-r-md bg-gradient-to-b from-[var(--event-color)] to-indigo-600/40"
         />
 
         <div className="ml-1">
           {/* Title */}
           <h1
             id="event-title"
-            className="text-3xl md:text-4xl font-extrabold leading-tight tracking-tight"
+            className="text-3xl leading-tight font-extrabold tracking-tight md:text-4xl"
           >
             {event.title}
           </h1>
 
           {/* Meta */}
           <div className="mt-3 space-y-2 text-gray-300">
-            <div className="text-lg font-medium">
-              {formatSessionTime(begin, end, zone, locale)}
-            </div>
+            <div className="text-lg font-medium">{formatSessionTime(begin, end, zone, locale)}</div>
 
             {event.location && (
               <div className="flex items-center gap-2 text-sm">
@@ -188,10 +183,9 @@ export default function EventDetails({
               {event.tags.map((tag) => (
                 <li
                   key={tag.id}
-                  className="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ring-1 ring-inset ring-white/10 shadow-sm"
+                  className="rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide uppercase shadow-sm ring-1 ring-white/10 ring-inset"
                   style={{
-                    backgroundColor:
-                      tag.color_background ?? "rgba(255,255,255,0.06)",
+                    backgroundColor: tag.color_background ?? "rgba(255,255,255,0.06)",
                     color: tag.color_foreground ?? "#fff",
                   }}
                   title={tag.label}
@@ -209,9 +203,7 @@ export default function EventDetails({
       {/* Description */}
       {event.description && (
         <section className="mt-8">
-          <h2 className="mb-3 text-2xl font-semibold text-gray-200">
-            Description
-          </h2>
+          <h2 className="mb-3 text-2xl font-semibold text-gray-200">Description</h2>
           <div className="prose prose-invert max-w-none text-gray-300">
             <Markdown content={event.description} />
           </div>
@@ -229,7 +221,7 @@ export default function EventDetails({
                   href={l.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 underline-offset-2 decoration-indigo-500/40 transition-colors duration-200 group-hover:decoration-indigo-400 text-indigo-300 group-hover:text-indigo-200"
+                  className="inline-flex items-center gap-2 text-indigo-300 decoration-indigo-500/40 underline-offset-2 transition-colors duration-200 group-hover:text-indigo-200 group-hover:decoration-indigo-400"
                 >
                   <ArrowTopRightOnSquareIcon className="h-4 w-4 shrink-0" />
                   <span className="truncate">{l.label}</span>
@@ -261,7 +253,7 @@ export default function EventDetails({
                     .toUpperCase()}
                 </span>
                 <UserIcon className="h-4 w-4 text-indigo-300" />
-                <span className="truncate max-w-[12rem]">{p.name}</span>
+                <span className="max-w-[12rem] truncate">{p.name}</span>
               </Link>
             ))}
           </div>

@@ -1,15 +1,18 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { NavLink } from "react-router";
 import {
   BookmarkIcon,
   // TagIcon,
   CalendarIcon,
 } from "@heroicons/react/24/outline";
-import EventItem from "./EventItem";
-import type { GroupedSchedule } from "@/types/ht";
-import { loadConfBookmarks, toggleBookmark } from "@/lib/utils/storage";
-import { fmtHeading, fmtTab } from "@/lib/utils/schedule";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { NavLink } from "react-router";
+
 import type { HTConference } from "@/types/db";
+import type { GroupedSchedule } from "@/types/ht";
+
+import { fmtHeading, fmtTab } from "@/lib/utils/schedule";
+import { loadConfBookmarks, toggleBookmark } from "@/lib/utils/storage";
+
+import EventItem from "./EventItem";
 
 export default function EventsList({
   dateGroup,
@@ -28,7 +31,7 @@ export default function EventsList({
 
   const days = useMemo(
     () => Object.entries(dateGroup).map(([day, events]) => ({ day, events })),
-    [dateGroup]
+    [dateGroup],
   );
 
   const [activeDays, setActiveDays] = useState<string[]>([]);
@@ -38,7 +41,7 @@ export default function EventsList({
 
   const makeToggle = useCallback(
     (id: number) => () => toggleBookmark(confCode, id, setBookmarks),
-    [confCode]
+    [confCode],
   );
 
   useEffect(() => {
@@ -52,17 +55,13 @@ export default function EventsList({
         entries.forEach((entry) => {
           const day = entry.target.getAttribute("data-day")!;
           setActiveDays((prev) =>
-            entry.isIntersecting
-              ? [...new Set([...prev, day])]
-              : prev.filter((d) => d !== day)
+            entry.isIntersecting ? [...new Set([...prev, day])] : prev.filter((d) => d !== day),
           );
         });
       },
-      { rootMargin: `-${SCROLL_OFFSET}px 0px 0px 0px`, threshold: 0 }
+      { rootMargin: `-${SCROLL_OFFSET}px 0px 0px 0px`, threshold: 0 },
     );
-    Object.values(sectionRefs.current).forEach(
-      (el) => el && observer.observe(el)
-    );
+    Object.values(sectionRefs.current).forEach((el) => el && observer.observe(el));
     return () => observer.disconnect();
   }, [days, SCROLL_OFFSET]);
 
@@ -70,11 +69,10 @@ export default function EventsList({
     (day: string) => {
       const el = sectionRefs.current[day];
       if (!el) return;
-      const top =
-        el.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET;
+      const top = el.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET;
       window.scrollTo({ top, behavior: "smooth" });
     },
-    [SCROLL_OFFSET]
+    [SCROLL_OFFSET],
   );
 
   return (
@@ -82,7 +80,7 @@ export default function EventsList({
       {/* Top toolbar */}
       <div className="sticky top-0 z-40 flex items-center justify-between border-b border-gray-700 bg-gray-950/80 p-2 backdrop-blur">
         {/* Left side */}
-        <h1 className="text-lg sm:text-xl font-bold ml-5">{pageTitle}</h1>
+        <h1 className="ml-5 text-lg font-bold sm:text-xl">{pageTitle}</h1>
 
         {/* Right side */}
         {/* <div className="flex gap-2 mx-32"> */}
@@ -93,9 +91,7 @@ export default function EventsList({
               className={({ isActive }) =>
                 [
                   "inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm",
-                  isActive
-                    ? "bg-gray-800"
-                    : "border border-gray-700 hover:bg-gray-900",
+                  isActive ? "bg-gray-800" : "border border-gray-700 hover:bg-gray-900",
                 ].join(" ")
               }
               aria-label="Filter by bookmarks"
@@ -111,9 +107,7 @@ export default function EventsList({
               className={({ isActive }) =>
                 [
                   "inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm",
-                  isActive
-                    ? "bg-gray-800"
-                    : "border border-gray-700 hover:bg-gray-900",
+                  isActive ? "bg-gray-800" : "border border-gray-700 hover:bg-gray-900",
                 ].join(" ")
               }
               aria-label="Schedule"
@@ -173,7 +167,7 @@ export default function EventsList({
           data-day={day}
           className="px-4 sm:px-5"
         >
-          <h2 className="ml-1 mt-6 mb-3 scroll-mt-[116px] text-xl font-bold text-gray-100 md:text-2xl">
+          <h2 className="mt-6 mb-3 ml-1 scroll-mt-[116px] text-xl font-bold text-gray-100 md:text-2xl">
             {fmtHeading(day, conf.timezone || "UTC")}
           </h2>
           <ul className="mb-8 grid gap-3">

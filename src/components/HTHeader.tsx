@@ -1,11 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
-import { Link, useLocation } from "react-router";
-import {
-  Popover,
-  Transition,
-  PopoverButton,
-  PopoverPanel,
-} from "@headlessui/react";
+import { Popover, Transition, PopoverButton, PopoverPanel } from "@headlessui/react";
 import {
   Bars3Icon,
   XMarkIcon,
@@ -14,6 +7,8 @@ import {
   LifebuoyIcon,
   CodeBracketSquareIcon,
 } from "@heroicons/react/24/outline";
+import { Fragment, useEffect, useState } from "react";
+import { Link, useLocation } from "react-router";
 
 type NavItem = {
   key: string;
@@ -41,11 +36,7 @@ const items: NavItem[] = [
   },
 ];
 
-export function HTHeader({
-  variant = "default",
-}: {
-  variant?: "default" | "splash";
-}) {
+export function HTHeader({ variant = "default" }: { variant?: "default" | "splash" }) {
   const { pathname } = useLocation();
   const [scrolled, setScrolled] = useState(false);
 
@@ -72,23 +63,23 @@ export function HTHeader({
       {/* Skip link for keyboard nav */}
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[100] rounded bg-neutral-900 px-3 py-2 text-sm text-white shadow"
+        className="sr-only rounded bg-neutral-900 px-3 py-2 text-sm text-white shadow focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-[100]"
       >
         Skip to content
       </a>
 
-      <div className="flex w-full items-center justify-between h-14 px-4 sm:px-6 lg:px-10">
+      <div className="flex h-14 w-full items-center justify-between px-4 sm:px-6 lg:px-10">
         {/* Brand */}
         <Link
           to="/"
           aria-label="HackerTracker Home"
-          className="bg-gradient-to-r from-cyan-400 via-white to-red-500 bg-clip-text text-transparent text-xl sm:text-2xl font-extrabold tracking-tight"
+          className="bg-gradient-to-r from-cyan-400 via-white to-red-500 bg-clip-text text-xl font-extrabold tracking-tight text-transparent sm:text-2xl"
         >
           HackerTracker
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden sm:flex items-center gap-2">
+        <nav className="hidden items-center gap-2 sm:flex">
           {items.map(({ key, label, to, external, icon: Icon }) => {
             const active = pathname === to;
             const common =
@@ -147,15 +138,9 @@ export function HTHeader({
                   ].join(" ")}
                 >
                   {open ? (
-                    <XMarkIcon
-                      className="h-5 w-5 text-neutral-200"
-                      aria-hidden="true"
-                    />
+                    <XMarkIcon className="h-5 w-5 text-neutral-200" aria-hidden="true" />
                   ) : (
-                    <Bars3Icon
-                      className="h-5 w-5 text-neutral-200"
-                      aria-hidden="true"
-                    />
+                    <Bars3Icon className="h-5 w-5 text-neutral-200" aria-hidden="true" />
                   )}
                 </PopoverButton>
 
@@ -178,7 +163,7 @@ export function HTHeader({
                             href={to}
                             target="_blank"
                             rel="noreferrer"
-                            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-neutral-300 hover:bg-neutral-900 hover:text-white transition-colors"
+                            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-neutral-300 transition-colors hover:bg-neutral-900 hover:text-white"
                           >
                             <Icon className="h-5 w-5" />
                             {label}
@@ -199,7 +184,7 @@ export function HTHeader({
                             <Icon className="h-5 w-5" />
                             {label}
                           </PopoverButton>
-                        )
+                        ),
                       )}
                     </div>
                   </PopoverPanel>

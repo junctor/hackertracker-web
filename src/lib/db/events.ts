@@ -1,19 +1,12 @@
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  orderBy,
-  query,
-  where,
-} from "firebase/firestore/lite";
-import { db } from "../firebase";
+import { collection, doc, getDoc, getDocs, orderBy, query, where } from "firebase/firestore/lite";
+
 import type { HTEvent } from "@/types/db";
+
+import { db } from "../firebase";
 import { getCached, setCached } from "./cache";
 
 const eventsKey = (conf: string) => `conference:${conf}:events`;
-const eventKey = (conf: string, eventId: number) =>
-  `conference:${conf}:event:${eventId}`;
+const eventKey = (conf: string, eventId: number) => `conference:${conf}:event:${eventId}`;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object";
@@ -65,10 +58,7 @@ export async function getEvents(conf: string): Promise<HTEvent[]> {
   return events;
 }
 
-export async function getEventById(
-  conf: string,
-  eventId: number
-): Promise<HTEvent | null> {
+export async function getEventById(conf: string, eventId: number): Promise<HTEvent | null> {
   const cachedEvents = getCachedEventList(conf);
   const eventFromList = cachedEvents?.find((event) => event.id === eventId);
   if (eventFromList) return eventFromList;
@@ -87,26 +77,18 @@ export async function getEventById(
   return event;
 }
 
-export async function getEventsByIds(
-  conf: string,
-  eventIds: number[]
-): Promise<HTEvent[]> {
+export async function getEventsByIds(conf: string, eventIds: number[]): Promise<HTEvent[]> {
   if (!eventIds.length) return [];
 
   const cachedEvents = getCachedEventList(conf);
   if (cachedEvents) return eventsByIds(cachedEvents, eventIds);
 
-  const results = await Promise.all(
-    eventIds.map(async (id) => getEventById(conf, id))
-  );
+  const results = await Promise.all(eventIds.map(async (id) => getEventById(conf, id)));
 
   return results.filter((ev): ev is HTEvent => ev !== null);
 }
 
-export async function getEventsByIdsIn(
-  conf: string,
-  eventIds: number[]
-): Promise<HTEvent[]> {
+export async function getEventsByIdsIn(conf: string, eventIds: number[]): Promise<HTEvent[]> {
   const ids = (eventIds ?? []).map(String).slice(0, 10); // Firestore limit = 10
   if (ids.length === 0) return [];
 

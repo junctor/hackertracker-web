@@ -1,22 +1,19 @@
 import { collection, doc, getDoc, getDocs } from "firebase/firestore/lite";
-import { db } from "../firebase";
+
 import type { HTPerson } from "@/types/db";
+
+import { db } from "../firebase";
 import { getCached, setCached } from "./cache";
 
 const speakersKey = (conf: string) => `conference:${conf}:speakers`;
-const speakerKey = (conf: string, id: number) =>
-  `conference:${conf}:speaker:${id}`;
+const speakerKey = (conf: string, id: number) => `conference:${conf}:speaker:${id}`;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object";
 }
 
 function isSpeaker(value: unknown): value is HTPerson {
-  return (
-    isRecord(value) &&
-    typeof value.id === "number" &&
-    typeof value.name === "string"
-  );
+  return isRecord(value) && typeof value.id === "number" && typeof value.name === "string";
 }
 
 function isSpeakerList(value: unknown): value is HTPerson[] {
@@ -51,10 +48,7 @@ export async function getSpeakers(conf: string): Promise<HTPerson[]> {
   return speakers;
 }
 
-export async function getSpeakerById(
-  conf: string,
-  id: number
-): Promise<HTPerson | null> {
+export async function getSpeakerById(conf: string, id: number): Promise<HTPerson | null> {
   const cachedSpeakers = getCachedSpeakerList(conf);
   const speakerFromList = cachedSpeakers?.find((speaker) => speaker.id === id);
   if (speakerFromList) return speakerFromList;
@@ -73,10 +67,7 @@ export async function getSpeakerById(
   return speaker;
 }
 
-export async function getSpeakersByIds(
-  conf: string,
-  ids: number[]
-): Promise<HTPerson[]> {
+export async function getSpeakersByIds(conf: string, ids: number[]): Promise<HTPerson[]> {
   if (!ids.length) return [];
 
   const cachedSpeakers = getCachedSpeakerList(conf);

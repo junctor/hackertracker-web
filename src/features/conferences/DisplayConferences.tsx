@@ -1,16 +1,12 @@
 import { useMemo } from "react";
+
 import type { HTConference } from "@/types/db";
+
 import { ConferenceCard } from "./ConferenceCard";
 
 /** Firestore / date helpers */
 type FirestoreTimestampLike = { toDate: () => Date };
-type DateLike =
-  | Date
-  | string
-  | number
-  | FirestoreTimestampLike
-  | null
-  | undefined;
+type DateLike = Date | string | number | FirestoreTimestampLike | null | undefined;
 
 function isFirestoreTimestamp(v: unknown): v is FirestoreTimestampLike {
   return typeof (v as { toDate?: unknown })?.toDate === "function";
@@ -38,29 +34,23 @@ const updatedMs = (c: ConferenceWithDates<HTConference>) =>
   toMillis(c.updated_at ?? c.modified ?? c.start_timestamp ?? c.start_date);
 
 const byStartAsc = (a: HTConference, b: HTConference) =>
-  startMs(a as ConferenceWithDates<HTConference>) -
-  startMs(b as ConferenceWithDates<HTConference>);
+  startMs(a as ConferenceWithDates<HTConference>) - startMs(b as ConferenceWithDates<HTConference>);
 
 const byStartDesc = (a: HTConference, b: HTConference) =>
-  startMs(b as ConferenceWithDates<HTConference>) -
-  startMs(a as ConferenceWithDates<HTConference>);
+  startMs(b as ConferenceWithDates<HTConference>) - startMs(a as ConferenceWithDates<HTConference>);
 
 const byUpdatedDesc = (a: HTConference, b: HTConference) =>
   updatedMs(b as ConferenceWithDates<HTConference>) -
   updatedMs(a as ConferenceWithDates<HTConference>);
 
-export function DisplayConferences({
-  conferences,
-}: {
-  conferences: HTConference[];
-}) {
+export function DisplayConferences({ conferences }: { conferences: HTConference[] }) {
   const { upcoming, updated, past } = useMemo(() => {
     const now = Date.now();
     const future = conferences.filter(
-      (c) => startMs(c as ConferenceWithDates<HTConference>) >= now
+      (c) => startMs(c as ConferenceWithDates<HTConference>) >= now,
     );
     const history = conferences.filter(
-      (c) => startMs(c as ConferenceWithDates<HTConference>) < now
+      (c) => startMs(c as ConferenceWithDates<HTConference>) < now,
     );
 
     const THIRTY_DAYS = 1000 * 60 * 60 * 24 * 30;
@@ -126,12 +116,7 @@ export function DisplayConferences({
       </Section>
 
       {/* Past */}
-      <Section
-        id="past"
-        title="Past Conferences"
-        count={past.length}
-        ariaLabel="Past conferences"
-      >
+      <Section id="past" title="Past Conferences" count={past.length} ariaLabel="Past conferences">
         {past.length ? (
           <CardsGrid>
             {past.map((c) => (
@@ -161,26 +146,21 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section
-      id={id}
-      role="region"
-      aria-labelledby={`${id}-title`}
-      className="space-y-4"
-    >
+    <section id={id} role="region" aria-labelledby={`${id}-title`} className="space-y-4">
       <header className="flex items-center justify-between">
         <h2
           id={`${id}-title`}
-          className="group inline-flex items-center gap-2 text-base sm:text-lg font-semibold text-neutral-100"
+          className="group inline-flex items-center gap-2 text-base font-semibold text-neutral-100 sm:text-lg"
         >
           {title}
           {typeof count === "number" && (
-            <span className="rounded-full bg-neutral-800 text-neutral-300 text-xs px-2 py-0.5">
+            <span className="rounded-full bg-neutral-800 px-2 py-0.5 text-xs text-neutral-300">
               {count}
             </span>
           )}
           <a
             href={`#${id}`}
-            className="opacity-0 group-hover:opacity-100 transition-opacity text-neutral-500 hover:text-neutral-300"
+            className="text-neutral-500 opacity-0 transition-opacity group-hover:opacity-100 hover:text-neutral-300"
             aria-label={`Link to section ${title}`}
           >
             #
@@ -197,7 +177,7 @@ function Section({
 
 function CardsGrid({ children }: { children: React.ReactNode }) {
   return (
-    <div className="grid items-stretch gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+    <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
       {children}
     </div>
   );

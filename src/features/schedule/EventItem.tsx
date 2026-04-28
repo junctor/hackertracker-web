@@ -1,7 +1,8 @@
-import React, { useMemo, useState, useEffect, memo } from "react";
-import { useNavigate } from "react-router";
 import { BookmarkIcon as BookmarkOutline } from "@heroicons/react/24/outline";
 import { BookmarkIcon as BookmarkSolid } from "@heroicons/react/24/solid";
+import React, { useMemo, useState, useEffect, memo } from "react";
+import { useNavigate } from "react-router";
+
 import type { ProcessedEvent } from "@/types/ht";
 
 function fmtTime(value: string | number | Date, tz?: string, withZone = false) {
@@ -32,7 +33,7 @@ function EventItemBase({
 
   const barStyle = useMemo(
     () => ({ "--event-color": event.color ?? "#fff" }) as React.CSSProperties,
-    [event.color]
+    [event.color],
   );
 
   const go = () => nav(`/event?conf=${confCode}&event=${event.id}`);
@@ -54,7 +55,7 @@ function EventItemBase({
     >
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute left-0 top-2 bottom-2 w-[clamp(0.25rem,2vw,0.75rem)] rounded-r-md bg-[var(--event-color)] transition-all duration-200 group-hover:w-[clamp(0.35rem,3vw,1rem)]"
+        className="pointer-events-none absolute top-2 bottom-2 left-0 w-[clamp(0.25rem,2vw,0.75rem)] rounded-r-md bg-[var(--event-color)] transition-all duration-200 group-hover:w-[clamp(0.35rem,3vw,1rem)]"
       />
       <div className="ml-3 grid grid-cols-12 gap-2">
         <div className="col-span-12 sm:col-span-3">
@@ -71,24 +72,17 @@ function EventItemBase({
         </div>
 
         <div className="col-span-12 sm:col-span-8">
-          <h3 className="text-lg sm:text-xl font-bold text-gray-100 line-clamp-2">
-            {event.title}
-          </h3>
-          {event.speakers && (
-            <p className="mt-1 italic text-gray-300">{event.speakers}</p>
-          )}
-          {event.location && (
-            <p className="mt-1 text-gray-300">{event.location}</p>
-          )}
+          <h3 className="line-clamp-2 text-lg font-bold text-gray-100 sm:text-xl">{event.title}</h3>
+          {event.speakers && <p className="mt-1 text-gray-300 italic">{event.speakers}</p>}
+          {event.location && <p className="mt-1 text-gray-300">{event.location}</p>}
           {event.tags?.length > 0 && (
             <ul className="mt-2 flex flex-wrap gap-1">
               {event.tags.map((tag) => (
                 <li
                   key={tag.id}
-                  className="rounded px-2 py-0.5 text-xs font-medium uppercase tracking-wide"
+                  className="rounded px-2 py-0.5 text-xs font-medium tracking-wide uppercase"
                   style={{
-                    backgroundColor:
-                      tag.color_background ?? "rgba(255,255,255,0.1)",
+                    backgroundColor: tag.color_background ?? "rgba(255,255,255,0.1)",
                     color: tag.color_foreground ?? "#fff",
                   }}
                 >
@@ -99,7 +93,7 @@ function EventItemBase({
           )}
         </div>
 
-        <div className="col-span-12 sm:col-span-1 flex items-start justify-end">
+        <div className="col-span-12 flex items-start justify-end sm:col-span-1">
           <button
             onClick={toggle}
             aria-label={optimistic ? "Remove bookmark" : "Add bookmark"}
@@ -123,7 +117,7 @@ const EventItem = memo(
   (prev, next) =>
     prev.event.id === next.event.id &&
     prev.isBookmarked === next.isBookmarked &&
-    prev.confCode === next.confCode
+    prev.confCode === next.confCode,
 );
 
 export default EventItem;
