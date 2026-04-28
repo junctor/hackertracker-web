@@ -112,7 +112,7 @@ export default function EventDetails({
           <div className="flex items-start justify-between gap-3">
             <Link
               to={`/schedule?conf=${encodeURIComponent(confCode)}`}
-              className="ui-focus-ring inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 text-sm font-semibold text-gray-300 hover:border-white/14 hover:bg-white/[0.05] hover:text-gray-100"
+              className="ui-focus-ring inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 text-sm font-semibold text-gray-300 hover:border-white/14 hover:bg-white/[0.05] hover:text-gray-100 focus-visible:outline-none"
             >
               <ArrowLeftIcon className="h-4.5 w-4.5" aria-hidden="true" />
               <span className="sr-only sm:not-sr-only">Schedule</span>
@@ -122,7 +122,7 @@ export default function EventDetails({
               <button
                 type="button"
                 onClick={handleCalendar}
-                className="ui-icon-btn ui-focus-ring h-11 w-11"
+                className="ui-icon-btn ui-focus-ring h-11 w-11 focus-visible:outline-none"
                 title="Add to calendar"
                 aria-label="Add to calendar"
               >
@@ -132,7 +132,7 @@ export default function EventDetails({
               <button
                 type="button"
                 onClick={handleShare}
-                className="ui-icon-btn ui-focus-ring h-11 w-11"
+                className="ui-icon-btn ui-focus-ring h-11 w-11 focus-visible:outline-none"
                 title="Share"
                 aria-label="Share event link"
               >
@@ -147,6 +147,7 @@ export default function EventDetails({
                 className={[
                   "ui-icon-btn ui-focus-ring h-11 w-11",
                   bookmarkPulse ? "scale-110" : "",
+                  "focus-visible:outline-none",
                 ].join(" ")}
                 title={bookmark ? "Bookmarked" : "Bookmark"}
               >
@@ -234,7 +235,7 @@ export default function EventDetails({
                   href={l.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="ui-card ui-card-interactive ui-focus-ring group flex min-w-0 items-center justify-between gap-4 px-4 py-3.5 sm:px-5"
+                  className="ui-card ui-card-interactive ui-focus-ring group flex min-w-0 items-center justify-between gap-4 px-4 py-3.5 focus-visible:outline-none sm:px-5"
                 >
                   <span className="truncate text-sm font-medium text-[#6CCDBB] transition-colors group-hover:text-white sm:text-[0.95rem]">
                     {l.label}
@@ -261,7 +262,7 @@ export default function EventDetails({
                 <li key={p.id}>
                   <Link
                     to={`/person?conf=${confCode}&person=${p.id}`}
-                    className="ui-pill-link ui-focus-ring"
+                    className="ui-pill-link ui-focus-ring focus-visible:outline-none"
                     title={p.name}
                   >
                     <UserIcon className="h-4 w-4 text-[#6CCDBB]" aria-hidden="true" />

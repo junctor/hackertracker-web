@@ -32,7 +32,7 @@ function EventItemBase({
   useEffect(() => setOptimistic(isBookmarked), [isBookmarked]);
 
   const barStyle = useMemo(
-    () => ({ "--event-color": event.color ?? "#fff" }) as React.CSSProperties,
+    () => ({ "--event-color": event.color ?? "#64748b" }) as React.CSSProperties,
     [event.color],
   );
 
@@ -65,7 +65,10 @@ function EventItemBase({
       <span aria-hidden="true" className="ui-accent-rail-overlay" />
 
       <div className="relative z-10 flex items-start gap-3 px-4 py-4 pl-5 sm:px-5 sm:py-5 sm:pl-6">
-        <Link to={href} className="ui-focus-ring min-w-0 flex-1 rounded-[inherit]">
+        <Link
+          to={href}
+          className="ui-focus-ring min-w-0 flex-1 rounded-[inherit] focus-visible:outline-none"
+        >
           <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:gap-5">
             <div className="min-w-0 space-y-1.5 md:w-44 md:shrink-0">
               {(isLive || isNext) && (
@@ -108,7 +111,7 @@ function EventItemBase({
                   {visibleTags.map((tag) => (
                     <li
                       key={tag.id}
-                      className="ui-tag-chip"
+                      className="ui-tag-chip ui-tag-chip-strong"
                       style={{
                         backgroundColor: tag.color_background ?? "rgba(255,255,255,0.08)",
                         color: tag.color_foreground ?? "#fff",
@@ -131,7 +134,7 @@ function EventItemBase({
           onClick={toggle}
           aria-label={bookmarkLabel}
           aria-pressed={optimistic}
-          className="ui-icon-btn ui-focus-ring h-11 w-11 shrink-0"
+          className="ui-icon-btn ui-focus-ring h-11 w-11 shrink-0 focus-visible:outline-none"
         >
           {optimistic ? (
             <BookmarkSolid className="h-5 w-5" aria-hidden="true" />
