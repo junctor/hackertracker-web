@@ -104,14 +104,14 @@ export function Bookmarks() {
             <EventsList dateGroup={grouped} conf={conference} pageTitle="Bookmarks" />
           </Suspense>
         ) : (
-          <div className="mt-20 flex h-full flex-col items-center justify-center text-center text-gray-400">
-            <p className="text-lg font-medium">No bookmarks found</p>
+          <div className="ui-empty-state mx-auto mt-20 max-w-md">
+            <p className="text-gray-200">No bookmarks found.</p>
             {confCode && (
               <Link
                 to={`/schedule?conf=${confCode}`}
-                className="mt-3 inline-block rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-gray-200 transition hover:bg-gray-700 hover:text-white"
+                className="ui-btn-base ui-btn-secondary ui-focus-ring ui-empty-state-action focus:outline-none"
               >
-                Browse all events
+                Browse Schedule
               </Link>
             )}
           </div>
