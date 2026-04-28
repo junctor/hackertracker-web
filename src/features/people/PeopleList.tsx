@@ -45,11 +45,10 @@ export default function PeopleList({ confCode, people }: { confCode: string; peo
   const trimmedQuery = query.trim();
 
   return (
-    <section className="mx-auto my-10 max-w-7xl px-4">
-      {/* Header */}
+    <section className="mx-auto my-10 max-w-7xl px-4 sm:px-5">
       <div className="mb-6 flex flex-col items-stretch justify-between gap-4 md:flex-row md:items-center">
-        <div className="flex items-baseline gap-3">
-          <h1 className="text-3xl font-extrabold tracking-tight text-gray-100 md:text-4xl">
+        <div className="flex min-w-0 flex-wrap items-baseline gap-3">
+          <h1 className="text-3xl leading-tight font-extrabold text-gray-100 md:text-4xl">
             People
           </h1>
           <span
@@ -60,7 +59,6 @@ export default function PeopleList({ confCode, people }: { confCode: string; peo
           </span>
         </div>
 
-        {/* Controls */}
         <form
           role="search"
           onSubmit={(e) => e.preventDefault()}
@@ -75,8 +73,8 @@ export default function PeopleList({ confCode, people }: { confCode: string; peo
               type="search"
               value={query}
               onChange={(e) => setQuery(e.currentTarget.value)}
-              placeholder="Search people…"
-              className="ui-input-base ui-focus-ring pl-10 focus:outline-none"
+              placeholder="Search people..."
+              className="ui-input-base ui-focus-ring pl-10 focus-visible:outline-none"
               aria-label="Search people"
             />
           </label>
@@ -87,16 +85,15 @@ export default function PeopleList({ confCode, people }: { confCode: string; peo
             <select
               value={sortMode}
               onChange={(e) => setSortMode(e.currentTarget.value as SortMode)}
-              className="ui-input-base ui-focus-ring py-2 text-sm focus:outline-none"
+              className="ui-input-base ui-focus-ring py-2 text-sm focus-visible:outline-none"
             >
-              <option value="name-asc">Name (A–Z)</option>
-              <option value="name-desc">Name (Z–A)</option>
+              <option value="name-asc">Name (A-Z)</option>
+              <option value="name-desc">Name (Z-A)</option>
             </select>
           </label>
         </form>
       </div>
 
-      {/* Content */}
       {resultCount === 0 ? (
         <EmptyState query={trimmedQuery} onClear={() => setQuery("")} />
       ) : (
@@ -130,7 +127,7 @@ export default function PeopleList({ confCode, people }: { confCode: string; peo
 
                   <Link
                     to={`/person?conf=${encodeURIComponent(confCode)}&person=${p.id}`}
-                    className="ui-focus-ring relative z-10 block h-full rounded-[inherit] px-4 py-3.5 pl-5 focus:outline-none sm:px-5 sm:py-4 sm:pl-6"
+                    className="ui-focus-ring relative z-10 block h-full rounded-[inherit] px-4 py-3.5 pl-5 focus-visible:outline-none sm:px-5 sm:py-4 sm:pl-6"
                   >
                     <div className="flex items-center gap-3.5">
                       <div
@@ -304,7 +301,7 @@ function EmptyState({ query, onClear }: { query: string; onClear: () => void }) 
           <button
             type="button"
             onClick={onClear}
-            className="ui-btn-base ui-btn-secondary ui-focus-ring ui-empty-state-action focus:outline-none"
+            className="ui-btn-base ui-btn-secondary ui-focus-ring ui-empty-state-action focus-visible:outline-none"
           >
             Clear search
           </button>

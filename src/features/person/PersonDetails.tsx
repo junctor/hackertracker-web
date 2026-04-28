@@ -186,7 +186,7 @@ export default function PersonDetails({
           <div className="flex items-start justify-between gap-3">
             <Link
               to={`/people?conf=${encodeURIComponent(conference.code)}`}
-              className="ui-focus-ring inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 text-sm font-semibold text-gray-300 hover:border-white/14 hover:bg-white/[0.05] hover:text-gray-100 focus:outline-none"
+              className="ui-focus-ring inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 text-sm font-semibold text-gray-300 hover:border-white/14 hover:bg-white/[0.05] hover:text-gray-100 focus-visible:outline-none"
             >
               <ArrowLeftIcon className="h-4.5 w-4.5" aria-hidden="true" />
               <span className="sr-only sm:not-sr-only">People</span>
@@ -266,7 +266,7 @@ export default function PersonDetails({
                         href={link.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="ui-focus-ring ui-pill-link focus:outline-none"
+                        className="ui-focus-ring ui-pill-link focus-visible:outline-none"
                       >
                         <span className="max-w-[16rem] truncate">{link.title || link.url}</span>
                         <ArrowTopRightOnSquareIcon
@@ -322,7 +322,7 @@ export default function PersonDetails({
                     to={`/event?conf=${encodeURIComponent(conference.code)}&event=${encodeURIComponent(
                       id,
                     )}`}
-                    className="ui-focus-ring relative z-10 block rounded-[inherit] px-4 py-4 pl-5 focus:outline-none sm:px-5 sm:py-5 sm:pl-6"
+                    className="ui-focus-ring relative z-10 block rounded-[inherit] px-4 py-4 pl-5 focus-visible:outline-none sm:px-5 sm:py-5 sm:pl-6"
                   >
                     <div className="min-w-0 space-y-1.5">
                       <h3 className="line-clamp-2 text-base leading-6 font-semibold text-gray-100 transition-colors group-hover:text-white sm:text-lg">
