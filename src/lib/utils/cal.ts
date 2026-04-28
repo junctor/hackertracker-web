@@ -7,11 +7,7 @@ const MAX_LINE_LEN = 75;
 
 /** Escape special chars per RFC 5545 */
 const escapeICalText = (text = "") =>
-  text
-    .replace(/\\/g, "\\\\")
-    .replace(/;/g, "\\;")
-    .replace(/,/g, "\\,")
-    .replace(/\r?\n/g, "\\n");
+  text.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
 
 /** Format a Date to iCal “YYYYMMDDTHHMMSSZ” in UTC */
 export const formatICalDate = (d: Date): string => {
@@ -46,10 +42,7 @@ const buildDescription = (event: ProcessedEvent) => {
 };
 
 /** Generate a full iCal string for an event */
-export const generateICal = (
-  event: ProcessedEvent,
-  conference: HTConference
-): string => {
+export const generateICal = (event: ProcessedEvent, conference: HTConference): string => {
   const now = new Date();
   const dtstamp = formatICalDate(now);
   const dtstart = formatICalDate(new Date(event.begin));

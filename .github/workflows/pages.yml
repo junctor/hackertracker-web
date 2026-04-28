@@ -30,15 +30,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - name: Set up Vite+
+        uses: voidzero-dev/setup-vp@v1
         with:
-          node-version: lts/*
-          cache: "npm"
+          cache: true
       - name: Install dependencies
-        run: npm ci
+        run: vp install
+      - name: Check
+        run: vp check --no-fmt
       - name: Build
-        run: npm run build
+        run: vp run build
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

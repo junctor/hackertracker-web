@@ -8,8 +8,10 @@ import {
   query,
   where,
 } from "firebase/firestore/lite";
-import { db } from "../firebase";
+
 import type { HTConference } from "@/types/db";
+
+import { db } from "../firebase";
 import { getCached, setCached } from "./cache";
 
 const conferencesKey = (count: number) => `conferences:list:${count}`;
@@ -53,9 +55,7 @@ export async function getConferences(count = 50): Promise<HTConference[]> {
   return conferences;
 }
 
-export async function getConferenceByCode(
-  code: string
-): Promise<HTConference | null> {
+export async function getConferenceByCode(code: string): Promise<HTConference | null> {
   const cached = getCached<HTConference>(conferenceKey(code), {
     validate: isConference,
   });
@@ -80,7 +80,7 @@ export async function getUpcomingConferences(): Promise<HTConference[]> {
     ref,
     where("end_timestamp", ">=", new Date()),
     orderBy("end_timestamp", "asc"),
-    limit(50)
+    limit(50),
   );
   const snap = await getDocs(q);
   const conferences = snap.docs.map((doc) => {

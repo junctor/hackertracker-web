@@ -1,9 +1,9 @@
 # Hacker Tracker Web
 
-[![Vite](https://img.shields.io/badge/Bundler-Vite_7-646CFF?logo=vite&logoColor=white)](https://vitejs.dev)
+[![Vite](https://img.shields.io/badge/Bundler-Vite_8-646CFF?logo=vite&logoColor=white)](https://vitejs.dev)
 [![React](https://img.shields.io/badge/Framework-React_19-61DAFB?logo=react&logoColor=white)](https://react.dev)
 [![TailwindCSS](https://img.shields.io/badge/Styling-Tailwind_4-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
-[![TypeScript](https://img.shields.io/badge/Language-TypeScript_5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![TypeScript](https://img.shields.io/badge/Language-TypeScript_6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Firebase](https://img.shields.io/badge/Data-Firebase_12-FFCA28?logo=firebase&logoColor=white)](https://firebase.google.com)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey)](../../LICENSE)
 
@@ -38,16 +38,16 @@ Trusted by legendary hacker and security conferences worldwide:
 
 ---
 
-## 🛠️ Built With
+## Built With
 
 Hacker Tracker Web runs on a **modern, fast, type-safe stack**:
 
-- **Vite 7** – blazing-fast dev server & bundler
+- **Vite+ with Vite 8** – development server, production build, and project checks
 - **React 19 + React Router 7** – powerful, component-driven UI & routing
 - **Tailwind CSS 4 + Headless UI + Heroicons** – accessible, utility-first design
 - **Firebase 12** – real-time data and hosting infrastructure
-- **TypeScript 5** – strict typing for reliability and maintainability
-- **ESLint + Prettier** – consistent code quality and formatting
+- **TypeScript 6** – strict typing for reliability and maintainability
+- **Oxlint + Oxfmt through Vite+** – linting and formatting via `vp check`
 
 ---
 

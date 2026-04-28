@@ -5,9 +5,7 @@ import type { GroupedSchedule, ProcessedEvent, ProcessedTag } from "@/types/ht";
 
 // "+0000"/"-0000" -> "Z"; "+HHMM" -> "+HH:MM"
 const normalizeOffset = (s: string) =>
-  /[+-]0000$/.test(s)
-    ? s.replace(/[+-]0000$/, "Z")
-    : s.replace(/([+-]\d{2})(\d{2})$/, "$1:$2");
+  /[+-]0000$/.test(s) ? s.replace(/[+-]0000$/, "Z") : s.replace(/([+-]\d{2})(\d{2})$/, "$1:$2");
 
 // Parse our fixed format safely across engines
 const parseFixedIso = (s: string) => new Date(normalizeOffset(s));
@@ -52,19 +50,17 @@ export const dayKey = (input: string | number | Date, timeZone = "UTC") =>
       : input instanceof Date
         ? input
         : parseFixedIso(input),
-    timeZone
+    timeZone,
   );
 
 // Friendly labels from a day key
 export const fmtTab = (key: string, timeZone?: string) =>
   getFmt({ timeZone, weekday: "short", month: "short", day: "numeric" }).format(
-    dateFromDayKey(key)
+    dateFromDayKey(key),
   );
 
 export const fmtHeading = (key: string, timeZone?: string) =>
-  getFmt({ timeZone, weekday: "long", month: "long", day: "numeric" }).format(
-    dateFromDayKey(key)
-  );
+  getFmt({ timeZone, weekday: "long", month: "long", day: "numeric" }).format(dateFromDayKey(key));
 
 /* ---------------- data shaping ---------------- */
 
@@ -77,10 +73,7 @@ export const buildAllTagIndex = (groups: readonly HTTagGroup[]) => {
   return idx;
 };
 
-export function toProcessedEvent(
-  ev: HTEvent,
-  tagIdx: ReadonlyMap<number, HTTag>
-): ProcessedEvent {
+export function toProcessedEvent(ev: HTEvent, tagIdx: ReadonlyMap<number, HTTag>): ProcessedEvent {
   const tags: ProcessedTag[] = (ev.tag_ids ?? [])
     .map((id) => tagIdx.get(id))
     .filter((t): t is HTTag => !!t)
@@ -119,7 +112,7 @@ export function toProcessedEvent(
 
 export const processScheduleData = (
   events: readonly HTEvent[],
-  tagTypes: readonly HTTagGroup[]
+  tagTypes: readonly HTTagGroup[],
 ) => {
   const tagIdx = buildAllTagIndex(tagTypes);
   return (events ?? []).map((ev) => toProcessedEvent(ev, tagIdx));
@@ -129,7 +122,7 @@ export const processScheduleData = (
 
 export function createDateGroup(
   processed: readonly ProcessedEvent[],
-  timeZone = "UTC"
+  timeZone = "UTC",
 ): GroupedSchedule {
   const groups: GroupedSchedule = {};
 
@@ -154,8 +147,7 @@ export function createDateGroup(
   }
 
   // Ensure each day’s list is ordered (cheap since mostly sorted)
-  for (const list of Object.values(groups))
-    list.sort((a, b) => epoch(a) - epoch(b));
+  for (const list of Object.values(groups)) list.sort((a, b) => epoch(a) - epoch(b));
 
   return groups;
 }
@@ -163,6 +155,5 @@ export function createDateGroup(
 export const buildScheduleBucketsByDay = (
   events: readonly HTEvent[],
   tags: readonly HTTagGroup[],
-  timeZone = "UTC"
-): GroupedSchedule =>
-  createDateGroup(processScheduleData(events, tags), timeZone);
+  timeZone = "UTC",
+): GroupedSchedule => createDateGroup(processScheduleData(events, tags), timeZone);

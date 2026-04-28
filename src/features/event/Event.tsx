@@ -1,25 +1,17 @@
 import { useEffect, useState } from "react";
-import {
-  getConferenceByCode,
-  getEventById,
-  getSpeakersByIds,
-  getTags,
-} from "@/lib/db";
-import { toProcessedEvent } from "@/lib/utils/schedule";
+
+import type { HTConference, HTEvent, HTPerson, HTTag, HTTagGroup } from "@/types/db";
 import type { ProcessedEvent } from "@/types/ht";
-import type {
-  HTConference,
-  HTEvent,
-  HTPerson,
-  HTTag,
-  HTTagGroup,
-} from "@/types/db";
+
 import { ConferenceHeader } from "@/components/ConferenceHeader";
-import LoadingPage from "@/components/LoadingPage";
 import ErrorPage from "@/components/ErrorPage";
 import { HTFooter } from "@/components/HTFooter";
-import EventDetails from "./EventDetails";
+import LoadingPage from "@/components/LoadingPage";
+import { getConferenceByCode, getEventById, getSpeakersByIds, getTags } from "@/lib/db";
 import { useNormalizedParams } from "@/lib/utils/params";
+import { toProcessedEvent } from "@/lib/utils/schedule";
+
+import EventDetails from "./EventDetails";
 
 export function Event() {
   const { confCode, eventId } = useNormalizedParams();
@@ -85,7 +77,7 @@ export function Event() {
           (evt as HTEvent).speakers?.length
             ? getSpeakersByIds(
                 confCode,
-                (evt as HTEvent).speakers!.map((s) => s.id)
+                (evt as HTEvent).speakers!.map((s) => s.id),
               )
             : Promise.resolve([] as HTPerson[]),
         ]);
@@ -110,7 +102,7 @@ export function Event() {
       }
     }
 
-    run();
+    void run();
     return () => {
       cancelled = true;
     };
@@ -118,7 +110,7 @@ export function Event() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-950">
+      <div className="flex min-h-screen flex-col bg-gray-950">
         <main className="flex-1">
           <LoadingPage message="Loading event..." />
         </main>
@@ -129,7 +121,7 @@ export function Event() {
 
   if (error && !conference) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-950">
+      <div className="flex min-h-screen flex-col bg-gray-950">
         <main className="flex-1">
           <ErrorPage msg={error} />
         </main>
@@ -139,7 +131,7 @@ export function Event() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-950">
+    <div className="flex min-h-screen flex-col bg-gray-950">
       <main className="flex-1">
         {conference && <ConferenceHeader conference={conference} />}
         {conference && event ? (

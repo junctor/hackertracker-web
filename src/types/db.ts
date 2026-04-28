@@ -48,11 +48,7 @@ export interface HTPersonLink {
 }
 
 // ---------- TagTypes root (array of tag groups) ----------
-export type HTTagCategory =
-  | "content"
-  | "content-person"
-  | "orga"
-  | "orga-person";
+export type HTTagCategory = "content" | "content-person" | "orga" | "orga-person";
 
 export interface HTTag {
   id: ID;

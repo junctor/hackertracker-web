@@ -1,61 +1,61 @@
-import { Routes, Route } from "react-router";
-import LoadingPage from "@/components/LoadingPage";
-
 import { Suspense, lazy } from "react";
+import { Routes, Route } from "react-router";
+
+import LoadingPage from "@/components/LoadingPage";
 import NotFound from "@/components/NotFound";
 
 const SplashRoute = lazy(() =>
   import("../features/splash/Splash").then((module) => ({
     default: module.Splash,
-  }))
+  })),
 );
 
 const ConferencesRoute = lazy(() =>
   import("../features/conferences/Conferences").then((module) => ({
     default: module.Conferences,
-  }))
+  })),
 );
 
 const AboutRoute = lazy(() =>
   import("../pages/About").then((module) => ({
     default: module.About,
-  }))
+  })),
 );
 
 const SupportRoute = lazy(() =>
   import("../pages/Support").then((module) => ({
     default: module.Support,
-  }))
+  })),
 );
 
 const ScheduleRoute = lazy(() =>
   import("../features/schedule/Schedule").then((module) => ({
     default: module.Schedule,
-  }))
+  })),
 );
 
 const BookmarksRoute = lazy(() =>
   import("../features/bookmarks/Bookmarks").then((module) => ({
     default: module.Bookmarks,
-  }))
+  })),
 );
 
 const EventRoute = lazy(() =>
   import("../features/event/Event").then((module) => ({
     default: module.Event,
-  }))
+  })),
 );
 
 const PeopleRoute = lazy(() =>
   import("../features/people/People").then((module) => ({
     default: module.People,
-  }))
+  })),
 );
 
 const PersonRoute = lazy(() =>
   import("../features/person/Person").then((module) => ({
     default: module.Person,
-  }))
+  })),
 );
 
 export default function AppRouter() {

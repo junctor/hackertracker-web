@@ -1,12 +1,15 @@
 import { useEffect, useState, Suspense, startTransition } from "react";
-import { getConferenceByCode, getEventsByIds, getSpeakerById } from "@/lib/db";
+
 import type { HTConference, HTEvent, HTPerson } from "@/types/db";
+
 import { ConferenceHeader } from "@/components/ConferenceHeader";
-import LoadingPage from "@/components/LoadingPage";
 import ErrorPage from "@/components/ErrorPage";
 import { HTFooter } from "@/components/HTFooter";
-import PersonDetails from "./PersonDetails";
+import LoadingPage from "@/components/LoadingPage";
+import { getConferenceByCode, getEventsByIds, getSpeakerById } from "@/lib/db";
 import { useNormalizedParams } from "@/lib/utils/params";
+
+import PersonDetails from "./PersonDetails";
 
 export function Person() {
   const { confCode, personId } = useNormalizedParams();
@@ -75,7 +78,7 @@ export function Person() {
         if (!cancelled) setLoading(false);
       }
     }
-    run();
+    void run();
     return () => {
       cancelled = true;
     };
@@ -85,16 +88,12 @@ export function Person() {
   if (error) return <ErrorPage msg={error} />;
 
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div className="flex min-h-dvh flex-col">
       {conference && <ConferenceHeader conference={conference} />}
       <main className="flex-1">
         {person && conference ? (
           <Suspense fallback={<LoadingPage message="Loading person..." />}>
-            <PersonDetails
-              conference={conference}
-              person={person}
-              events={events}
-            />
+            <PersonDetails conference={conference} person={person} events={events} />
           </Suspense>
         ) : null}
       </main>

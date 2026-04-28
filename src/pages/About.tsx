@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+
 import { HTFooter } from "@/components/HTFooter";
 import { HTHeader } from "@/components/HTHeader";
 
@@ -8,7 +9,7 @@ export function About() {
   }, []);
 
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div className="flex min-h-dvh flex-col">
       <HTHeader />
 
       <main id="main" className="flex-1">
@@ -32,10 +33,9 @@ export function About() {
             </div>
 
             <p className="mt-6 max-w-3xl text-neutral-300">
-              Hacker Tracker is a conference information app used by
-              tech-related conferences of all sizes. Our mission is to help
-              attendees help themselves with accurate, up-to-date schedules and
-              details.
+              Hacker Tracker is a conference information app used by tech-related conferences of all
+              sizes. Our mission is to help attendees help themselves with accurate, up-to-date
+              schedules and details.
             </p>
           </div>
         </section>
@@ -45,10 +45,7 @@ export function About() {
           {/* Who uses */}
           <section aria-labelledby="who-uses" className="mb-12">
             <div className="flex items-center justify-between">
-              <h2
-                id="who-uses"
-                className="text-lg font-semibold text-neutral-200"
-              >
+              <h2 id="who-uses" className="text-lg font-semibold text-neutral-200">
                 Who uses Hacker Tracker?
               </h2>
               <span className="rounded-full border border-neutral-800 bg-neutral-900 px-3 py-1 text-xs text-neutral-400">
@@ -86,16 +83,12 @@ export function About() {
 
           {/* Who we are */}
           <section aria-labelledby="who-we-are" className="mb-12">
-            <h2
-              id="who-we-are"
-              className="text-lg font-semibold text-neutral-200"
-            >
+            <h2 id="who-we-are" className="text-lg font-semibold text-neutral-200">
               Who We Are
             </h2>
             <p className="mt-2 max-w-3xl text-neutral-300">
-              We’re a small group of friends who met at DEF CON and recognized
-              the need for improved attendee communication at conferences
-              everywhere.
+              We’re a small group of friends who met at DEF CON and recognized the need for improved
+              attendee communication at conferences everywhere.
             </p>
 
             <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -127,7 +120,7 @@ export function About() {
               ].map((m) => (
                 <li
                   key={m.handle}
-                  className="rounded-xl border border-neutral-800 bg-neutral-925/50 p-4"
+                  className="bg-neutral-925/50 rounded-xl border border-neutral-800 p-4"
                 >
                   <a
                     href={m.url}
@@ -141,9 +134,7 @@ export function About() {
                       className="h-10 w-10 rounded-lg ring-1 ring-neutral-700/50"
                     />
                     <div>
-                      <div className="font-medium text-white group-hover:underline">
-                        {m.handle}
-                      </div>
+                      <div className="font-medium text-white group-hover:underline">{m.handle}</div>
                       <div className="text-sm text-neutral-400">{m.role}</div>
                     </div>
                   </a>
@@ -161,7 +152,7 @@ export function About() {
               <li className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-4">
                 <a
                   href="https://defcon.org"
-                  className="text-neutral-300 hover:text-white underline"
+                  className="text-neutral-300 underline hover:text-white"
                   target="_blank"
                   rel="noreferrer"
                 >
@@ -171,28 +162,24 @@ export function About() {
               <li className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-4">
                 <a
                   href="https://www.ccc.de/en/"
-                  className="text-neutral-300 hover:text-white underline"
+                  className="text-neutral-300 underline hover:text-white"
                   target="_blank"
                   rel="noreferrer"
                 >
                   Chaos Computer Club (CCC)
                 </a>
-                <p className="mt-1 text-sm text-neutral-400">
-                  Source of inspiration
-                </p>
+                <p className="mt-1 text-sm text-neutral-400">Source of inspiration</p>
               </li>
               <li className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-4 md:col-span-2">
                 <a
                   href="https://infosec.exchange/@shortstack"
-                  className="text-neutral-300 hover:text-white underline"
+                  className="text-neutral-300 underline hover:text-white"
                   target="_blank"
                   rel="noreferrer"
                 >
                   ShortStack
                 </a>
-                <p className="mt-1 text-sm text-neutral-400">
-                  Original Android release (2012)
-                </p>
+                <p className="mt-1 text-sm text-neutral-400">Original Android release (2012)</p>
               </li>
             </ul>
           </section>
