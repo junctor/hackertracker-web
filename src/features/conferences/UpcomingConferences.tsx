@@ -85,7 +85,7 @@ function Header({ title, count, id }: { title: string; count?: number; id: strin
           )}
           <a
             href={`#${id}`}
-            className="text-neutral-500 opacity-0 transition-opacity group-hover:opacity-100 hover:text-neutral-300"
+            className="ui-focus-ring rounded text-neutral-500 opacity-0 transition-opacity group-hover:opacity-100 hover:text-neutral-300 focus-visible:opacity-100 focus-visible:outline-none"
             aria-label={`Link to section ${title}`}
           >
             #
