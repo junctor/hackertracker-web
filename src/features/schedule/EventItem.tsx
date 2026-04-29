@@ -60,7 +60,10 @@ function EventItemBase({
     : `Add bookmark for ${event.title}`;
 
   return (
-    <li className="ui-card ui-card-interactive group relative overflow-hidden" style={barStyle}>
+    <article
+      className="ui-card ui-card-interactive group relative w-full min-w-0 overflow-hidden"
+      style={barStyle}
+    >
       <span aria-hidden="true" className="ui-accent-rail" />
       <span aria-hidden="true" className="ui-accent-rail-overlay" />
 
@@ -143,7 +146,7 @@ function EventItemBase({
           )}
         </button>
       </div>
-    </li>
+    </article>
   );
 }
 
