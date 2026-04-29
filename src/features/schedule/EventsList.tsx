@@ -252,10 +252,10 @@ export default function EventsList({
   );
 
   return (
-    <div className="min-h-screen text-gray-100">
+    <div className="min-h-screen bg-neutral-950 text-gray-100">
       <div
         ref={stickyToolsRef}
-        className="sticky z-40 border-b border-white/8 bg-gray-950/92 backdrop-blur"
+        className="sticky z-40 border-b border-white/8 bg-neutral-950/92 backdrop-blur"
         style={stickyToolsTopStyle}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2.5 sm:px-5">
@@ -271,7 +271,7 @@ export default function EventsList({
                   [
                     "ui-focus-ring inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-sm font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
                     isActive
-                      ? "border-[#017FA4]/28 bg-[#0D294A]/42 text-white"
+                      ? "border-[#017FA4]/45 bg-neutral-900/90 text-white"
                       : "border-white/10 bg-white/[0.03] text-gray-300 hover:border-white/14 hover:bg-white/[0.05] hover:text-gray-100",
                   ].join(" ")
                 }
@@ -289,7 +289,7 @@ export default function EventsList({
                   [
                     "ui-focus-ring inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-sm font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
                     isActive
-                      ? "border-[#017FA4]/28 bg-[#0D294A]/42 text-white"
+                      ? "border-[#017FA4]/45 bg-neutral-900/90 text-white"
                       : "border-white/10 bg-white/[0.03] text-gray-300 hover:border-white/14 hover:bg-white/[0.05] hover:text-gray-100",
                   ].join(" ")
                 }
@@ -321,7 +321,7 @@ export default function EventsList({
 
       <div
         ref={stickyTabsRef}
-        className="sticky z-30 border-b border-white/8 bg-gray-950/92 py-2 backdrop-blur"
+        className="sticky z-30 border-b border-white/8 bg-neutral-950/92 py-2 backdrop-blur"
         style={stickyTabsTopStyle}
       >
         <div className="mx-auto max-w-7xl overflow-x-auto px-4 [scrollbar-width:none] sm:px-5 [&::-webkit-scrollbar]:hidden">
@@ -351,7 +351,7 @@ export default function EventsList({
                 className={[
                   "ui-focus-ring group inline-flex min-h-11 items-center gap-2 rounded-xl border px-3.5 py-2 text-sm whitespace-nowrap transition focus-visible:outline-none",
                   resolvedDay === day
-                    ? "border-[#017FA4]/30 bg-[#0D294A]/58 text-white"
+                    ? "border-[#017FA4]/45 bg-neutral-900/95 text-white"
                     : "border-white/10 bg-white/[0.03] text-gray-300 hover:border-white/14 hover:bg-white/[0.05] hover:text-gray-100",
                 ].join(" ")}
               >
