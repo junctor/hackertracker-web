@@ -7,13 +7,22 @@ import { formatDateRange, toDate, tzAbbrev } from "@/lib/utils/dates";
 
 export const ConferenceCard = React.memo(function ConferenceCard({
   conference,
+  updatedAt,
 }: {
   conference: HTConference;
+  updatedAt?: Date;
 }) {
   const start = toDate(conference.start_timestamp) ?? toDate(conference.start_date);
   const end = toDate(conference.end_timestamp) ?? toDate(conference.end_date);
   const range = formatDateRange(start, end, conference.timezone);
   const tz = tzAbbrev(conference.timezone);
+  const updatedLabel = updatedAt
+    ? new Intl.DateTimeFormat(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }).format(updatedAt)
+    : undefined;
 
   return (
     <Link
@@ -33,6 +42,12 @@ export const ConferenceCard = React.memo(function ConferenceCard({
             {range && <time>{range}</time>}
             {range && tz && <span aria-hidden="true">•</span>}
             {tz && <span className="uppercase">{tz}</span>}
+          </p>
+        )}
+
+        {updatedAt && updatedLabel && (
+          <p className="mt-2 text-xs font-medium text-neutral-500">
+            Updated <time dateTime={updatedAt.toISOString()}>{updatedLabel}</time>
           </p>
         )}
       </article>

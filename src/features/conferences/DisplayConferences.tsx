@@ -2,36 +2,50 @@ import { useMemo } from "react";
 
 import type { HTConference } from "@/types/db";
 
+import { type DateLike, toDate } from "@/lib/utils/dates";
+
 import { ConferenceCard } from "./ConferenceCard";
 
-/** Firestore / date helpers */
-type FirestoreTimestampLike = { toDate: () => Date };
-type DateLike = Date | string | number | FirestoreTimestampLike | null | undefined;
-
-function isFirestoreTimestamp(v: unknown): v is FirestoreTimestampLike {
-  return typeof (v as { toDate?: unknown })?.toDate === "function";
-}
 function toMillis(value: DateLike): number {
-  if (!value) return 0;
-  if (value instanceof Date) return value.getTime();
-  if (typeof value === "number") return value;
-  if (typeof value === "string") return new Date(value).getTime();
-  if (isFirestoreTimestamp(value)) return value.toDate().getTime();
-  return 0;
+  return toDate(value)?.getTime() ?? 0;
 }
 
 type ConferenceWithDates<T> = T & {
   start_timestamp?: DateLike;
+  end_timestamp?: DateLike;
   start_date?: DateLike;
+  end_date?: DateLike;
+  start_timestamp_str?: DateLike;
+  end_timestamp_str?: DateLike;
+  begin_tsz?: DateLike;
+  end_tsz?: DateLike;
   updated_at?: DateLike;
+  updated_timestamp?: DateLike;
+  updated_tsz?: DateLike;
+  updated?: DateLike;
   modified?: DateLike;
 };
 
 const startMs = (c: ConferenceWithDates<HTConference>) =>
-  toMillis(c.start_timestamp ?? c.start_date);
+  toMillis(c.start_timestamp ?? c.start_timestamp_str ?? c.start_date ?? c.begin_tsz);
+
+const endMs = (c: ConferenceWithDates<HTConference>) =>
+  toMillis(c.end_timestamp ?? c.end_timestamp_str ?? c.end_date ?? c.end_tsz);
 
 const updatedMs = (c: ConferenceWithDates<HTConference>) =>
-  toMillis(c.updated_at ?? c.modified ?? c.start_timestamp ?? c.start_date);
+  toMillis(
+    c.updated_at ??
+      c.updated_timestamp ??
+      c.updated_tsz ??
+      c.updated ??
+      c.modified ??
+      c.start_timestamp ??
+      c.start_timestamp_str ??
+      c.start_date,
+  );
+
+const updatedDate = (c: ConferenceWithDates<HTConference>) =>
+  toDate(c.updated_at ?? c.updated_timestamp ?? c.updated_tsz ?? c.updated ?? c.modified);
 
 const byStartAsc = (a: HTConference, b: HTConference) =>
   startMs(a as ConferenceWithDates<HTConference>) - startMs(b as ConferenceWithDates<HTConference>);
@@ -46,12 +60,18 @@ const byUpdatedDesc = (a: HTConference, b: HTConference) =>
 export function DisplayConferences({ conferences }: { conferences: HTConference[] }) {
   const { upcoming, updated, past } = useMemo(() => {
     const now = Date.now();
-    const future = conferences.filter(
-      (c) => startMs(c as ConferenceWithDates<HTConference>) >= now,
-    );
-    const history = conferences.filter(
-      (c) => startMs(c as ConferenceWithDates<HTConference>) < now,
-    );
+    const future = conferences.filter((c) => {
+      const conf = c as ConferenceWithDates<HTConference>;
+      const endsAt = endMs(conf);
+      const startsAt = startMs(conf);
+      return (endsAt || startsAt) >= now;
+    });
+    const history = conferences.filter((c) => {
+      const conf = c as ConferenceWithDates<HTConference>;
+      const endsAt = endMs(conf);
+      const startsAt = startMs(conf);
+      return (endsAt || startsAt) < now;
+    });
 
     const THIRTY_DAYS = 1000 * 60 * 60 * 24 * 30;
 
@@ -106,7 +126,10 @@ export function DisplayConferences({ conferences }: { conferences: HTConference[
           <CardsGrid>
             {updated.map((c) => (
               <CardWrap key={c.id}>
-                <ConferenceCard conference={c} />
+                <ConferenceCard
+                  conference={c}
+                  updatedAt={updatedDate(c as ConferenceWithDates<HTConference>)}
+                />
               </CardWrap>
             ))}
           </CardsGrid>

@@ -1,11 +1,37 @@
-export function toDate(v?: string | Date | { seconds: number; nanoseconds?: number } | null) {
+type TimestampParts = { seconds: number; nanoseconds?: number };
+type FirestoreTimestampLike = { toDate: () => Date };
+
+export type DateLike = string | number | Date | TimestampParts | FirestoreTimestampLike | null;
+
+function isFirestoreTimestampLike(value: unknown): value is FirestoreTimestampLike {
+  return typeof (value as { toDate?: unknown })?.toDate === "function";
+}
+
+function isTimestampParts(value: unknown): value is TimestampParts {
+  return (
+    value !== null &&
+    typeof value === "object" &&
+    typeof (value as { seconds?: unknown }).seconds === "number"
+  );
+}
+
+function validDate(date: Date): Date | undefined {
+  return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
+export function toDate(v?: DateLike) {
   if (!v) return undefined;
   if (v instanceof Date) return v;
+  if (typeof v === "number") return validDate(new Date(v));
   if (typeof v === "string") {
     const d = new Date(v);
-    return Number.isNaN(d.getTime()) ? undefined : d;
+    return validDate(d);
   }
-  if ("seconds" in v) return new Date(v.seconds * 1000);
+  if (isFirestoreTimestampLike(v)) return validDate(v.toDate());
+  if (isTimestampParts(v)) {
+    const nanoseconds = v.nanoseconds ?? 0;
+    return validDate(new Date(v.seconds * 1000 + Math.floor(nanoseconds / 1_000_000)));
+  }
   return undefined;
 }
 
