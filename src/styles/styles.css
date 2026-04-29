@@ -69,6 +69,27 @@ button {
   color: var(--ht-fg);
 }
 
+.ui-skip-link {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 1000;
+  border-radius: 0.625rem;
+  border: 1px solid color-mix(in oklab, var(--ht-accent-primary), white 20%);
+  background: var(--ht-surface-elevated);
+  color: var(--ht-fg);
+  padding: 0.55rem 0.85rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-140%);
+  transition: transform 0.18s ease;
+}
+
+.ui-skip-link:focus-visible {
+  transform: translateY(0);
+}
+
 .ui-focus-ring:focus-visible,
 .ui-link:focus-visible,
 .ui-input-focus:focus-visible {

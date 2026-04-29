@@ -5,7 +5,6 @@ import type { GroupedSchedule } from "@/types/ht";
 
 import { ConferenceHeader } from "@/components/ConferenceHeader";
 import ErrorPage from "@/components/ErrorPage";
-import { HTFooter } from "@/components/HTFooter";
 import LoadingPage from "@/components/LoadingPage";
 import { getConferenceByCode, getEvents, getTags } from "@/lib/db";
 import { useNormalizedParams } from "@/lib/utils/params";
@@ -112,8 +111,6 @@ export function Schedule() {
           <LoadingPage message="Loading events..." />
         )}
       </main>
-
-      <HTFooter />
     </div>
   );
 }
