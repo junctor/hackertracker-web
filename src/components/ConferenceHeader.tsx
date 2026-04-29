@@ -141,8 +141,8 @@ export function ConferenceHeader({ conference }: { conference: HTConference }) {
                 key={key}
                 to={to}
                 className={classes}
-                aria-label={key === "home" ? "HackerTracker home" : label}
-                title={key === "home" ? "HackerTracker home" : label}
+                aria-label={key === "home" ? "Hacker Tracker home" : label}
+                title={key === "home" ? "Hacker Tracker home" : label}
                 aria-current={ariaCurrent ? "page" : undefined}
               >
                 <Icon className={`h-5 w-5 ${iconClassName}`} />

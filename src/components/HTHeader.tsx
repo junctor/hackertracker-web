@@ -72,12 +72,12 @@ export function HTHeader({ variant = "default" }: { variant?: "default" | "splas
       <div className="flex min-h-16 w-full items-center justify-between gap-3 px-4 py-2.5 sm:px-6 lg:px-10">
         <Link
           to="/"
-          aria-label="HackerTracker Home"
+          aria-label="Hacker Tracker Home"
           className="ui-focus-ring group min-w-0 rounded-xl px-2 py-1.5 transition-colors hover:bg-white/4 focus-visible:outline-none"
         >
           <span className="flex min-w-0 items-center gap-2.5">
             <span className="truncate text-xl font-bold tracking-tight text-slate-50 drop-shadow-[0_0_14px_rgba(108,205,187,0.16)] transition-colors group-hover:text-white group-hover:drop-shadow-[0_0_18px_rgba(108,205,187,0.22)] sm:text-2xl">
-              HackerTracker
+              Hacker Tracker
             </span>
           </span>
         </Link>
