@@ -1,26 +1,38 @@
 import { useEffect, useState, lazy, Suspense, startTransition } from "react";
 import { Link, useSearchParams } from "react-router";
 
-import type { HTConference, HTEvent, HTTagGroup } from "@/types/db";
+import type { HTConference } from "@/types/db";
 import type { GroupedSchedule } from "@/types/ht";
 
 import { ConferenceHeader } from "@/components/ConferenceHeader";
 import ErrorPage from "@/components/ErrorPage";
 import { HTFooter } from "@/components/HTFooter";
 import LoadingPage from "@/components/LoadingPage";
-import { getConferenceByCode, getEvents, getTags } from "@/lib/db";
-import { buildScheduleBucketsByDay } from "@/lib/utils/schedule";
+import {
+  filterScheduleByEventIds,
+  getCachedConferenceSchedule,
+  getConferenceSchedule,
+} from "@/lib/db";
 import { loadConfBookmarks } from "@/lib/utils/storage";
 
 const EventsList = lazy(() => import("../schedule/EventsList"));
 
 export function Bookmarks() {
   const [searchParams] = useSearchParams();
-  const confCode = searchParams.get("conf");
+  const confCode = searchParams.get("conf")?.trim().toUpperCase() ?? null;
+  const [initial] = useState(() => {
+    if (!confCode) return null;
+    const schedule = getCachedConferenceSchedule(confCode);
+    if (!schedule) return null;
+    return {
+      conference: schedule.conference,
+      grouped: filterScheduleByEventIds(schedule.grouped, loadConfBookmarks(confCode)),
+    };
+  });
 
-  const [grouped, setGrouped] = useState<GroupedSchedule | null>(null);
-  const [conference, setConference] = useState<HTConference | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [grouped, setGrouped] = useState<GroupedSchedule | null>(initial?.grouped ?? null);
+  const [conference, setConference] = useState<HTConference | null>(initial?.conference ?? null);
+  const [loading, setLoading] = useState(!initial);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -41,40 +53,41 @@ export function Bookmarks() {
     async function run() {
       if (!confCode) {
         setError("Missing required URL parameters.");
+        setLoading(false);
         return;
       }
-      setLoading(true);
       setError(null);
-      setGrouped(null);
-      setConference(null);
+
+      const cachedSchedule = getCachedConferenceSchedule(confCode);
+      const bookmarks = loadConfBookmarks(confCode);
+      if (cachedSchedule) {
+        setConference(cachedSchedule.conference);
+        setGrouped(filterScheduleByEventIds(cachedSchedule.grouped, bookmarks));
+        setLoading(false);
+      } else {
+        setLoading(true);
+        setGrouped(null);
+        setConference(null);
+      }
 
       try {
-        const conf = await getConferenceByCode(confCode);
+        const schedule = await getConferenceSchedule(confCode);
         if (cancelled) return;
-        if (!conf) {
+        if (!schedule) {
           setError(`Conference not found.`);
           return;
         }
-        setConference(conf);
 
-        const bookmarks = loadConfBookmarks(confCode); // Set<number>
         if (bookmarks.size === 0) {
+          setConference(schedule.conference);
           setGrouped({});
           return;
         }
 
-        const [evs, tags] = await Promise.all([getEvents(confCode), getTags(confCode)]);
-        if (cancelled) return;
-
-        const tz = conf.timezone || "UTC";
-        const bookmarkedEvents = (evs as HTEvent[]).filter((e) => bookmarks.has(e.id));
-        const groupedSchedule = buildScheduleBucketsByDay(
-          bookmarkedEvents,
-          tags as HTTagGroup[],
-          tz,
-        );
+        const groupedSchedule = filterScheduleByEventIds(schedule.grouped, bookmarks);
 
         startTransition(() => {
+          setConference(schedule.conference);
           setGrouped(groupedSchedule);
         });
       } catch (e) {
@@ -91,7 +104,7 @@ export function Bookmarks() {
     };
   }, [confCode]);
 
-  if (loading) return <LoadingPage message="Loading bookmarks..." />;
+  if (loading && !grouped && !conference) return <LoadingPage message="Loading bookmarks..." />;
 
   if (error) return <ErrorPage msg={error} />;
 

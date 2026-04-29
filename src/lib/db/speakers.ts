@@ -3,10 +3,10 @@ import { collection, doc, getDoc, getDocs } from "firebase/firestore/lite";
 import type { HTPerson } from "@/types/db";
 
 import { db } from "../firebase";
-import { getCached, setCached } from "./cache";
+import { CACHE_TTL_MS, getCached, getOrSetCached, setCached } from "./cache";
 
-const speakersKey = (conf: string) => `conference:${conf}:speakers`;
-const speakerKey = (conf: string, id: number) => `conference:${conf}:speaker:${id}`;
+const speakersKey = (conf: string) => `speakers:${conf}`;
+const speakerKey = (conf: string, id: number) => `speaker:${conf}:${id}`;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object";
@@ -21,7 +21,10 @@ function isSpeakerList(value: unknown): value is HTPerson[] {
 }
 
 function getCachedSpeakerList(conf: string) {
-  return getCached<HTPerson[]>(speakersKey(conf), { validate: isSpeakerList });
+  return getCached<HTPerson[]>(speakersKey(conf), {
+    ttlMs: CACHE_TTL_MS.speakers,
+    validate: isSpeakerList,
+  });
 }
 
 function speakersByIds(speakers: HTPerson[], ids: number[]) {
@@ -34,18 +37,18 @@ function speakersByIds(speakers: HTPerson[], ids: number[]) {
 }
 
 export async function getSpeakers(conf: string): Promise<HTPerson[]> {
-  const cached = getCachedSpeakerList(conf);
-  if (cached) return cached;
-
-  const ref = collection(db, "conferences", conf, "speakers");
-  const snap = await getDocs(ref);
-  const speakers = snap.docs.map((doc) => {
-    const data = doc.data() as HTPerson;
-    return data;
-  });
-
-  setCached(speakersKey(conf), speakers);
-  return speakers;
+  return getOrSetCached(
+    speakersKey(conf),
+    async () => {
+      const ref = collection(db, "conferences", conf, "speakers");
+      const snap = await getDocs(ref);
+      return snap.docs.map((doc) => {
+        const data = doc.data() as HTPerson;
+        return data;
+      });
+    },
+    { ttlMs: CACHE_TTL_MS.speakers, validate: isSpeakerList },
+  );
 }
 
 export async function getSpeakerById(conf: string, id: number): Promise<HTPerson | null> {
@@ -54,6 +57,7 @@ export async function getSpeakerById(conf: string, id: number): Promise<HTPerson
   if (speakerFromList) return speakerFromList;
 
   const cachedSpeaker = getCached<HTPerson>(speakerKey(conf, id), {
+    ttlMs: CACHE_TTL_MS.speakers,
     validate: isSpeaker,
   });
   if (cachedSpeaker?.id === id) return cachedSpeaker;

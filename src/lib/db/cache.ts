@@ -1,8 +1,18 @@
 const CACHE_PREFIX = "htw:v1";
 
-// Conference schedule data changes infrequently, so prefer fast navigation
-// over frequent Firestore revalidation.
-export const DEFAULT_CACHE_TTL_MS = 4 * 60 * 60 * 1000;
+export const CACHE_TTL_MS = {
+  conference: 6 * 60 * 60 * 1000,
+  conferenceList: 6 * 60 * 60 * 1000,
+  events: 10 * 60 * 1000,
+  tags: 10 * 60 * 1000,
+  schedule: 10 * 60 * 1000,
+  speakers: 10 * 60 * 1000,
+} as const;
+
+// Keep the default conservative; callers with known data volatility pass an
+// explicit TTL from CACHE_TTL_MS.
+export const DEFAULT_CACHE_TTL_MS = CACHE_TTL_MS.events;
+const MAX_CACHE_TTL_MS = Math.max(...Object.values(CACHE_TTL_MS));
 
 type CacheEntry<T> = {
   storedAt: number;
@@ -16,7 +26,12 @@ type CacheReadOptions<T> = {
   validate?: CacheValidator<T>;
 };
 
+type CachedLoadOptions<T> = CacheReadOptions<T> & {
+  cacheValue?: (value: T) => void;
+};
+
 const memoryCache = new Map<string, CacheEntry<unknown>>();
+const inFlightLoads = new Map<string, Promise<unknown>>();
 let hasPrunedCache = false;
 
 const namespacedKey = (key: string) => `${CACHE_PREFIX}:${key}`;
@@ -45,7 +60,7 @@ function isFresh(entry: CacheEntry<unknown>, ttlMs: number): boolean {
   return Number.isFinite(entry.storedAt) && age >= 0 && age <= ttlMs;
 }
 
-export function pruneCache(ttlMs = DEFAULT_CACHE_TTL_MS): void {
+export function pruneCache(ttlMs = MAX_CACHE_TTL_MS): void {
   const storage = getBrowserStorage();
   if (!storage) return;
 
@@ -205,4 +220,34 @@ export function setCached<T>(key: string, value: T): void {
   } catch {
     // Ignore quota, serialization, and security failures.
   }
+}
+
+export async function getOrSetCached<T>(
+  key: string,
+  load: () => Promise<T>,
+  options: CachedLoadOptions<T> = {},
+): Promise<T> {
+  const cached = getCached<T>(key, options);
+  if (cached !== undefined) return cached;
+
+  const storageKey = namespacedKey(key);
+  const existing = inFlightLoads.get(storageKey) as Promise<T> | undefined;
+  if (existing) return existing;
+
+  const pending = load()
+    .then((value) => {
+      if (options.validate && !options.validate(value)) return value;
+      if (options.cacheValue) {
+        options.cacheValue(value);
+      } else {
+        setCached(key, value);
+      }
+      return value;
+    })
+    .finally(() => {
+      inFlightLoads.delete(storageKey);
+    });
+
+  inFlightLoads.set(storageKey, pending);
+  return pending;
 }

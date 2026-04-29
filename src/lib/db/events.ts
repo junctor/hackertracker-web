@@ -3,10 +3,10 @@ import { collection, doc, getDoc, getDocs, orderBy, query, where } from "firebas
 import type { HTEvent } from "@/types/db";
 
 import { db } from "../firebase";
-import { getCached, setCached } from "./cache";
+import { CACHE_TTL_MS, getCached, getOrSetCached, setCached } from "./cache";
 
-const eventsKey = (conf: string) => `conference:${conf}:events`;
-const eventKey = (conf: string, eventId: number) => `conference:${conf}:event:${eventId}`;
+const eventsKey = (conf: string) => `events:${conf}`;
+const eventKey = (conf: string, eventId: number) => `event:${conf}:${eventId}`;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object";
@@ -21,7 +21,22 @@ function isEventList(value: unknown): value is HTEvent[] {
 }
 
 function getCachedEventList(conf: string) {
-  return getCached<HTEvent[]>(eventsKey(conf), { validate: isEventList });
+  return getCached<HTEvent[]>(eventsKey(conf), {
+    ttlMs: CACHE_TTL_MS.events,
+    validate: isEventList,
+  });
+}
+
+export function getCachedEventById(conf: string, eventId: number): HTEvent | undefined {
+  const cachedEvents = getCachedEventList(conf);
+  const eventFromList = cachedEvents?.find((event) => event.id === eventId);
+  if (eventFromList) return eventFromList;
+
+  const cachedEvent = getCached<HTEvent>(eventKey(conf, eventId), {
+    ttlMs: CACHE_TTL_MS.events,
+    validate: isEvent,
+  });
+  return cachedEvent?.id === eventId ? cachedEvent : undefined;
 }
 
 function eventsByIds(events: HTEvent[], eventIds: number[]) {
@@ -43,30 +58,24 @@ function eventsByStringIds(events: HTEvent[], eventIds: string[]) {
 }
 
 export async function getEvents(conf: string): Promise<HTEvent[]> {
-  const cached = getCachedEventList(conf);
-  if (cached) return cached;
-
-  const ref = collection(db, "conferences", conf, "events");
-  const q = query(ref, orderBy("begin_timestamp", "desc"));
-  const snap = await getDocs(q);
-  const events = snap.docs.map((doc) => {
-    const data = doc.data() as HTEvent;
-    return data;
-  });
-
-  setCached(eventsKey(conf), events);
-  return events;
+  return getOrSetCached(
+    eventsKey(conf),
+    async () => {
+      const ref = collection(db, "conferences", conf, "events");
+      const q = query(ref, orderBy("begin_timestamp", "desc"));
+      const snap = await getDocs(q);
+      return snap.docs.map((doc) => {
+        const data = doc.data() as HTEvent;
+        return data;
+      });
+    },
+    { ttlMs: CACHE_TTL_MS.events, validate: isEventList },
+  );
 }
 
 export async function getEventById(conf: string, eventId: number): Promise<HTEvent | null> {
-  const cachedEvents = getCachedEventList(conf);
-  const eventFromList = cachedEvents?.find((event) => event.id === eventId);
-  if (eventFromList) return eventFromList;
-
-  const cachedEvent = getCached<HTEvent>(eventKey(conf, eventId), {
-    validate: isEvent,
-  });
-  if (cachedEvent?.id === eventId) return cachedEvent;
+  const cachedEvent = getCachedEventById(conf, eventId);
+  if (cachedEvent) return cachedEvent;
 
   const ref = doc(db, "conferences", conf, "events", eventId.toString());
   const snap = await getDoc(ref);
@@ -99,6 +108,7 @@ export async function getEventsByIdsIn(conf: string, eventIds: number[]): Promis
   for (const id of ids) {
     const eventId = Number(id);
     const cachedEvent = getCached<HTEvent>(eventKey(conf, eventId), {
+      ttlMs: CACHE_TTL_MS.events,
       validate: isEvent,
     });
     if (cachedEvent && String(cachedEvent.id) === id) {
@@ -114,7 +124,9 @@ export async function getEventsByIdsIn(conf: string, eventIds: number[]): Promis
   const snap = await getDocs(q);
 
   for (const d of snap.docs) {
-    byId.set(d.id, d.data() as HTEvent);
+    const event = d.data() as HTEvent;
+    byId.set(d.id, event);
+    setCached(eventKey(conf, event.id), event);
   }
 
   return ids.map((id) => byId.get(id)).filter((e): e is HTEvent => Boolean(e));
