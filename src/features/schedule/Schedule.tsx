@@ -1,15 +1,13 @@
 import { useEffect, useState, lazy, Suspense, useTransition } from "react";
 
-import type { HTConference, HTEvent, HTTagGroup } from "@/types/db";
+import type { HTConference } from "@/types/db";
 import type { GroupedSchedule } from "@/types/ht";
 
 import { ConferenceHeader } from "@/components/ConferenceHeader";
 import ErrorPage from "@/components/ErrorPage";
-import { HTFooter } from "@/components/HTFooter";
 import LoadingPage from "@/components/LoadingPage";
-import { getConferenceByCode, getEvents, getTags } from "@/lib/db";
+import { getCachedConferenceSchedule, getConferenceSchedule } from "@/lib/db";
 import { useNormalizedParams } from "@/lib/utils/params";
-import { buildScheduleBucketsByDay } from "@/lib/utils/schedule";
 
 const EventsList = lazy(() => import("./EventsList"));
 let eventsListPreload: Promise<unknown> | null = null;
@@ -22,10 +20,16 @@ function preloadEventsList() {
 
 export function Schedule() {
   const { confCode } = useNormalizedParams();
+  const [initialSchedule] = useState(() =>
+    confCode ? getCachedConferenceSchedule(confCode) : null,
+  );
 
-  const [grouped, setGrouped] = useState<GroupedSchedule | null>(null);
-  const [conference, setConference] = useState<HTConference | null>(null);
+  const [grouped, setGrouped] = useState<GroupedSchedule | null>(initialSchedule?.grouped ?? null);
+  const [conference, setConference] = useState<HTConference | null>(
+    initialSchedule?.conference ?? null,
+  );
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(!initialSchedule);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -35,45 +39,51 @@ export function Schedule() {
   useEffect(() => {
     const id = window.setTimeout(() => {
       if (error) document.title = "Error · Schedule | Hacker Tracker";
-      else if (isPending && !grouped) document.title = "Loading schedule… | Hacker Tracker";
+      else if (loading && !grouped) document.title = "Loading schedule… | Hacker Tracker";
       else if (conference) document.title = `Schedule · ${conference.name} | Hacker Tracker`;
       else document.title = "Schedule | Hacker Tracker";
     }, 150); // small debounce
     return () => clearTimeout(id);
-  }, [conference, grouped, error, isPending]);
+  }, [conference, grouped, error, loading]);
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
-      if (!confCode) return;
+      if (!confCode) {
+        setError("Missing required URL parameters.");
+        setLoading(false);
+        return;
+      }
       setError(null);
 
+      const cachedSchedule = getCachedConferenceSchedule(confCode);
+      if (cachedSchedule) {
+        setConference(cachedSchedule.conference);
+        setGrouped(cachedSchedule.grouped);
+        setLoading(false);
+      } else {
+        setConference(null);
+        setGrouped(null);
+        setLoading(true);
+      }
+
       try {
-        const conf = await getConferenceByCode(confCode);
+        const schedule = await getConferenceSchedule(confCode);
         if (cancelled) return;
 
-        if (!conf) {
+        if (!schedule) {
           setError("Conference not found.");
           return;
         }
 
-        const preload = preloadEventsList();
-
-        const [evs, tags] = await Promise.all([getEvents(confCode), getTags(confCode), preload]);
+        await preloadEventsList();
         if (cancelled) return;
-
-        const tz = conf.timezone || "UTC";
-        const groupedSchedule = buildScheduleBucketsByDay(
-          evs as HTEvent[],
-          tags as HTTagGroup[],
-          tz,
-        );
 
         startTransition(() => {
           if (!cancelled) {
-            setConference(conf);
-            setGrouped(groupedSchedule);
+            setConference(schedule.conference);
+            setGrouped(schedule.grouped);
           }
         });
       } catch (e) {
@@ -81,6 +91,8 @@ export function Schedule() {
           const msg = e instanceof Error ? e.message : "Failed to load schedule";
           setError(msg);
         }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     }
 
@@ -90,7 +102,7 @@ export function Schedule() {
     };
   }, [confCode]);
 
-  if (!grouped && !conference && !error && isPending) {
+  if (!grouped && !conference && !error && loading) {
     return <LoadingPage message="Loading schedule..." />;
   }
   if (error) return <ErrorPage msg={error} />;
@@ -100,7 +112,7 @@ export function Schedule() {
       {conference && <ConferenceHeader conference={conference} />}
 
       <main className="relative flex-1">
-        {isPending && (
+        {(loading || isPending) && grouped && (
           <div className="bg-background/40 pointer-events-none absolute inset-0 backdrop-blur-[1px] transition-opacity" />
         )}
 
@@ -112,8 +124,6 @@ export function Schedule() {
           <LoadingPage message="Loading events..." />
         )}
       </main>
-
-      <HTFooter />
     </div>
   );
 }

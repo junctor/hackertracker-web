@@ -4,7 +4,6 @@ import {
   XMarkIcon,
   HomeIcon,
   ArrowTopRightOnSquareIcon,
-  CodeBracketSquareIcon,
   BookmarkSquareIcon,
   CalendarDaysIcon,
   UserGroupIcon,
@@ -73,16 +72,9 @@ export function ConferenceHeader({ conference }: { conference: HTConference }) {
       },
       {
         key: "home",
-        label: "HackerTracker",
+        label: "Home",
         to: "/",
         icon: HomeIcon,
-      },
-      {
-        key: "github",
-        label: "GitHub",
-        to: "https://github.com/junctor/hackertracker-web",
-        external: true,
-        icon: CodeBracketSquareIcon,
       },
     ];
 
@@ -99,61 +91,67 @@ export function ConferenceHeader({ conference }: { conference: HTConference }) {
   }, [scheduleHref, isSchedule, bookmarksHref, isBookmarks, peopleHref, isPeople, conference.link]);
 
   const baseHeader =
-    "sticky top-0 h-14 z-50 border-b border-neutral-800 transition-colors backdrop-blur supports-[backdrop-filter]:backdrop-blur";
-  const bg = scrolled ? "bg-neutral-950/90" : "bg-neutral-950/70";
+    "sticky top-0 z-50 min-h-16 border-b border-white/10 text-white backdrop-blur-md transition-[background-color,border-color,box-shadow] duration-200 supports-[backdrop-filter]:backdrop-blur-md";
+  const bg = scrolled ? "bg-slate-950/92 shadow-[0_12px_32px_rgba(2,6,23,0.3)]" : "bg-slate-950/82";
 
   return (
     <header className={`${baseHeader} ${bg}`}>
-      <div className="flex h-14 w-full items-center justify-between px-4 sm:px-6 lg:px-10">
-        {/* Left: Conference name / brand */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-linear-to-r from-transparent via-[#017FA4]/35 to-transparent"
+      />
+
+      <div className="flex min-h-16 w-full items-center justify-between gap-3 px-4 py-2.5 sm:px-6 lg:px-10">
         <div className="min-w-0">
           <Link
             to={scheduleHref}
-            className="block truncate text-lg font-extrabold text-white hover:opacity-90 sm:text-xl"
+            className="ui-focus-ring block truncate rounded-xl px-2 py-1.5 text-lg font-bold tracking-tight text-slate-50 transition-colors hover:bg-white/4 hover:text-white focus-visible:outline-none sm:text-xl"
             aria-label={`${conference.name} — view schedule`}
           >
             {conference.name}
           </Link>
         </div>
 
-        {/* Desktop nav */}
         <nav className="hidden items-center gap-2 sm:flex">
-          {items.map(({ key, label, to, external, icon: Icon, ariaCurrent }) =>
-            external ? (
+          {items.map(({ key, label, to, external, icon: Icon, ariaCurrent }) => {
+            const common =
+              "ui-btn-base ui-focus-ring group min-h-10 gap-2 rounded-xl border-white/10 bg-white/4 px-3 text-sm text-slate-300 shadow-[0_10px_28px_rgba(2,6,23,0.16)] hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(2,6,23,0.24)] focus-visible:-translate-y-0.5 focus-visible:outline-none focus-visible:shadow-[0_16px_34px_rgba(2,6,23,0.24)]";
+            const classes = ariaCurrent
+              ? `${common} border-[#017FA4]/35 bg-[#017FA4]/12 text-white`
+              : `${common} hover:border-[#017FA4]/28 hover:bg-[#017FA4]/8 hover:text-slate-50`;
+            const iconClassName = ariaCurrent
+              ? "text-[#6CCDBB]"
+              : "text-slate-400 transition-colors group-hover:text-[#6CCDBB] group-focus-visible:text-[#6CCDBB]";
+
+            return external ? (
               <a
                 key={key}
                 href={to}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900/60 px-3 py-2 text-sm text-neutral-300 transition-colors hover:bg-neutral-900 hover:text-white"
+                className={classes}
                 aria-label={label}
                 title={label}
               >
-                <Icon className="h-5 w-5" />
+                <Icon className={`h-5 w-5 ${iconClassName}`} />
                 <span className="hidden md:inline">{label}</span>
               </a>
             ) : (
               <Link
                 key={key}
                 to={to}
-                className={[
-                  "inline-flex items-center gap-2 rounded-lg border border-neutral-800 px-3 py-2 text-sm transition-colors",
-                  ariaCurrent
-                    ? "bg-neutral-900 text-white"
-                    : "bg-neutral-900/60 text-neutral-300 hover:bg-neutral-900 hover:text-white",
-                ].join(" ")}
-                aria-label={label}
-                title={label}
+                className={classes}
+                aria-label={key === "home" ? "Hacker Tracker home" : label}
+                title={key === "home" ? "Hacker Tracker home" : label}
                 aria-current={ariaCurrent ? "page" : undefined}
               >
-                <Icon className="h-5 w-5" />
-                <span className="hidden md:inline">{label}</span>
+                <Icon className={`h-5 w-5 ${iconClassName}`} />
+                {key === "home" ? null : <span className="hidden md:inline">{label}</span>}
               </Link>
-            ),
-          )}
+            );
+          })}
         </nav>
 
-        {/* Mobile: Popover menu */}
         <div className="flex items-center gap-2 sm:hidden">
           <Popover className="relative">
             {({ open }) => (
@@ -161,14 +159,14 @@ export function ConferenceHeader({ conference }: { conference: HTConference }) {
                 <PopoverButton
                   aria-label={open ? "Close menu" : "Open menu"}
                   className={[
-                    "inline-flex h-9 w-9 items-center justify-center rounded-md border border-neutral-700 bg-neutral-900 hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50",
-                    open ? "ring-1 ring-cyan-400/40" : "",
+                    "ui-icon-btn ui-focus-ring h-10 min-h-10 w-10 min-w-10 rounded-xl border-white/10 bg-white/4 text-slate-300 shadow-[0_10px_24px_rgba(2,6,23,0.16)] focus-visible:outline-none",
+                    open ? "border-[#017FA4]/35 bg-[#017FA4]/12 text-[#6CCDBB]" : "",
                   ].join(" ")}
                 >
                   {open ? (
-                    <XMarkIcon className="h-5 w-5 text-neutral-200" aria-hidden="true" />
+                    <XMarkIcon className="h-5 w-5" aria-hidden="true" />
                   ) : (
-                    <Bars3Icon className="h-5 w-5 text-neutral-200" aria-hidden="true" />
+                    <Bars3Icon className="h-5 w-5" aria-hidden="true" />
                   )}
                 </PopoverButton>
 
@@ -181,7 +179,11 @@ export function ConferenceHeader({ conference }: { conference: HTConference }) {
                   leaveFrom="opacity-100 translate-y-0"
                   leaveTo="opacity-0 -translate-y-1"
                 >
-                  <PopoverPanel className="absolute right-0 mt-2 w-56 origin-top-right rounded-lg border border-neutral-800 bg-neutral-950/95 p-2 shadow-lg backdrop-blur">
+                  <PopoverPanel className="absolute right-0 mt-2 w-60 origin-top-right rounded-[1.25rem] border border-white/12 bg-slate-950/98 p-2 shadow-[0_20px_48px_rgba(0,0,0,0.42)] backdrop-blur-md">
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-x-3 top-0 h-px bg-white/10"
+                    />
                     <div className="space-y-1 text-sm">
                       {items.map(({ key, label, to, external, icon: Icon, ariaCurrent }) =>
                         external ? (
@@ -191,9 +193,9 @@ export function ConferenceHeader({ conference }: { conference: HTConference }) {
                             href={to}
                             target="_blank"
                             rel="noreferrer"
-                            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-neutral-300 transition-colors hover:bg-neutral-900 hover:text-white"
+                            className="ui-focus-ring group flex w-full items-center gap-2 rounded-xl border border-transparent px-3 py-2.5 text-left text-slate-300 transition-colors hover:border-white/10 hover:bg-[#017FA4]/8 hover:text-white focus-visible:outline-none"
                           >
-                            <Icon className="h-5 w-5" />
+                            <Icon className="h-5 w-5 text-slate-400 transition-colors group-hover:text-[#6CCDBB] group-focus-visible:text-[#6CCDBB]" />
                             {label}
                           </PopoverButton>
                         ) : (
@@ -202,14 +204,20 @@ export function ConferenceHeader({ conference }: { conference: HTConference }) {
                             as={Link}
                             to={to}
                             className={[
-                              "flex w-full items-center gap-2 rounded-md px-3 py-2 text-left transition-colors",
+                              "ui-focus-ring group flex w-full items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition-colors focus-visible:outline-none",
                               ariaCurrent
-                                ? "bg-neutral-900 text-white"
-                                : "text-neutral-300 hover:bg-neutral-900 hover:text-white",
+                                ? "border-[#017FA4]/35 bg-[#017FA4]/12 text-white"
+                                : "border-transparent text-slate-300 hover:border-white/10 hover:bg-[#017FA4]/8 hover:text-white",
                             ].join(" ")}
                             aria-current={ariaCurrent ? "page" : undefined}
                           >
-                            <Icon className="h-5 w-5" />
+                            <Icon
+                              className={`h-5 w-5 ${
+                                ariaCurrent
+                                  ? "text-[#6CCDBB]"
+                                  : "text-slate-400 transition-colors group-hover:text-[#6CCDBB] group-focus-visible:text-[#6CCDBB]"
+                              }`}
+                            />
                             {label}
                           </PopoverButton>
                         ),

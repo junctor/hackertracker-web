@@ -85,7 +85,7 @@ function Header({ title, count, id }: { title: string; count?: number; id: strin
           )}
           <a
             href={`#${id}`}
-            className="text-neutral-500 opacity-0 transition-opacity group-hover:opacity-100 hover:text-neutral-300"
+            className="ui-focus-ring rounded text-neutral-500 opacity-0 transition-opacity group-hover:opacity-100 hover:text-neutral-300 focus-visible:opacity-100 focus-visible:outline-none"
             aria-label={`Link to section ${title}`}
           >
             #
@@ -99,21 +99,7 @@ function Header({ title, count, id }: { title: string; count?: number; id: strin
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-neutral-800 bg-neutral-900/50 px-4 py-6 text-neutral-400">
-      <svg
-        className="h-5 w-5 shrink-0 text-neutral-500"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        aria-hidden="true"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M3 3l18 18M12 21c-4.5-5.5-6.75-9-6.75-11.25a6.75 6.75 0 1113.5 0c0 2.25-2.25 5.75-6.75 11.25z"
-        />
-      </svg>
+    <div className="ui-empty-state text-neutral-300">
       <p className="text-sm">{message}</p>
     </div>
   );

@@ -7,19 +7,51 @@ import { ConferenceHeader } from "@/components/ConferenceHeader";
 import ErrorPage from "@/components/ErrorPage";
 import { HTFooter } from "@/components/HTFooter";
 import LoadingPage from "@/components/LoadingPage";
-import { getConferenceByCode, getEventById, getSpeakersByIds, getTags } from "@/lib/db";
+import {
+  getCachedConferenceByCode,
+  getCachedConferenceSchedule,
+  getCachedEventById,
+  getCachedTags,
+  getConferenceByCode,
+  getEventById,
+  getSpeakersByIds,
+  getTags,
+} from "@/lib/db";
 import { useNormalizedParams } from "@/lib/utils/params";
-import { toProcessedEvent } from "@/lib/utils/schedule";
+import { buildAllTagIndex, toProcessedEvent } from "@/lib/utils/schedule";
 
 import EventDetails from "./EventDetails";
 
+function getCachedEventDetails(confCode: string, eventId: number) {
+  const schedule = getCachedConferenceSchedule(confCode);
+  const event = schedule?.grouped
+    ? Object.values(schedule.grouped)
+        .flat()
+        .find((candidate) => candidate.id === eventId)
+    : null;
+  if (schedule?.conference && event) return { conference: schedule.conference, event };
+
+  const conference = getCachedConferenceByCode(confCode);
+  const rawEvent = getCachedEventById(confCode, eventId);
+  const tags = getCachedTags(confCode);
+  if (!conference || !rawEvent || !tags) return null;
+
+  return {
+    conference,
+    event: toProcessedEvent(rawEvent, buildAllTagIndex(tags)),
+  };
+}
+
 export function Event() {
   const { confCode, eventId } = useNormalizedParams();
+  const [initial] = useState(() =>
+    confCode && eventId ? getCachedEventDetails(confCode, eventId) : null,
+  );
 
-  const [event, setEvent] = useState<ProcessedEvent | null>(null);
+  const [event, setEvent] = useState<ProcessedEvent | null>(initial?.event ?? null);
   const [people, setPeople] = useState<HTPerson[]>([]);
-  const [conference, setConference] = useState<HTConference | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [conference, setConference] = useState<HTConference | null>(initial?.conference ?? null);
+  const [loading, setLoading] = useState(!initial);
   const [error, setError] = useState<string | null>(null);
 
   // Title reflects state
@@ -39,6 +71,7 @@ export function Event() {
   useEffect(() => {
     if (!confCode || !eventId) {
       setError("Missing required URL parameters.");
+      setLoading(false);
     } else {
       setError(null);
     }
@@ -50,11 +83,21 @@ export function Event() {
     async function run() {
       if (!confCode || !eventId) return;
 
-      setLoading(true);
       setError(null);
-      setEvent(null);
-      setPeople([]);
-      setConference(null);
+
+      const cachedDetails = getCachedEventDetails(confCode, eventId);
+
+      if (cachedDetails) {
+        setConference(cachedDetails.conference);
+        setEvent(cachedDetails.event);
+        setPeople([]);
+        setLoading(false);
+      } else {
+        setLoading(true);
+        setEvent(null);
+        setPeople([]);
+        setConference(null);
+      }
 
       try {
         const conf = await getConferenceByCode(confCode);
@@ -108,7 +151,7 @@ export function Event() {
     };
   }, [confCode, eventId]);
 
-  if (loading) {
+  if (loading && !conference && !event) {
     return (
       <div className="flex min-h-screen flex-col bg-gray-950">
         <main className="flex-1">

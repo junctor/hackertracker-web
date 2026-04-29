@@ -12,7 +12,7 @@ import {
 import type { HTConference } from "@/types/db";
 
 import { db } from "../firebase";
-import { getCached, setCached } from "./cache";
+import { CACHE_TTL_MS, getCached, getOrSetCached, setCached } from "./cache";
 
 const conferencesKey = (count: number) => `conferences:list:${count}`;
 const conferenceKey = (code: string) => `conference:${code}`;
@@ -37,58 +37,78 @@ function cacheConferences(conferences: HTConference[]) {
 }
 
 export async function getConferences(count = 50): Promise<HTConference[]> {
-  const cached = getCached<HTConference[]>(conferencesKey(count), {
-    validate: isConferenceList,
-  });
-  if (cached) return cached;
+  return getOrSetCached(
+    conferencesKey(count),
+    async () => {
+      const ref = collection(db, "conferences");
+      const q = query(ref, orderBy("start_timestamp", "desc"), limit(count));
+      const snap = await getDocs(q);
+      return snap.docs.map((doc) => {
+        const data = doc.data() as HTConference;
+        return data;
+      });
+    },
+    {
+      ttlMs: CACHE_TTL_MS.conferenceList,
+      validate: isConferenceList,
+      cacheValue: (conferences) => {
+        setCached(conferencesKey(count), conferences);
+        cacheConferences(conferences);
+      },
+    },
+  );
+}
 
-  const ref = collection(db, "conferences");
-  const q = query(ref, orderBy("start_timestamp", "desc"), limit(count));
-  const snap = await getDocs(q);
-  const conferences = snap.docs.map((doc) => {
-    const data = doc.data() as HTConference;
-    return data;
+export function getCachedConferenceByCode(code: string): HTConference | undefined {
+  return getCached<HTConference>(conferenceKey(code), {
+    ttlMs: CACHE_TTL_MS.conference,
+    validate: isConference,
   });
-
-  setCached(conferencesKey(count), conferences);
-  cacheConferences(conferences);
-  return conferences;
 }
 
 export async function getConferenceByCode(code: string): Promise<HTConference | null> {
-  const cached = getCached<HTConference>(conferenceKey(code), {
-    validate: isConference,
-  });
+  const cached = getCachedConferenceByCode(code);
   if (cached) return cached;
 
-  const ref = doc(db, "conferences", code);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return null;
-  const data = snap.data() as HTConference;
-  setCached(conferenceKey(code), data);
-  return data;
+  return getOrSetCached(
+    conferenceKey(code),
+    async () => {
+      const ref = doc(db, "conferences", code);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) return null;
+      return snap.data() as HTConference;
+    },
+    {
+      ttlMs: CACHE_TTL_MS.conference,
+      validate: (value): value is HTConference | null => value === null || isConference(value),
+    },
+  );
 }
 
 export async function getUpcomingConferences(): Promise<HTConference[]> {
-  const cached = getCached<HTConference[]>(upcomingConferencesKey, {
-    validate: isConferenceList,
-  });
-  if (cached) return cached;
-
-  const ref = collection(db, "conferences");
-  const q = query(
-    ref,
-    where("end_timestamp", ">=", new Date()),
-    orderBy("end_timestamp", "asc"),
-    limit(50),
+  return getOrSetCached(
+    upcomingConferencesKey,
+    async () => {
+      const ref = collection(db, "conferences");
+      const q = query(
+        ref,
+        where("end_timestamp", ">=", new Date()),
+        orderBy("end_timestamp", "asc"),
+        limit(50),
+      );
+      const snap = await getDocs(q);
+      return snap.docs.map((doc) => {
+        const data = doc.data() as HTConference;
+        return data;
+      });
+    },
+    {
+      ttlMs: CACHE_TTL_MS.conferenceList,
+      validate: isConferenceList,
+      cacheValue: (conferences) => {
+        setCached(upcomingConferencesKey, conferences);
+        cacheConferences(conferences);
+      },
+    },
   );
-  const snap = await getDocs(q);
-  const conferences = snap.docs.map((doc) => {
-    const data = doc.data() as HTConference;
-    return data;
-  });
-
-  setCached(upcomingConferencesKey, conferences);
-  cacheConferences(conferences);
-  return conferences;
 }
