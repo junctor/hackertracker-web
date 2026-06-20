@@ -3,8 +3,8 @@ import { Link } from "react-router";
 
 export function HTFooter() {
   return (
-    <footer className="mt-auto border-t border-white/10 bg-[linear-gradient(180deg,rgba(2,6,23,0.92),rgba(2,6,23,0.98))] text-slate-300">
-      <div className="mx-auto w-[min(72rem,calc(100%_-_2rem))] py-5 sm:w-[min(72rem,calc(100%_-_3rem))] sm:py-6">
+    <footer className="mt-auto border-t border-white/10 bg-[var(--color-page-bg)] text-slate-300">
+      <div className="ui-container py-5 sm:py-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0 space-y-1.5">
             <p className="text-[11px] font-semibold tracking-[0.16em] text-slate-500 uppercase">

@@ -48,15 +48,15 @@ export function HTHeader({ variant = "default" }: { variant?: "default" | "splas
   }, []);
 
   const base =
-    "sticky top-0 z-50 min-h-16 border-b border-white/10 text-white backdrop-blur-md transition-[background-color,border-color,box-shadow] duration-200 supports-[backdrop-filter]:backdrop-blur-md";
+    "sticky top-0 z-50 min-h-16 border-b border-white/10 bg-[var(--color-page-bg)] text-white transition-[border-color,box-shadow] duration-200";
   const bg =
     variant === "splash"
       ? scrolled
-        ? "bg-slate-950/90 shadow-[0_12px_32px_rgba(2,6,23,0.28)]"
-        : "bg-slate-950/72 shadow-[0_10px_28px_rgba(2,6,23,0.18)]"
+        ? "shadow-[0_12px_32px_rgba(2,6,23,0.28)]"
+        : "shadow-[0_10px_28px_rgba(2,6,23,0.12)]"
       : scrolled
-        ? "bg-slate-950/92 shadow-[0_12px_32px_rgba(2,6,23,0.3)]"
-        : "bg-slate-950/82";
+        ? "shadow-[0_12px_32px_rgba(2,6,23,0.3)]"
+        : "";
 
   return (
     <header className={`${base} ${bg}`}>

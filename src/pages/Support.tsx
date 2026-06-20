@@ -9,13 +9,13 @@ export function Support() {
   }, []);
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="ui-page flex flex-col">
       <HTHeader />
 
       <main id="main" className="flex-1">
         {/* Hero */}
-        <section className="relative border-b border-neutral-800 bg-gradient-to-b from-neutral-950 to-neutral-900">
-          <div className="mx-auto max-w-5xl px-4 py-12 sm:py-16">
+        <section className="relative border-b border-white/10">
+          <div className="ui-container py-12 sm:py-16">
             <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
               Support & Contributing
             </h1>
@@ -29,7 +29,7 @@ export function Support() {
                 href="https://discord.gg/jJNSZYdnF7"
                 target="_blank"
                 rel="noreferrer"
-                className="hover:bg-neutral-850 inline-flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-200 hover:border-neutral-700"
+                className="ui-btn-base ui-btn-secondary ui-focus-ring gap-2 rounded-lg px-3 py-2 text-sm text-neutral-200 focus-visible:outline-none"
               >
                 <span className="i-lucide-message-circle" />
                 Join Discord
@@ -38,7 +38,7 @@ export function Support() {
                 href="https://github.com/junctor"
                 target="_blank"
                 rel="noreferrer"
-                className="hover:bg-neutral-850 inline-flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-200 hover:border-neutral-700"
+                className="ui-btn-base ui-btn-secondary ui-focus-ring gap-2 rounded-lg px-3 py-2 text-sm text-neutral-200 focus-visible:outline-none"
               >
                 <span className="i-lucide-github" />
                 GitHub org
@@ -47,7 +47,7 @@ export function Support() {
                 href="https://defcon.social/@aNullValue"
                 target="_blank"
                 rel="noreferrer"
-                className="hover:bg-neutral-850 inline-flex items-center gap-2 rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-200 hover:border-neutral-700"
+                className="ui-btn-base ui-btn-secondary ui-focus-ring gap-2 rounded-lg px-3 py-2 text-sm text-neutral-200 focus-visible:outline-none"
               >
                 Contact @aNullValue
               </a>
@@ -55,7 +55,7 @@ export function Support() {
           </div>
         </section>
 
-        <div className="mx-auto max-w-5xl px-4 py-10">
+        <div className="ui-container py-10">
           {/* Conferences section */}
           <section aria-labelledby="conferences" className="mb-12">
             <h2 id="conferences" className="text-lg font-semibold text-neutral-200">
@@ -84,10 +84,7 @@ export function Support() {
                 "JSON exports available for your site",
                 "Integrations: Pretalx, Sessionize, Sched",
               ].map((item) => (
-                <li
-                  key={item}
-                  className="flex items-start gap-2 rounded-md border border-neutral-800/60 bg-neutral-900/50 px-3 py-2"
-                >
+                <li key={item} className="ui-card flex items-start gap-2 rounded-md px-3 py-2">
                   <span className="mt-2 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-500" />
                   <span>{item}</span>
                 </li>
@@ -129,10 +126,7 @@ export function Support() {
                   note: "Source not yet available",
                 },
               ].map((repo) => (
-                <div
-                  key={repo.name}
-                  className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4"
-                >
+                <div key={repo.name} className="ui-card p-4">
                   {repo.href ? (
                     <a
                       href={repo.href}
@@ -158,21 +152,21 @@ export function Support() {
             </h2>
 
             <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4">
+              <div className="ui-card p-4">
                 <h3 className="font-medium text-neutral-100">Security</h3>
                 <p className="mt-1 text-sm text-neutral-400">
                   Found a vulnerability? Use GitHub’s <em>Report a vulnerability</em> in the
                   appropriate repo.
                 </p>
               </div>
-              <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4">
+              <div className="ui-card p-4">
                 <h3 className="font-medium text-neutral-100">Bugs & Features</h3>
                 <p className="mt-1 text-sm text-neutral-400">
                   Open an issue in the relevant repo. If it spans multiple repos, one report is
                   enough.
                 </p>
               </div>
-              <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4 md:col-span-2">
+              <div className="ui-card p-4 md:col-span-2">
                 <h3 className="font-medium text-neutral-100">Contributing</h3>
                 <p className="mt-1 text-sm text-neutral-400">
                   Interested in contributing? Reach out to any of us. We don’t yet have a formal
@@ -182,7 +176,7 @@ export function Support() {
                   href="https://discord.gg/jJNSZYdnF7"
                   target="_blank"
                   rel="noreferrer"
-                  className="hover:bg-neutral-850 mt-3 inline-flex items-center rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-200 hover:border-neutral-700"
+                  className="ui-btn-base ui-btn-secondary ui-focus-ring mt-3 rounded-lg px-3 py-2 text-sm text-neutral-200 focus-visible:outline-none"
                 >
                   Join our Discord
                 </a>

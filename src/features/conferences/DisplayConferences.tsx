@@ -177,7 +177,7 @@ function Section({
         >
           {title}
           {typeof count === "number" && (
-            <span className="rounded-full bg-neutral-800 px-2 py-0.5 text-xs text-neutral-300">
+            <span className="rounded-full border border-white/10 bg-[var(--ht-surface)] px-2 py-0.5 text-xs text-neutral-300">
               {count}
             </span>
           )}

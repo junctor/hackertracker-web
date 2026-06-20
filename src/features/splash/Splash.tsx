@@ -12,7 +12,7 @@ export function Splash() {
   }, []);
 
   return (
-    <div className="flex min-h-dvh flex-col bg-gray-950">
+    <div className="ui-page flex flex-col">
       <a
         href="#main"
         className="sr-only rounded-md bg-white/90 px-3 py-2 text-sm font-semibold text-gray-900 shadow focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50"
@@ -21,12 +21,6 @@ export function Splash() {
       </a>
 
       <HTHeader />
-
-      {/* subtle background depth */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(60%_40%_at_50%_0%,rgba(56,189,248,0.12),transparent_60%),radial-gradient(50%_50%_at_80%_10%,rgba(244,63,94,0.10),transparent_60%)]"
-      />
 
       <main
         id="main"

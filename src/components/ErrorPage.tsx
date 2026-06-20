@@ -5,7 +5,7 @@ import { HTHeader } from "./HTHeader";
 
 export default function ErrorPage({ msg }: { msg?: string }) {
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="ui-page flex flex-col">
       <HTHeader />
 
       <main id="main" className="flex flex-1 items-center justify-center px-6">
