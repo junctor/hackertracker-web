@@ -12,6 +12,16 @@
   --ht-accent-primary: #017fa4;
   --ht-accent-teal: #105f66;
   --ht-accent-success: #6ccdbb;
+  --color-page-bg: var(--ht-bg);
+  --color-text: var(--ht-fg);
+  --color-muted: var(--ht-muted);
+  --color-border: var(--ht-border-soft);
+  --color-surface: var(--ht-surface);
+  --color-link: var(--ht-accent-primary);
+  --space-page-x: clamp(1rem, 3vw, 2.5rem);
+  --space-section: clamp(1.5rem, 4vw, 3rem);
+  --radius-card: 0.875rem;
+  --measure-content: 72rem;
 }
 
 html,
@@ -21,18 +31,20 @@ body,
 }
 
 html {
-  background: var(--ht-bg);
+  background: var(--color-page-bg);
 }
 
 body {
   margin: 0;
-  background:
-    radial-gradient(circle at top, rgba(59, 130, 246, 0.06), transparent 34%),
-    radial-gradient(circle at 20% 20%, rgba(241, 180, 53, 0.05), transparent 22%), var(--ht-bg);
-  color: var(--ht-fg);
+  background: var(--color-page-bg);
+  color: var(--color-text);
   font-family: "Atkinson Hyperlegible", "Lato", "Segoe UI", sans-serif;
   line-height: 1.55;
   text-rendering: optimizeLegibility;
+}
+
+#root {
+  background: var(--color-page-bg);
 }
 
 *,
@@ -43,6 +55,14 @@ body {
 
 * {
   border-color: var(--ht-border-soft);
+}
+
+:where(h1, h2, h3, h4, h5, h6, p, ul, ol, dl, dd, figure, blockquote, pre) {
+  margin: 0;
+}
+
+:where(ul, ol) {
+  padding: 0;
 }
 
 img,
@@ -164,6 +184,54 @@ button {
     transform 0.2s ease;
 }
 
+.ui-page {
+  min-height: 100dvh;
+  background: var(--color-page-bg);
+  color: var(--color-text);
+}
+
+.ui-container {
+  width: min(var(--measure-content), 100% - (var(--space-page-x) * 2));
+  min-width: 0;
+  margin-inline: auto;
+}
+
+.ui-container-wide {
+  --measure-content: 80rem;
+}
+
+.ui-page-content {
+  padding-block: var(--space-section);
+}
+
+.ui-page-pending-overlay {
+  background: color-mix(in oklab, var(--color-page-bg), transparent 60%);
+}
+
+.ui-section-stack {
+  display: grid;
+  gap: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.ui-list-stack {
+  display: grid;
+  list-style: none;
+  gap: 1rem;
+}
+
+.ui-list-stack-sm {
+  display: grid;
+  list-style: none;
+  gap: 0.75rem;
+}
+
+.ui-section-heading {
+  color: color-mix(in oklab, var(--color-text), var(--color-muted) 12%);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
 .ui-btn-secondary {
   border-color: color-mix(in oklab, var(--ht-border-soft), white 8%);
   background: color-mix(in oklab, var(--ht-surface), transparent 8%);
@@ -179,7 +247,7 @@ button {
 .ui-card {
   overflow-wrap: anywhere;
   border: 1px solid var(--ht-border-soft);
-  border-radius: 0.875rem;
+  border-radius: var(--radius-card);
   background: color-mix(in oklab, var(--ht-surface), transparent 8%);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
@@ -229,7 +297,7 @@ button {
 }
 
 .ui-accent-rail {
-  background: var(--event-color);
+  background: var(--content-color);
 }
 
 .ui-accent-rail-overlay {
@@ -284,9 +352,9 @@ button {
 }
 
 .ui-empty-state {
-  border-radius: 1rem;
-  border: 1px solid rgb(255 255 255 / 0.1);
-  background: rgb(15 23 42 / 0.4);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border);
+  background: color-mix(in oklab, var(--color-surface), transparent 18%);
   padding: 1.5rem;
   text-align: center;
 }
