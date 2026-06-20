@@ -1,11 +1,16 @@
-import { useSearchParams } from "react-router";
+import { useParams } from "react-router";
+
+import { normalizeConfCodeParam } from "./routes";
+
+function parseNumericParam(value: string | undefined): number | undefined {
+  return value && /^\d+$/.test(value) ? Number(value) : undefined;
+}
 
 export function useNormalizedParams() {
-  const [sp] = useSearchParams();
-  const confCode = sp.get("conf")?.trim().toUpperCase(); // case-insensitive conf
-  const event = sp.get("event");
-  const person = sp.get("person");
-  const eventId = event && /^\d+$/.test(event) ? Number(event) : undefined;
-  const personId = person && /^\d+$/.test(person) ? Number(person) : undefined;
-  return { confCode, eventId, personId };
+  const { confCode, contentId, personId } = useParams();
+  return {
+    confCode: normalizeConfCodeParam(confCode),
+    contentId: parseNumericParam(contentId),
+    personId: parseNumericParam(personId),
+  };
 }

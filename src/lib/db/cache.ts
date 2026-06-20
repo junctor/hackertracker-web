@@ -4,6 +4,7 @@ export const CACHE_TTL_MS = {
   conference: 6 * 60 * 60 * 1000,
   conferenceList: 6 * 60 * 60 * 1000,
   events: 10 * 60 * 1000,
+  locations: 10 * 60 * 1000,
   tags: 10 * 60 * 1000,
   schedule: 10 * 60 * 1000,
   speakers: 10 * 60 * 1000,
