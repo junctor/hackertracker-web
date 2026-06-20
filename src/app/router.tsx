@@ -1,8 +1,15 @@
 import { Suspense, lazy } from "react";
-import { Routes, Route } from "react-router";
+import { Navigate, Routes, Route, useLocation, useParams } from "react-router";
 
 import LoadingPage from "@/components/LoadingPage";
 import NotFound from "@/components/NotFound";
+import {
+  bookmarksPath,
+  contentPath,
+  peoplePath,
+  personPath,
+  schedulePath,
+} from "@/lib/utils/routes";
 
 const SplashRoute = lazy(() =>
   import("../features/splash/Splash").then((module) => ({
@@ -40,9 +47,9 @@ const BookmarksRoute = lazy(() =>
   })),
 );
 
-const EventRoute = lazy(() =>
-  import("../features/event/Event").then((module) => ({
-    default: module.Event,
+const ContentRoute = lazy(() =>
+  import("../features/content/Content").then((module) => ({
+    default: module.ContentDetailPage,
   })),
 );
 
@@ -57,6 +64,57 @@ const PersonRoute = lazy(() =>
     default: module.Person,
   })),
 );
+
+function parseLegacyId(value: string | null): number | null {
+  if (!value || !/^\d+$/.test(value)) return null;
+  return Number(value);
+}
+
+function LegacyRedirect() {
+  const { pathname, search } = useLocation();
+  const params = new URLSearchParams(search);
+  const confCode = params.get("conf") ?? params.get("conference");
+  const contentId = parseLegacyId(params.get("event") ?? params.get("content") ?? params.get("id"));
+  const personId = parseLegacyId(params.get("person") ?? params.get("id"));
+
+  if (!confCode) return <NotFound />;
+
+  if (
+    pathname === "/event" ||
+    pathname === "/event/" ||
+    pathname === "/content" ||
+    pathname === "/content/"
+  ) {
+    return contentId ? <Navigate replace to={contentPath(confCode, contentId)} /> : <NotFound />;
+  }
+
+  if (pathname === "/schedule") {
+    return <Navigate replace to={schedulePath(confCode)} />;
+  }
+
+  if (pathname === "/bookmarks") {
+    return <Navigate replace to={bookmarksPath(confCode)} />;
+  }
+
+  if (pathname === "/people" || pathname === "/people/") {
+    return (
+      <Navigate replace to={personId ? personPath(confCode, personId) : peoplePath(confCode)} />
+    );
+  }
+
+  if (pathname === "/person") {
+    return personId ? <Navigate replace to={personPath(confCode, personId)} /> : <NotFound />;
+  }
+
+  return <NotFound />;
+}
+
+function LegacyContentRedirect() {
+  const { confCode, contentId } = useParams();
+  const parsedContentId = contentId && /^\d+$/.test(contentId) ? Number(contentId) : null;
+  if (!confCode || !parsedContentId) return <NotFound />;
+  return <Navigate replace to={contentPath(confCode, parsedContentId)} />;
+}
 
 export default function AppRouter() {
   return (
@@ -77,8 +135,16 @@ export default function AppRouter() {
           </Suspense>
         }
       />
+      <Route path="/schedule" element={<LegacyRedirect />} />
+      <Route path="/bookmarks" element={<LegacyRedirect />} />
+      <Route path="/people" element={<LegacyRedirect />} />
+      <Route path="/people/" element={<LegacyRedirect />} />
+      <Route path="/person" element={<LegacyRedirect />} />
+      <Route path="/event" element={<LegacyRedirect />} />
+      <Route path="/content" element={<LegacyRedirect />} />
+      <Route path="/content/" element={<LegacyRedirect />} />
       <Route
-        path="/schedule"
+        path="/:confCode"
         element={
           <Suspense fallback={<LoadingPage message="Loading schedule..." />}>
             <ScheduleRoute />
@@ -86,7 +152,15 @@ export default function AppRouter() {
         }
       />
       <Route
-        path="/bookmarks"
+        path="/:confCode/schedule"
+        element={
+          <Suspense fallback={<LoadingPage message="Loading schedule..." />}>
+            <ScheduleRoute />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/:confCode/bookmarks"
         element={
           <Suspense fallback={<LoadingPage message="Loading bookmarks..." />}>
             <BookmarksRoute />
@@ -94,7 +168,7 @@ export default function AppRouter() {
         }
       />
       <Route
-        path="/people"
+        path="/:confCode/people"
         element={
           <Suspense fallback={<LoadingPage message="Loading people..." />}>
             <PeopleRoute />
@@ -102,7 +176,7 @@ export default function AppRouter() {
         }
       />
       <Route
-        path="/person"
+        path="/:confCode/people/:personId"
         element={
           <Suspense fallback={<LoadingPage message="Loading person..." />}>
             <PersonRoute />
@@ -110,13 +184,14 @@ export default function AppRouter() {
         }
       />
       <Route
-        path="/event"
+        path="/:confCode/content/:contentId"
         element={
-          <Suspense fallback={<LoadingPage message="Loading event..." />}>
-            <EventRoute />
+          <Suspense fallback={<LoadingPage message="Loading content..." />}>
+            <ContentRoute />
           </Suspense>
         }
       />
+      <Route path="/:confCode/event/:contentId" element={<LegacyContentRedirect />} />
       <Route
         path="/about"
         element={
