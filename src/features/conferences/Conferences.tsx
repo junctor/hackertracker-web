@@ -26,9 +26,9 @@ export function Conferences() {
   }, []);
 
   return (
-    <>
+    <div className="ui-page flex flex-col">
       <HTHeader />
-      <main className="mx-auto mt-10 w-full max-w-7xl px-4 sm:px-6 lg:px-10">
+      <main className="ui-container ui-container-wide flex-1 pt-10">
         <header className="mb-6 space-y-3">
           <h1 className="text-3xl leading-tight font-extrabold text-neutral-100 md:text-4xl">
             Conferences
@@ -39,7 +39,7 @@ export function Conferences() {
         {loading ? (
           <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="ui-card h-[116px] animate-pulse bg-neutral-900/60" />
+              <div key={i} className="ui-card h-[116px] animate-pulse bg-[var(--ht-surface)]" />
             ))}
           </div>
         ) : (
@@ -47,6 +47,6 @@ export function Conferences() {
         )}
       </main>
       <HTFooter />
-    </>
+    </div>
   );
 }

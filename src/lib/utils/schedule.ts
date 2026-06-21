@@ -1,5 +1,10 @@
-import type { HTEvent, HTTag, HTTagGroup } from "@/types/db";
-import type { GroupedSchedule, ProcessedEvent, ProcessedTag } from "@/types/ht";
+import type { ID, HTContent, HTLocation, HTPerson, HTTag, HTTagGroup } from "@/types/db";
+import type {
+  GroupedSchedule,
+  ProcessedScheduledContent,
+  ProcessedTag,
+  ScheduledContent,
+} from "@/types/ht";
 
 /* ---------- tiny date helpers (fixed-format inputs) ---------- */
 
@@ -36,9 +41,10 @@ const ymdInTz = (dt: Date, timeZone: string) => {
     month: "2-digit",
     day: "2-digit",
   }).formatToParts(dt);
-  const y = parts.find((p) => p.type === "year")!.value;
-  const m = parts.find((p) => p.type === "month")!.value;
-  const d = parts.find((p) => p.type === "day")!.value;
+  const y = parts.find((p) => p.type === "year")?.value;
+  const m = parts.find((p) => p.type === "month")?.value;
+  const d = parts.find((p) => p.type === "day")?.value;
+  if (!y || !m || !d) return "1970-01-01";
   return `${y}-${m}-${d}`;
 };
 
@@ -67,83 +73,189 @@ export const fmtHeading = (key: string, timeZone?: string) =>
 const toSeconds = (ts?: { seconds?: number } | null) =>
   ts && typeof ts.seconds === "number" ? ts.seconds : null;
 
-export const buildAllTagIndex = (groups: readonly HTTagGroup[]) => {
-  const idx = new Map<number, HTTag>();
-  for (const g of groups) for (const t of g.tags) idx.set(t.id, t);
+type IndexedTag = {
+  tag: HTTag;
+  group: HTTagGroup;
+};
+
+export const buildTagIndex = (groups: readonly HTTagGroup[]) => {
+  const idx = new Map<number, IndexedTag>();
+  for (const group of groups) {
+    for (const tag of group.tags) idx.set(tag.id, { tag, group });
+  }
   return idx;
 };
 
-export function toProcessedEvent(ev: HTEvent, tagIdx: ReadonlyMap<number, HTTag>): ProcessedEvent {
-  const tags: ProcessedTag[] = (ev.tag_ids ?? [])
-    .map((id) => tagIdx.get(id))
-    .filter((t): t is HTTag => !!t)
-    .sort((a, b) => a.sort_order - b.sort_order)
-    .map((t) => ({
-      id: t.id,
-      label: t.label,
-      color_background: t.color_background,
-      color_foreground: t.color_foreground,
-      sort_order: t.sort_order,
-    }));
+function toProcessedTag(tag: HTTag): ProcessedTag {
+  return {
+    id: tag.id,
+    label: tag.label,
+    color_background: tag.color_background,
+    color_foreground: tag.color_foreground,
+    sort_order: tag.sort_order,
+  };
+}
 
-  const beginSec = toSeconds(ev.begin_timestamp);
-  const endSec = toSeconds(ev.end_timestamp);
+function getContentTags(
+  content: HTContent,
+  tagIdx: ReadonlyMap<number, IndexedTag>,
+): ProcessedTag[] {
+  return (content.tag_ids ?? [])
+    .map((id) => tagIdx.get(id))
+    .filter((entry): entry is IndexedTag => entry !== undefined)
+    .sort((a, b) => a.group.sort_order - b.group.sort_order || a.tag.sort_order - b.tag.sort_order)
+    .map((entry) => toProcessedTag(entry.tag));
+}
+
+function getPrimaryContentTag(
+  content: HTContent,
+  tagIdx: ReadonlyMap<number, IndexedTag>,
+): HTTag | null {
+  const tags = (content.tag_ids ?? [])
+    .map((id) => tagIdx.get(id))
+    .filter((entry): entry is IndexedTag => entry !== undefined)
+    .filter((entry) => entry.group.category === "content")
+    .sort((a, b) => a.group.sort_order - b.group.sort_order || a.tag.sort_order - b.tag.sort_order);
+  return tags[0]?.tag ?? null;
+}
+
+export function getContentDisplayTags(
+  content: HTContent,
+  tagGroups: readonly HTTagGroup[],
+): ProcessedTag[] {
+  return getContentTags(content, buildTagIndex(tagGroups));
+}
+
+export function getContentAccentColor(
+  content: HTContent,
+  tagGroups: readonly HTTagGroup[],
+): string | null {
+  const tagIdx = buildTagIndex(tagGroups);
+  const tags = getContentTags(content, tagIdx);
+  return (
+    getPrimaryContentTag(content, tagIdx)?.color_background ?? tags[0]?.color_background ?? null
+  );
+}
+
+export function getContentSessions(content: HTContent) {
+  return content.sessions ?? [];
+}
+
+export function toScheduledContent(content: HTContent): ScheduledContent[] {
+  return getContentSessions(content).map((session) => ({ content, session }));
+}
+
+export function toScheduledContents(contents: readonly HTContent[]): ScheduledContent[] {
+  return contents.flatMap(toScheduledContent);
+}
+
+export function sortScheduledContentByStart(items: ScheduledContent[]): ScheduledContent[] {
+  return [...items].sort((a, b) => {
+    const aStart =
+      toSeconds(a.session.begin_timestamp) ?? parseFixedIso(a.session.begin_tsz).getTime() / 1000;
+    const bStart =
+      toSeconds(b.session.begin_timestamp) ?? parseFixedIso(b.session.begin_tsz).getTime() / 1000;
+    return aStart - bStart;
+  });
+}
+
+export function getContentPrimarySession(content: HTContent) {
+  return sortScheduledContentByStart(toScheduledContent(content))[0]?.session;
+}
+
+export function getContentPersonIds(content: HTContent): ID[] {
+  return (content.people ?? [])
+    .slice()
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map((person) => person.person_id);
+}
+
+export function getContentTagIds(content: HTContent): ID[] {
+  return content.tag_ids ?? [];
+}
+
+function getSpeakerNames(
+  content: HTContent,
+  peopleById?: ReadonlyMap<number, HTPerson>,
+): string | null {
+  if (!peopleById) return null;
+  const names = getContentPersonIds(content)
+    .map((id) => peopleById.get(id)?.name)
+    .filter((name): name is string => Boolean(name));
+  return names.length > 0 ? names.join(", ") : null;
+}
+
+export function toProcessedScheduledContent(
+  item: ScheduledContent,
+  tagIdx: ReadonlyMap<number, IndexedTag>,
+  peopleById?: ReadonlyMap<number, HTPerson>,
+  locationsById?: ReadonlyMap<number, HTLocation>,
+): ProcessedScheduledContent {
+  const { content, session } = item;
+  const tags = getContentTags(content, tagIdx);
+  const primaryTag = getPrimaryContentTag(content, tagIdx);
+  const beginSec = toSeconds(session.begin_timestamp);
+  const endSec = toSeconds(session.end_timestamp);
 
   return {
-    id: ev.id,
-    title: ev.title ?? "",
-    description: ev.description ?? "",
-    begin: ev.begin ?? "",
-    end: ev.end ?? null,
+    contentId: content.id,
+    sessionId: session.session_id,
+    title: content.title ?? "",
+    description: content.description ?? "",
+    begin: session.begin_tsz,
+    end: session.end_tsz,
     beginTimestampSeconds: beginSec,
     endTimestampSeconds: endSec,
-    timeZone: ev.timezone ?? "UTC",
-    color: ev.type?.color ?? tags[0]?.color_background ?? null,
+    timeZone: session.timezone_name ?? "UTC",
+    color: primaryTag?.color_background ?? tags[0]?.color_background ?? null,
     tags,
-    speakers:
-      (ev.speakers ?? [])
-        .map((s) => s?.name)
-        .filter(Boolean)
-        .join(", ") || null,
-    location: ev.location?.name ?? null,
-    links: ev.links ?? [],
+    speakers: getSpeakerNames(content, peopleById),
+    location: locationsById?.get(session.location_id)?.name ?? null,
+    locationId: session.location_id ?? null,
+    links: content.links ?? [],
   };
 }
 
 export const processScheduleData = (
-  events: readonly HTEvent[],
+  contentItems: readonly HTContent[],
   tagTypes: readonly HTTagGroup[],
+  people: readonly HTPerson[] = [],
+  locations: readonly HTLocation[] = [],
 ) => {
-  const tagIdx = buildAllTagIndex(tagTypes);
-  return (events ?? []).map((ev) => toProcessedEvent(ev, tagIdx));
+  const tagIdx = buildTagIndex(tagTypes);
+  const peopleById = new Map(people.map((person) => [person.id, person]));
+  const locationsById = new Map(locations.map((location) => [location.id, location]));
+  return sortScheduledContentByStart(toScheduledContents(contentItems)).map((item) =>
+    toProcessedScheduledContent(item, tagIdx, peopleById, locationsById),
+  );
 };
 
 /* ---------------- grouping ---------------- */
 
 export function createDateGroup(
-  processed: readonly ProcessedEvent[],
+  processed: readonly ProcessedScheduledContent[],
   timeZone = "UTC",
 ): GroupedSchedule {
   const groups: GroupedSchedule = {};
 
   // Always prefer epoch for ordering; else parse the fixed-format string once
-  const epoch = (ev: ProcessedEvent) =>
-    ev.beginTimestampSeconds ??
-    (ev.begin && typeof ev.begin === "string"
-      ? Math.floor(parseFixedIso(ev.begin).getTime() / 1000)
+  const epoch = (content: ProcessedScheduledContent) =>
+    content.beginTimestampSeconds ??
+    (content.begin && typeof content.begin === "string"
+      ? Math.floor(parseFixedIso(content.begin).getTime() / 1000)
       : Number.MAX_SAFE_INTEGER);
 
   // Sort once globally
   const sorted = [...processed].sort((a, b) => epoch(a) - epoch(b));
 
   // Build groups with the most stable source available
-  for (const ev of sorted) {
+  for (const content of sorted) {
     const key =
-      ev.beginTimestampSeconds != null
-        ? dayKey(ev.beginTimestampSeconds * 1000, timeZone)
-        : dayKey(ev.begin, timeZone);
+      content.beginTimestampSeconds != null
+        ? dayKey(content.beginTimestampSeconds * 1000, timeZone)
+        : dayKey(content.begin, timeZone);
 
-    (groups[key] ??= []).push(ev);
+    (groups[key] ??= []).push(content);
   }
 
   // Ensure each day’s list is ordered (cheap since mostly sorted)
@@ -153,7 +265,10 @@ export function createDateGroup(
 }
 
 export const buildScheduleBucketsByDay = (
-  events: readonly HTEvent[],
+  contentItems: readonly HTContent[],
   tags: readonly HTTagGroup[],
+  people: readonly HTPerson[] = [],
+  locations: readonly HTLocation[] = [],
   timeZone = "UTC",
-): GroupedSchedule => createDateGroup(processScheduleData(events, tags), timeZone);
+): GroupedSchedule =>
+  createDateGroup(processScheduleData(contentItems, tags, people, locations), timeZone);

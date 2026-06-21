@@ -5,6 +5,8 @@ import { Link } from "react-router";
 
 import type { HTPerson } from "@/types/db";
 
+import { personPath } from "@/lib/utils/routes";
+
 type SortMode = "name-asc" | "name-desc";
 
 const PERSON_ACCENT_COLORS = ["#017FA4", "#2D7FF9", "#0F766E", "#7C3AED", "#C2410C", "#0E7490"];
@@ -45,14 +47,14 @@ export default function PeopleList({ confCode, people }: { confCode: string; peo
   const trimmedQuery = query.trim();
 
   return (
-    <section className="mx-auto my-10 max-w-7xl px-4 sm:px-5">
+    <section className="ui-container ui-container-wide ui-page-content">
       <div className="mb-6 flex flex-col items-stretch justify-between gap-4 md:flex-row md:items-center">
         <div className="flex min-w-0 flex-wrap items-baseline gap-3">
           <h1 className="text-3xl leading-tight font-extrabold text-gray-100 md:text-4xl">
             People
           </h1>
           <span
-            className="rounded-full border border-gray-700 bg-gray-900/60 px-2 py-0.5 text-xs text-gray-300"
+            className="rounded-full border border-white/10 bg-[var(--ht-surface)] px-2 py-0.5 text-xs text-gray-300"
             aria-live="polite"
           >
             {resultCount.toLocaleString()} {resultCount === 1 ? "result" : "results"}
@@ -109,7 +111,7 @@ export default function PeopleList({ confCode, people }: { confCode: string; peo
             const showAvatarImage = Boolean(avatarUrl) && !brokenAvatarIds[p.id];
             const accentColor = getPersonAccent(p.name);
             const accentStyle = {
-              "--event-color": accentColor,
+              "--content-color": accentColor,
             } as CSSProperties;
             const avatarStyle = {
               backgroundImage: `linear-gradient(135deg, ${accentColor}22 0%, rgba(15, 23, 42, 0.9) 100%)`,
@@ -126,7 +128,7 @@ export default function PeopleList({ confCode, people }: { confCode: string; peo
                   <span aria-hidden="true" className="ui-accent-rail-overlay" />
 
                   <Link
-                    to={`/person?conf=${encodeURIComponent(confCode)}&person=${p.id}`}
+                    to={personPath(confCode, p.id)}
                     className="ui-focus-ring relative z-10 block h-full rounded-[inherit] px-4 py-3.5 pl-5 focus-visible:outline-none sm:px-5 sm:py-4 sm:pl-6"
                   >
                     <div className="flex items-center gap-3.5">

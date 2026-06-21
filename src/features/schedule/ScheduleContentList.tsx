@@ -8,21 +8,22 @@ import { NavLink } from "react-router";
 import { Virtuoso, type Components, type ItemProps, type ListProps } from "react-virtuoso";
 
 import type { HTConference } from "@/types/db";
-import type { GroupedSchedule, ProcessedEvent } from "@/types/ht";
+import type { GroupedSchedule, ProcessedScheduledContent } from "@/types/ht";
 
+import { bookmarksPath, schedulePath } from "@/lib/utils/routes";
 import { fmtHeading, fmtTab } from "@/lib/utils/schedule";
 import { loadConfBookmarks, toggleBookmark } from "@/lib/utils/storage";
 
-import EventItem from "./EventItem";
+import ScheduleContentItem from "./ScheduleContentItem";
 
 type ScheduleDay = {
   day: string;
-  events: ProcessedEvent[];
+  scheduledContents: ProcessedScheduledContent[];
 };
 
 type VirtuosoContext = unknown;
 type VirtuosoListProps = ListProps & { context: VirtuosoContext };
-type VirtuosoItemProps = ItemProps<ProcessedEvent> & {
+type VirtuosoItemProps = ItemProps<ProcessedScheduledContent> & {
   context: VirtuosoContext;
 };
 
@@ -36,7 +37,7 @@ const VirtuosoList = React.forwardRef<HTMLDivElement, VirtuosoListProps>(functio
       style={style}
       data-testid={dataTestId}
       role="list"
-      className="mb-8 list-none p-0"
+      className="ui-list-stack mb-8"
     >
       {children}
     </ul>
@@ -48,14 +49,14 @@ function VirtuosoItem({ children, style, context, item, ...itemProps }: Virtuoso
   void context;
   void item;
   return (
-    <li {...itemProps} style={style} className="mb-3 last:mb-0">
+    <li {...itemProps} style={style}>
       {children}
     </li>
   );
 }
 VirtuosoItem.displayName = "VirtuosoItem";
 
-const VIRTUOSO_COMPONENTS: Components<ProcessedEvent, VirtuosoContext> = {
+const VIRTUOSO_COMPONENTS: Components<ProcessedScheduledContent, VirtuosoContext> = {
   List: VirtuosoList,
   Item: VirtuosoItem,
 };
@@ -63,7 +64,7 @@ const VIRTUOSO_COMPONENTS: Components<ProcessedEvent, VirtuosoContext> = {
 const SITE_HEADER_HEIGHT_PX = 56;
 const STICKY_HEADING_CLEARANCE_PX = 16;
 
-export default function EventsList({
+export default function ScheduleContentList({
   dateGroup,
   conf,
   pageTitle,
@@ -76,7 +77,11 @@ export default function EventsList({
   const nowSeconds = useMemo(() => Math.floor(Date.now() / 1000), []);
 
   const days: ScheduleDay[] = useMemo(
-    () => Object.entries(dateGroup).map(([day, events]) => ({ day, events })),
+    () =>
+      Object.entries(dateGroup).map(([day, scheduledContents]) => ({
+        day,
+        scheduledContents,
+      })),
     [dateGroup],
   );
 
@@ -234,31 +239,36 @@ export default function EventsList({
   const activeDay = days.find(({ day }) => day === resolvedDay) ?? null;
   const activeDayLabel = activeDay ? fmtHeading(activeDay.day, conf.timezone || "UTC") : null;
   const activeDayEventCountLabel = activeDay
-    ? `${activeDay.events.length} ${activeDay.events.length === 1 ? "event" : "events"}`
+    ? `${activeDay.scheduledContents.length} ${
+        activeDay.scheduledContents.length === 1 ? "event" : "events"
+      }`
     : null;
 
-  const computeItemKey = useCallback((_: number, evt: ProcessedEvent) => evt.id, []);
+  const computeItemKey = useCallback(
+    (_: number, content: ProcessedScheduledContent) => `${content.contentId}:${content.sessionId}`,
+    [],
+  );
   const itemContent = useCallback(
-    (_: number, evt: ProcessedEvent) => (
-      <EventItem
-        event={evt}
+    (_: number, content: ProcessedScheduledContent) => (
+      <ScheduleContentItem
+        scheduledContent={content}
         confCode={confCode}
-        isBookmarked={bookmarks.has(evt.id)}
+        isBookmarked={bookmarks.has(content.contentId)}
         nowSeconds={nowSeconds}
-        onToggle={makeToggle(evt.id)}
+        onToggle={makeToggle(content.contentId)}
       />
     ),
     [bookmarks, confCode, makeToggle, nowSeconds],
   );
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-gray-100">
+    <div className="ui-page text-gray-100">
       <div
         ref={stickyToolsRef}
-        className="sticky z-40 border-b border-white/8 bg-neutral-950/92 backdrop-blur"
+        className="sticky z-40 border-b border-white/8 bg-(--color-page-bg)"
         style={stickyToolsTopStyle}
       >
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2.5 sm:px-5">
+        <div className="ui-container ui-container-wide flex items-center justify-between gap-3 py-2.5">
           <h1 className="min-w-0 truncate text-lg font-bold tracking-tight text-gray-100 sm:text-xl">
             {pageTitle}
           </h1>
@@ -266,13 +276,13 @@ export default function EventsList({
           <nav aria-label="Schedule tools" className="shrink-0">
             {pageTitle === "Schedule" && (
               <NavLink
-                to={`/bookmarks?conf=${confCode}`}
+                to={bookmarksPath(confCode)}
                 className={({ isActive }) =>
                   [
                     "ui-focus-ring inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-sm font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
                     isActive
-                      ? "border-[#017FA4]/45 bg-neutral-900/90 text-white"
-                      : "border-white/10 bg-white/[0.03] text-gray-300 hover:border-white/14 hover:bg-white/[0.05] hover:text-gray-100",
+                      ? "border-[#017FA4]/45 bg-(--ht-surface) text-white"
+                      : "border-white/10 bg-white/3 text-gray-300 hover:border-white/14 hover:bg-white/5 hover:text-gray-100",
                   ].join(" ")
                 }
                 aria-label="View bookmarked events"
@@ -284,13 +294,13 @@ export default function EventsList({
 
             {pageTitle === "Bookmarks" && (
               <NavLink
-                to={`/schedule?conf=${confCode}`}
+                to={schedulePath(confCode)}
                 className={({ isActive }) =>
                   [
                     "ui-focus-ring inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-sm font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
                     isActive
-                      ? "border-[#017FA4]/45 bg-neutral-900/90 text-white"
-                      : "border-white/10 bg-white/[0.03] text-gray-300 hover:border-white/14 hover:bg-white/[0.05] hover:text-gray-100",
+                      ? "border-[#017FA4]/45 bg-(--ht-surface) text-white"
+                      : "border-white/10 bg-white/3 text-gray-300 hover:border-white/14 hover:bg-white/5 hover:text-gray-100",
                   ].join(" ")
                 }
                 aria-label="Schedule"
@@ -321,17 +331,17 @@ export default function EventsList({
 
       <div
         ref={stickyTabsRef}
-        className="sticky z-30 border-b border-white/8 bg-neutral-950/92 py-2 backdrop-blur"
+        className="sticky z-30 border-b border-white/8 bg-(--color-page-bg) py-2"
         style={stickyTabsTopStyle}
       >
-        <div className="mx-auto max-w-7xl overflow-x-auto px-4 [scrollbar-width:none] sm:px-5 [&::-webkit-scrollbar]:hidden">
+        <div className="ui-container ui-container-wide scrollbar-none overflow-x-auto [&::-webkit-scrollbar]:hidden">
           <div
             role="tablist"
             aria-label="Schedule days"
             aria-orientation="horizontal"
             className="flex min-w-max justify-center gap-2"
           >
-            {days.map(({ day, events }, index) => (
+            {days.map(({ day, scheduledContents }, index) => (
               <button
                 key={day}
                 ref={(el) => {
@@ -342,8 +352,8 @@ export default function EventsList({
                 role="tab"
                 aria-selected={resolvedDay === day}
                 aria-controls={`day-panel-${day}`}
-                aria-label={`${fmtTab(day, conf.timezone || "UTC")}, ${events.length} ${
-                  events.length === 1 ? "event" : "events"
+                aria-label={`${fmtTab(day, conf.timezone || "UTC")}, ${scheduledContents.length} ${
+                  scheduledContents.length === 1 ? "event" : "events"
                 }`}
                 tabIndex={resolvedDay === day ? 0 : -1}
                 onClick={() => setSelectedDay(day)}
@@ -351,8 +361,8 @@ export default function EventsList({
                 className={[
                   "ui-focus-ring group inline-flex min-h-11 items-center gap-2 rounded-xl border px-3.5 py-2 text-sm whitespace-nowrap transition focus-visible:outline-none",
                   resolvedDay === day
-                    ? "border-[#017FA4]/45 bg-neutral-900/95 text-white"
-                    : "border-white/10 bg-white/[0.03] text-gray-300 hover:border-white/14 hover:bg-white/[0.05] hover:text-gray-100",
+                    ? "border-[#017FA4]/45 bg-(--ht-surface) text-white"
+                    : "border-white/10 bg-white/3 text-gray-300 hover:border-white/14 hover:bg-white/5 hover:text-gray-100",
                 ].join(" ")}
               >
                 <span className="font-semibold">{fmtTab(day, conf.timezone || "UTC")}</span>
@@ -364,7 +374,7 @@ export default function EventsList({
                       : "border-white/8 bg-black/15 text-gray-400 group-hover:text-gray-200",
                   ].join(" ")}
                 >
-                  {events.length}
+                  {scheduledContents.length}
                 </span>
               </button>
             ))}
@@ -373,7 +383,7 @@ export default function EventsList({
       </div>
 
       {days.length === 0 ? (
-        <div className="mx-auto mt-8 max-w-7xl px-4 sm:px-5">
+        <div className="ui-container ui-container-wide mt-8">
           <div className="ui-empty-state">
             <p className="text-gray-200">No events are available.</p>
           </div>
@@ -385,7 +395,7 @@ export default function EventsList({
           aria-labelledby={`day-tab-${activeDay.day}`}
           tabIndex={0}
         >
-          <div className="mx-auto mt-5 mb-3 max-w-7xl px-4 sm:px-5">
+          <div className="ui-container ui-container-wide mt-5 mb-3">
             <div className="flex flex-col gap-3 border-b border-white/8 pb-3.5 sm:flex-row sm:items-end sm:justify-between">
               <h2
                 ref={headingRef}
@@ -401,10 +411,10 @@ export default function EventsList({
               ) : null}
             </div>
           </div>
-          <div className="mx-auto max-w-7xl px-4 sm:px-5">
+          <div className="ui-container ui-container-wide">
             <Virtuoso
               useWindowScroll
-              data={activeDay.events}
+              data={activeDay.scheduledContents}
               computeItemKey={computeItemKey}
               components={VIRTUOSO_COMPONENTS}
               itemContent={itemContent}

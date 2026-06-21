@@ -34,10 +34,10 @@ export interface HTAvatar {
   hash_sha256: string;
 }
 
-export interface HTEventLink {
-  label: string; // e.g., "More Info"
+export interface HTContentLink {
+  label: string;
   url: string;
-  type: string; // e.g., "link"
+  type: string;
 }
 
 export interface HTPersonLink {
@@ -115,101 +115,86 @@ export interface HTPerson {
 /** Root: speakers.json */
 export type Speaker = HTPerson[];
 
-// ---------- Events root (events array) ----------
-export interface HTEventLocation {
+// ---------- Content root (content array) ----------
+
+export interface HTFirestoreTimestamp {
+  type: "firestore/timestamp/1.0";
+  seconds: number;
+  nanoseconds: number;
+}
+
+export interface HTContentPersonRole {
+  person_id: ID;
+  sort_order: number;
+  tag_ids: ID[];
+}
+
+export interface HTContentSession {
+  session_id: ID;
+
+  begin_timestamp: HTFirestoreTimestamp;
+  begin_tsz: HTDateTimeString;
+
+  end_timestamp: HTFirestoreTimestamp;
+  end_tsz: HTDateTimeString;
+
+  timezone_name: string;
+
+  location_id: ID;
+  channel_id: ID | null;
+  recordingpolicy_id: ID;
+}
+
+export interface HTContent {
+  id: ID;
+  title: string;
+  description: string;
+
+  tag_ids: ID[];
+  people: HTContentPersonRole[];
+  sessions: HTContentSession[];
+
+  links: HTContentLink[];
+
+  /**
+   * Empty object in the current content.json.
+   * Kept loose in case the upstream API starts filling it.
+   */
+  logo: Record<string, unknown>;
+
+  /**
+   * Empty array in the current content.json.
+   * Use HTMedia[] if future content media matches the existing media shape.
+   */
+  media: HTMedia[];
+
+  related_content_ids: ID[] | null;
+
+  feedback_form_id: ID | null;
+  feedback_enable_timestamp: HTFirestoreTimestamp | null;
+  feedback_enable_tsz: HTDateTimeString | null;
+  feedback_disable_timestamp: HTFirestoreTimestamp | null;
+  feedback_disable_tsz: HTDateTimeString | null;
+
+  updated_timestamp: HTFirestoreTimestamp;
+  updated_tsz: HTDateTimeString;
+}
+
+/** Root: content.json */
+export type Content = HTContent[];
+
+// ---------- Locations root (locations array) ----------
+
+export interface HTLocation {
   id: ID;
   name: string;
   short_name: string;
-  parent_id: ID; // sometimes 0
-  hotel: string; // often ""
+  parent_id: ID;
+  hotel: string;
 }
 
-export interface HTEventType {
-  id: ID; // corresponds to a tag id under "Event Category"
-  name: string; // e.g., "DEF CON Training (Paid)"
-  color: string; // hex
-  conference_id: ID;
-  conference: string;
-  updated_at: HTDateTimeString;
-  updated_tsz: HTDateTimeString;
-}
-
-export interface HTEventPersonRole {
-  person_id: ID;
-  sort_order: number;
-  tag_id: ID; // maps to a "Content-Person Role" tag id (e.g., Speaker/Trainer/etc)
-}
-
-export interface HTEventEmbeddedSpeaker {
-  id: ID;
-  name: string;
-
-  conference_id: ID;
-  content_ids: ID[];
-  event_ids: ID[];
-
-  title: string; // may be ""
-  pronouns: string | null;
-
-  avatar: HTAvatar | null; // may be null
-  media: HTMedia[];
-
-  links: HTPersonLink[];
-  affiliations: HTAffiliation[];
-
-  updated_tsz: HTDateTimeString;
-}
-
-export type HTSpansTimebands = "Y" | "N";
-
-export interface HTEvent {
-  id: ID;
-  content_id: ID;
-
-  conference_id: ID;
-  conference: string;
-  timezone: string; // IANA TZ
-
-  title: string;
-  description: string;
-  android_description: string;
-
-  // Strings and normalized timestamp objects provided together
-  begin: HTDateTimeString; // e.g., "2025-08-08T17:00:00.000-0000"
-  end: HTDateTimeString; // e.g., "2025-08-13T00:00:00.000-0000"
-  begin_tsz: HTDateTimeString; // Zulu
-  end_tsz: HTDateTimeString; // Zulu
-  begin_timestamp: HTTimestamp;
-  end_timestamp: HTTimestamp;
-
-  updated: HTDateTimeString; // e.g., "2025-04-02T05:37:00.000-0000"
-  updated_tsz: HTDateTimeString; // e.g., "2025-04-02T05:37:58Z"
-  updated_timestamp: HTTimestamp;
-
-  type: HTEventType;
-  tag_ids: ID[];
-  tags: string; // present as "", kept for parity
-
-  speakers: HTEventEmbeddedSpeaker[];
-  people: HTEventPersonRole[];
-
-  location: HTEventLocation;
-
-  timeband_id: ID;
-  village_id: ID | null;
-  logo: string | null;
-
-  media: HTMedia[];
-  links: HTEventLink[];
-
-  spans_timebands: HTSpansTimebands;
-
-  includes: string; // often ""
-  link: string; // often ""
-}
-
-/** Root: events.json */
-export type Events = HTEvent[];
+/** Root: locations.json */
+export type Locations = HTLocation[];
 
 // ---------- Conference root (single object) ----------
 

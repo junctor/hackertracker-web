@@ -15,18 +15,18 @@ const saveConfBookmarks = (confCode: string, ids: Set<number>) => {
   localStorage.setItem(keyFor(confCode), JSON.stringify([...ids]));
 };
 
-export const isBookmarked = (confCode: string, eventId: number) =>
-  loadConfBookmarks(confCode).has(eventId);
+export const isBookmarked = (confCode: string, contentId: number) =>
+  loadConfBookmarks(confCode).has(contentId);
 
 export const toggleBookmark = (
   confCode: string,
-  eventId: number,
+  contentId: number,
   setState: React.Dispatch<React.SetStateAction<Set<number>>>,
 ) => {
   setState((prev) => {
     const next = new Set(prev);
-    if (next.has(eventId)) next.delete(eventId);
-    else next.add(eventId);
+    if (next.has(contentId)) next.delete(contentId);
+    else next.add(contentId);
     saveConfBookmarks(confCode, next);
     return next;
   });

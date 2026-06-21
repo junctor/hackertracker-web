@@ -9,13 +9,13 @@ import LoadingPage from "@/components/LoadingPage";
 import { getCachedConferenceSchedule, getConferenceSchedule } from "@/lib/db";
 import { useNormalizedParams } from "@/lib/utils/params";
 
-const EventsList = lazy(() => import("./EventsList"));
-let eventsListPreload: Promise<unknown> | null = null;
-function preloadEventsList() {
-  if (!eventsListPreload) {
-    eventsListPreload = import("./EventsList");
+const ScheduleContentList = lazy(() => import("./ScheduleContentList"));
+let scheduleContentListPreload: Promise<unknown> | null = null;
+function preloadScheduleContentList() {
+  if (!scheduleContentListPreload) {
+    scheduleContentListPreload = import("./ScheduleContentList");
   }
-  return eventsListPreload;
+  return scheduleContentListPreload;
 }
 
 export function Schedule() {
@@ -33,7 +33,7 @@ export function Schedule() {
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    void preloadEventsList();
+    void preloadScheduleContentList();
   }, [confCode]);
 
   useEffect(() => {
@@ -77,7 +77,7 @@ export function Schedule() {
           return;
         }
 
-        await preloadEventsList();
+        await preloadScheduleContentList();
         if (cancelled) return;
 
         startTransition(() => {
@@ -108,17 +108,17 @@ export function Schedule() {
   if (error) return <ErrorPage msg={error} />;
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="ui-page flex flex-col">
       {conference && <ConferenceHeader conference={conference} />}
 
       <main className="relative flex-1">
         {(loading || isPending) && grouped && (
-          <div className="bg-background/40 pointer-events-none absolute inset-0 backdrop-blur-[1px] transition-opacity" />
+          <div className="ui-page-pending-overlay pointer-events-none absolute inset-0 backdrop-blur-[1px] transition-opacity" />
         )}
 
         {grouped && conference ? (
           <Suspense fallback={null}>
-            <EventsList dateGroup={grouped} conf={conference} pageTitle="Schedule" />
+            <ScheduleContentList dateGroup={grouped} conf={conference} pageTitle="Schedule" />
           </Suspense>
         ) : (
           <LoadingPage message="Loading events..." />

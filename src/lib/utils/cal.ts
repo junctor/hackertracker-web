@@ -1,5 +1,6 @@
-import type { HTConference } from "@/types/db";
-import type { ProcessedEvent } from "@/types/ht";
+import type { HTConference, HTContent, HTContentSession } from "@/types/db";
+
+import { contentPath } from "./routes";
 
 const BASEURL = "https://hackertracker.app";
 const PRODID = "-//hackertracker//web Calendar 1.0//EN";
@@ -36,18 +37,22 @@ const foldLine = (line: string) => {
 };
 
 /** Build a plain-text description including speakers */
-const buildDescription = (event: ProcessedEvent) => {
-  const speakers = event.speakers ?? "";
-  return [event.description, speakers].filter(Boolean).join("\\n");
+const buildDescription = (content: HTContent, speakers?: string | null) => {
+  return [content.description, speakers ?? ""].filter(Boolean).join("\\n");
 };
 
 /** Generate a full iCal string for an event */
-export const generateICal = (event: ProcessedEvent, conference: HTConference): string => {
+export const generateICal = (
+  content: HTContent,
+  session: HTContentSession,
+  conference: HTConference,
+  options: { location?: string | null; speakers?: string | null } = {},
+): string => {
   const now = new Date();
   const dtstamp = formatICalDate(now);
-  const dtstart = formatICalDate(new Date(event.begin));
-  const dtend = formatICalDate(new Date(event.end ?? event.begin));
-  const uid = `${conference.code}-${event.id}@hackertracker.app`;
+  const dtstart = formatICalDate(new Date(session.begin_tsz));
+  const dtend = formatICalDate(new Date(session.end_tsz));
+  const uid = `${conference.code}-${content.id}-${session.session_id}@hackertracker.app`;
 
   const lines = [
     "BEGIN:VCALENDAR",
@@ -62,10 +67,10 @@ export const generateICal = (event: ProcessedEvent, conference: HTConference): s
     `DTEND:${dtend}`,
     "STATUS:CONFIRMED",
     "CATEGORIES:CONFERENCE",
-    `SUMMARY:${escapeICalText(event.title)}`,
-    `URL:${BASEURL}/event?conf=${conference.code}&event=${event.id}`,
-    `LOCATION:${escapeICalText(event.location ?? "")}`,
-    `DESCRIPTION:${escapeICalText(buildDescription(event))}`,
+    `SUMMARY:${escapeICalText(content.title)}`,
+    `URL:${BASEURL}${contentPath(conference.code, content.id)}`,
+    `LOCATION:${escapeICalText(options.location ?? "")}`,
+    `DESCRIPTION:${escapeICalText(buildDescription(content, options.speakers))}`,
     "END:VEVENT",
     "END:VCALENDAR",
   ];

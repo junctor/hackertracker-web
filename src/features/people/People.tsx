@@ -1,5 +1,4 @@
 import { useEffect, useState, Suspense, startTransition } from "react";
-import { useSearchParams } from "react-router";
 
 import type { HTConference, HTPerson } from "@/types/db";
 
@@ -8,12 +7,12 @@ import ErrorPage from "@/components/ErrorPage";
 import { HTFooter } from "@/components/HTFooter";
 import LoadingPage from "@/components/LoadingPage";
 import { getConferenceByCode, getSpeakers } from "@/lib/db";
+import { useNormalizedParams } from "@/lib/utils/params";
 
 import PeopleList from "../people/PeopleList";
 
 export function People() {
-  const [searchParams] = useSearchParams();
-  const confCode = searchParams.get("conf");
+  const { confCode } = useNormalizedParams();
 
   const [people, setPeople] = useState<HTPerson[]>([]);
   const [conference, setConference] = useState<HTConference | null>(null);
@@ -70,7 +69,7 @@ export function People() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="ui-page flex flex-col">
       {conference && <ConferenceHeader conference={conference} />}
       <main className="flex-1">
         {people.length && confCode ? (

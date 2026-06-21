@@ -4,6 +4,7 @@ import { Link } from "react-router";
 import type { HTConference } from "@/types/db";
 
 import { formatDateRange, toDate, tzAbbrev } from "@/lib/utils/dates";
+import { conferencePath } from "@/lib/utils/routes";
 
 export const ConferenceCard = React.memo(function ConferenceCard({
   conference,
@@ -26,12 +27,12 @@ export const ConferenceCard = React.memo(function ConferenceCard({
 
   return (
     <Link
-      to={`/schedule?conf=${conference.code}`}
+      to={conferencePath(conference.code)}
       className="ui-focus-ring group block h-full rounded-[0.875rem] focus-visible:outline-none"
     >
-      <article className="ui-card ui-card-interactive flex h-full min-h-[7.25rem] flex-col p-5 transition group-hover:shadow-md">
+      <article className="ui-card ui-card-interactive flex h-full min-h-29 flex-col p-5 transition group-hover:shadow-md">
         <h3
-          className="line-clamp-2 min-h-[2.75rem] text-lg leading-snug font-semibold break-words text-neutral-100 transition-colors group-hover:text-white"
+          className="line-clamp-2 min-h-11 text-lg leading-snug font-semibold wrap-break-word text-neutral-100 transition-colors group-hover:text-white"
           title={conference.name}
         >
           {conference.name}

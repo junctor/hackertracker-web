@@ -34,10 +34,7 @@ export function UpcomingConferences() {
         <Header title="Upcoming Conferences" count={undefined} id="upcoming-mini" />
         <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-full animate-pulse rounded-lg border border-neutral-800 bg-neutral-900/50 p-4"
-            />
+            <div key={i} className="ui-card h-full animate-pulse p-4" />
           ))}
         </div>
       </section>
@@ -79,7 +76,7 @@ function Header({ title, count, id }: { title: string; count?: number; id: strin
         >
           {title}
           {typeof count === "number" && (
-            <span className="rounded-full bg-neutral-800 px-2 py-0.5 text-xs text-neutral-300">
+            <span className="rounded-full border border-white/10 bg-[var(--ht-surface)] px-2 py-0.5 text-xs text-neutral-300">
               {count}
             </span>
           )}

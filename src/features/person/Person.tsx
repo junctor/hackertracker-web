@@ -1,13 +1,15 @@
 import { useEffect, useState, Suspense, startTransition } from "react";
 
-import type { HTConference, HTEvent, HTPerson } from "@/types/db";
+import type { HTConference, HTPerson } from "@/types/db";
+import type { ProcessedScheduledContent } from "@/types/ht";
 
 import { ConferenceHeader } from "@/components/ConferenceHeader";
 import ErrorPage from "@/components/ErrorPage";
 import { HTFooter } from "@/components/HTFooter";
 import LoadingPage from "@/components/LoadingPage";
-import { getConferenceByCode, getEventsByIds, getSpeakerById } from "@/lib/db";
+import { getConferenceByCode, getContentByIds, getSpeakerById, getTags } from "@/lib/db";
 import { useNormalizedParams } from "@/lib/utils/params";
+import { processScheduleData } from "@/lib/utils/schedule";
 
 import PersonDetails from "./PersonDetails";
 
@@ -16,7 +18,7 @@ export function Person() {
 
   const [person, setPerson] = useState<HTPerson | null>(null);
   const [conference, setConference] = useState<HTConference | null>(null);
-  const [events, setEvents] = useState<HTEvent[]>([]);
+  const [scheduledContents, setScheduledContents] = useState<ProcessedScheduledContent[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,7 +45,7 @@ export function Person() {
       setError(null);
       setPerson(null);
       setConference(null);
-      setEvents([]);
+      setScheduledContents([]);
 
       try {
         const conf = await getConferenceByCode(confCode);
@@ -61,15 +63,19 @@ export function Person() {
           return;
         }
 
-        let personEvents: HTEvent[] = [];
-        if (p.event_ids?.length) {
-          personEvents = await getEventsByIds(confCode, p.event_ids);
+        let personScheduledContents: ProcessedScheduledContent[] = [];
+        if (p.content_ids?.length) {
+          const [content, tags] = await Promise.all([
+            getContentByIds(confCode, p.content_ids),
+            getTags(confCode),
+          ]);
           if (cancelled) return;
+          personScheduledContents = processScheduleData(content, tags, [p]);
         }
 
         startTransition(() => {
           setPerson(p);
-          setEvents(personEvents);
+          setScheduledContents(personScheduledContents);
         });
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Failed to load person";
@@ -88,12 +94,16 @@ export function Person() {
   if (error) return <ErrorPage msg={error} />;
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="ui-page flex flex-col">
       {conference && <ConferenceHeader conference={conference} />}
       <main className="flex-1">
         {person && conference ? (
           <Suspense fallback={<LoadingPage message="Loading person..." />}>
-            <PersonDetails conference={conference} person={person} events={events} />
+            <PersonDetails
+              conference={conference}
+              person={person}
+              scheduledContents={scheduledContents}
+            />
           </Suspense>
         ) : null}
       </main>

@@ -1,5 +1,13 @@
-export interface ProcessedEvent {
-  id: number;
+import type { HTContent, HTContentSession } from "./db";
+
+export type ScheduledContent = {
+  content: HTContent;
+  session: HTContentSession;
+};
+
+export interface ProcessedScheduledContent {
+  contentId: number;
+  sessionId: number;
   timeZone: string;
   description: string;
   title: string;
@@ -12,6 +20,7 @@ export interface ProcessedEvent {
   tags: ProcessedTag[];
   speakers: string | null;
   links: { label: string; url: string }[];
+  locationId: number | null;
 }
 
 export interface ProcessedTag {
@@ -22,9 +31,9 @@ export interface ProcessedTag {
   sort_order: number;
 }
 
-export type GroupedSchedule = Record<string, ProcessedEvent[]>;
+export type GroupedSchedule = Record<string, ProcessedScheduledContent[]>;
 
 export interface Bookmark {
   confCode: string;
-  eventId: number;
+  contentId: number;
 }

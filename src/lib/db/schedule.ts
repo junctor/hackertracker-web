@@ -1,11 +1,13 @@
-import type { HTConference, HTEvent, HTTagGroup } from "@/types/db";
+import type { HTConference } from "@/types/db";
 import type { GroupedSchedule } from "@/types/ht";
 
 import { buildScheduleBucketsByDay } from "@/lib/utils/schedule";
 
 import { CACHE_TTL_MS, getCached, getOrSetCached } from "./cache";
 import { getCachedConferenceByCode, getConferenceByCode } from "./conferences";
-import { getEvents } from "./events";
+import { getContent } from "./content";
+import { getLocations } from "./locations";
+import { getSpeakers } from "./speakers";
 import { getTags } from "./tags";
 
 type ConferenceSchedule = {
@@ -13,18 +15,26 @@ type ConferenceSchedule = {
   grouped: GroupedSchedule;
 };
 
-const scheduleKey = (conf: string) => `schedule:${conf}`;
+const scheduleKey = (conf: string) => `schedule-content:${conf}`;
 
-function isProcessedEvent(value: unknown): value is GroupedSchedule[string][number] {
+function isProcessedScheduledContent(value: unknown): value is GroupedSchedule[string][number] {
   if (value === null || typeof value !== "object") return false;
-  const candidate = value as { id?: unknown; title?: unknown };
-  return typeof candidate.id === "number" && typeof candidate.title === "string";
+  const candidate = value as {
+    contentId?: unknown;
+    sessionId?: unknown;
+    title?: unknown;
+  };
+  return (
+    typeof candidate.contentId === "number" &&
+    typeof candidate.sessionId === "number" &&
+    typeof candidate.title === "string"
+  );
 }
 
 function isGroupedSchedule(value: unknown): value is GroupedSchedule {
   if (value === null || typeof value !== "object" || Array.isArray(value)) return false;
   return Object.values(value).every(
-    (events) => Array.isArray(events) && events.every(isProcessedEvent),
+    (events) => Array.isArray(events) && events.every(isProcessedScheduledContent),
   );
 }
 
@@ -48,10 +58,17 @@ export async function getConferenceSchedule(conf: string): Promise<ConferenceSch
   const grouped = await getOrSetCached(
     scheduleKey(conf),
     async () => {
-      const [events, tags] = await Promise.all([getEvents(conf), getTags(conf)]);
+      const [content, tags, people, locations] = await Promise.all([
+        getContent(conf),
+        getTags(conf),
+        getSpeakers(conf),
+        getLocations(conf),
+      ]);
       return buildScheduleBucketsByDay(
-        events as HTEvent[],
-        tags as HTTagGroup[],
+        content,
+        tags,
+        people,
+        locations,
         conference.timezone || "UTC",
       );
     },
@@ -61,14 +78,14 @@ export async function getConferenceSchedule(conf: string): Promise<ConferenceSch
   return { conference, grouped };
 }
 
-export function filterScheduleByEventIds(
+export function filterScheduleByContentIds(
   grouped: GroupedSchedule,
-  eventIds: ReadonlySet<number>,
+  contentIds: ReadonlySet<number>,
 ): GroupedSchedule {
   const result: GroupedSchedule = {};
 
-  for (const [day, events] of Object.entries(grouped)) {
-    const filtered = events.filter((event) => eventIds.has(event.id));
+  for (const [day, scheduledContents] of Object.entries(grouped)) {
+    const filtered = scheduledContents.filter((item) => contentIds.has(item.contentId));
     if (filtered.length > 0) result[day] = filtered;
   }
 

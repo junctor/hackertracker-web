@@ -9,9 +9,11 @@ import {
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useSearchParams } from "react-router";
+import { Link, useLocation } from "react-router";
 
 import type { HTConference } from "@/types/db";
+
+import { bookmarksPath, conferencePath, peoplePath, schedulePath } from "@/lib/utils/routes";
 
 type NavItem = {
   key: string;
@@ -24,7 +26,6 @@ type NavItem = {
 
 export function ConferenceHeader({ conference }: { conference: HTConference }) {
   const { pathname } = useLocation();
-  const [params] = useSearchParams();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -36,16 +37,16 @@ export function ConferenceHeader({ conference }: { conference: HTConference }) {
 
   // Build first-class, conference-aware items
   const confCode = conference.code;
-  const scheduleHref = `/schedule?conf=${encodeURIComponent(confCode)}`;
-  const bookmarksHref = `/bookmarks?conf=${encodeURIComponent(confCode)}`;
-  const peopleHref = `/people?conf=${encodeURIComponent(confCode)}`;
+  const confHref = conferencePath(confCode);
+  const scheduleHref = schedulePath(confCode);
+  const bookmarksHref = bookmarksPath(confCode);
+  const peopleHref = peoplePath(confCode);
 
-  // Active states (path + query awareness)
-  const isSchedule =
-    pathname.startsWith("/schedule") && (params.get("conf") ?? confCode) === confCode;
-  const isBookmarks =
-    pathname.startsWith("/bookmarks") && (params.get("conf") ?? confCode) === confCode;
-  const isPeople = pathname.startsWith("/people") && (params.get("conf") ?? confCode) === confCode;
+  const normalizedPathname = pathname.toLowerCase().replace(/\/+$/, "") || "/";
+  const isSchedule = normalizedPathname === confHref || normalizedPathname === scheduleHref;
+  const isBookmarks = normalizedPathname === bookmarksHref;
+  const isPeople =
+    normalizedPathname === peopleHref || normalizedPathname.startsWith(`${peopleHref}/`);
 
   const items: NavItem[] = useMemo(() => {
     const base: NavItem[] = [
@@ -91,8 +92,8 @@ export function ConferenceHeader({ conference }: { conference: HTConference }) {
   }, [scheduleHref, isSchedule, bookmarksHref, isBookmarks, peopleHref, isPeople, conference.link]);
 
   const baseHeader =
-    "sticky top-0 z-50 min-h-16 border-b border-white/10 text-white backdrop-blur-md transition-[background-color,border-color,box-shadow] duration-200 supports-[backdrop-filter]:backdrop-blur-md";
-  const bg = scrolled ? "bg-slate-950/92 shadow-[0_12px_32px_rgba(2,6,23,0.3)]" : "bg-slate-950/82";
+    "sticky top-0 z-50 min-h-16 border-b border-white/10 bg-[var(--color-page-bg)] text-white transition-[border-color,box-shadow] duration-200";
+  const bg = scrolled ? "shadow-[0_12px_32px_rgba(2,6,23,0.3)]" : "";
 
   return (
     <header className={`${baseHeader} ${bg}`}>

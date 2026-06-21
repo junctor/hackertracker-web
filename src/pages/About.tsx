@@ -9,13 +9,13 @@ export function About() {
   }, []);
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="ui-page flex flex-col">
       <HTHeader />
 
       <main id="main" className="flex-1">
         {/* Hero */}
-        <section className="relative border-b border-neutral-800 bg-gradient-to-b from-neutral-950 to-neutral-900">
-          <div className="mx-auto max-w-5xl px-4 py-12 sm:py-16">
+        <section className="relative border-b border-white/10">
+          <div className="ui-container py-12 sm:py-16">
             <div className="flex items-center gap-4">
               <img
                 src="https://github.com/junctor/android/blob/main/app/src/main/play_store_512.png?raw=1"
@@ -41,14 +41,14 @@ export function About() {
         </section>
 
         {/* Content */}
-        <div className="mx-auto max-w-5xl px-4 py-10">
+        <div className="ui-container py-10">
           {/* Who uses */}
           <section aria-labelledby="who-uses" className="mb-12">
             <div className="flex items-center justify-between">
               <h2 id="who-uses" className="text-lg font-semibold text-neutral-200">
                 Who uses Hacker Tracker?
               </h2>
-              <span className="rounded-full border border-neutral-800 bg-neutral-900 px-3 py-1 text-xs text-neutral-400">
+              <span className="rounded-full border border-white/10 bg-(--ht-surface) px-3 py-1 text-xs text-neutral-400">
                 Community-driven
               </span>
             </div>
@@ -70,10 +70,7 @@ export function About() {
                 "Many BSides conferences",
                 "…and others",
               ].map((name) => (
-                <li
-                  key={name}
-                  className="flex items-center gap-2 rounded-md border border-neutral-800/60 bg-neutral-900/50 px-3 py-2"
-                >
+                <li key={name} className="ui-card flex items-center gap-2 rounded-md px-3 py-2">
                   <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-500" />
                   <span>{name}</span>
                 </li>
@@ -118,10 +115,7 @@ export function About() {
                   avatar: "https://github.com/sethlaw.png",
                 },
               ].map((m) => (
-                <li
-                  key={m.handle}
-                  className="bg-neutral-925/50 rounded-xl border border-neutral-800 p-4"
-                >
+                <li key={m.handle} className="ui-card p-4">
                   <a
                     href={m.url}
                     className="group flex items-center gap-3"
@@ -149,7 +143,7 @@ export function About() {
               Thanks
             </h2>
             <ul className="mt-4 grid gap-3 md:grid-cols-2">
-              <li className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-4">
+              <li className="ui-card p-4">
                 <a
                   href="https://defcon.org"
                   className="text-neutral-300 underline hover:text-white"
@@ -159,7 +153,7 @@ export function About() {
                   DEF CON
                 </a>
               </li>
-              <li className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-4">
+              <li className="ui-card p-4">
                 <a
                   href="https://www.ccc.de/en/"
                   className="text-neutral-300 underline hover:text-white"
@@ -170,7 +164,7 @@ export function About() {
                 </a>
                 <p className="mt-1 text-sm text-neutral-400">Source of inspiration</p>
               </li>
-              <li className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-4 md:col-span-2">
+              <li className="ui-card p-4 md:col-span-2">
                 <a
                   href="https://infosec.exchange/@shortstack"
                   className="text-neutral-300 underline hover:text-white"

@@ -19,7 +19,7 @@ export default function NotFound() {
   const message = useMemo(() => messages[Math.floor(Math.random() * messages.length)], []);
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="ui-page flex flex-col">
       <HTHeader />
 
       <main id="main" className="flex flex-1 items-center justify-center px-6">
