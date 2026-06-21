@@ -27,7 +27,7 @@ export function Splash() {
         className="flex flex-1 flex-col items-center justify-center px-4 text-center text-white"
       >
         <header className="mx-auto w-full max-w-6xl pt-10 sm:pt-16">
-          <h1 className="bg-gradient-to-r from-cyan-400 via-white to-rose-400 bg-clip-text text-5xl leading-tight font-extrabold text-transparent drop-shadow-[0_1px_1px_rgba(0,0,0,0.55)] sm:text-6xl md:text-7xl">
+          <h1 className="bg-linear-to-r from-cyan-400 via-white to-rose-400 bg-clip-text text-5xl leading-tight font-extrabold text-transparent drop-shadow-[0_1px_1px_rgba(0,0,0,0.55)] sm:text-6xl md:text-7xl">
             Hacker Tracker
           </h1>
 

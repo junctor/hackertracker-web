@@ -265,7 +265,7 @@ export default function ScheduleContentList({
     <div className="ui-page text-gray-100">
       <div
         ref={stickyToolsRef}
-        className="sticky z-40 border-b border-white/8 bg-[var(--color-page-bg)]"
+        className="sticky z-40 border-b border-white/8 bg-(--color-page-bg)"
         style={stickyToolsTopStyle}
       >
         <div className="ui-container ui-container-wide flex items-center justify-between gap-3 py-2.5">
@@ -281,8 +281,8 @@ export default function ScheduleContentList({
                   [
                     "ui-focus-ring inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-sm font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
                     isActive
-                      ? "border-[#017FA4]/45 bg-[var(--ht-surface)] text-white"
-                      : "border-white/10 bg-white/[0.03] text-gray-300 hover:border-white/14 hover:bg-white/[0.05] hover:text-gray-100",
+                      ? "border-[#017FA4]/45 bg-(--ht-surface) text-white"
+                      : "border-white/10 bg-white/3 text-gray-300 hover:border-white/14 hover:bg-white/5 hover:text-gray-100",
                   ].join(" ")
                 }
                 aria-label="View bookmarked events"
@@ -299,8 +299,8 @@ export default function ScheduleContentList({
                   [
                     "ui-focus-ring inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-sm font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
                     isActive
-                      ? "border-[#017FA4]/45 bg-[var(--ht-surface)] text-white"
-                      : "border-white/10 bg-white/[0.03] text-gray-300 hover:border-white/14 hover:bg-white/[0.05] hover:text-gray-100",
+                      ? "border-[#017FA4]/45 bg-(--ht-surface) text-white"
+                      : "border-white/10 bg-white/3 text-gray-300 hover:border-white/14 hover:bg-white/5 hover:text-gray-100",
                   ].join(" ")
                 }
                 aria-label="Schedule"
@@ -331,10 +331,10 @@ export default function ScheduleContentList({
 
       <div
         ref={stickyTabsRef}
-        className="sticky z-30 border-b border-white/8 bg-[var(--color-page-bg)] py-2"
+        className="sticky z-30 border-b border-white/8 bg-(--color-page-bg) py-2"
         style={stickyTabsTopStyle}
       >
-        <div className="ui-container ui-container-wide [scrollbar-width:none] overflow-x-auto [&::-webkit-scrollbar]:hidden">
+        <div className="ui-container ui-container-wide scrollbar-none overflow-x-auto [&::-webkit-scrollbar]:hidden">
           <div
             role="tablist"
             aria-label="Schedule days"
@@ -361,8 +361,8 @@ export default function ScheduleContentList({
                 className={[
                   "ui-focus-ring group inline-flex min-h-11 items-center gap-2 rounded-xl border px-3.5 py-2 text-sm whitespace-nowrap transition focus-visible:outline-none",
                   resolvedDay === day
-                    ? "border-[#017FA4]/45 bg-[var(--ht-surface)] text-white"
-                    : "border-white/10 bg-white/[0.03] text-gray-300 hover:border-white/14 hover:bg-white/[0.05] hover:text-gray-100",
+                    ? "border-[#017FA4]/45 bg-(--ht-surface) text-white"
+                    : "border-white/10 bg-white/3 text-gray-300 hover:border-white/14 hover:bg-white/5 hover:text-gray-100",
                 ].join(" ")}
               >
                 <span className="font-semibold">{fmtTab(day, conf.timezone || "UTC")}</span>

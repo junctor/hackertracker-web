@@ -3,7 +3,7 @@ import { Link } from "react-router";
 
 export function HTFooter() {
   return (
-    <footer className="mt-auto border-t border-white/10 bg-[var(--color-page-bg)] text-slate-300">
+    <footer className="mt-auto border-t border-white/10 bg-(--color-page-bg) text-slate-300">
       <div className="ui-container py-5 sm:py-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0 space-y-1.5">

@@ -48,7 +48,7 @@ export function About() {
               <h2 id="who-uses" className="text-lg font-semibold text-neutral-200">
                 Who uses Hacker Tracker?
               </h2>
-              <span className="rounded-full border border-white/10 bg-[var(--ht-surface)] px-3 py-1 text-xs text-neutral-400">
+              <span className="rounded-full border border-white/10 bg-(--ht-surface) px-3 py-1 text-xs text-neutral-400">
                 Community-driven
               </span>
             </div>

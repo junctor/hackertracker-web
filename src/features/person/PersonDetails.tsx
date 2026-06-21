@@ -183,7 +183,7 @@ export default function PersonDetails({
           <div className="flex items-start justify-between gap-3">
             <Link
               to={peoplePath(conference.code)}
-              className="ui-focus-ring inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 text-sm font-semibold text-gray-300 hover:border-white/14 hover:bg-white/[0.05] hover:text-gray-100 focus-visible:outline-none"
+              className="ui-focus-ring inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/3 px-3 text-sm font-semibold text-gray-300 hover:border-white/14 hover:bg-white/5 hover:text-gray-100 focus-visible:outline-none"
             >
               <ArrowLeftIcon className="h-4.5 w-4.5" aria-hidden="true" />
               <span className="sr-only sm:not-sr-only">People</span>
