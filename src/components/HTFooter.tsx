@@ -1,4 +1,3 @@
-import { CodeBracketSquareIcon } from "@heroicons/react/16/solid";
 import { Link } from "react-router";
 
 export function HTFooter() {
@@ -46,17 +45,6 @@ export function HTFooter() {
               GitHub
             </a>
           </nav>
-
-          <a
-            href="https://github.com/junctor/hackertracker-web"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="View source on GitHub"
-            className="ui-btn-base ui-btn-secondary ui-focus-ring w-fit gap-2 rounded-xl px-3.5 text-sm text-slate-200 shadow-[0_10px_24px_rgba(2,6,23,0.18)] focus-visible:outline-none"
-          >
-            <CodeBracketSquareIcon className="h-4 w-4 text-[#6CCDBB]" aria-hidden="true" />
-            <span>View Source</span>
-          </a>
         </div>
       </div>
     </footer>
