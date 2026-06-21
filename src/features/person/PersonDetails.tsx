@@ -8,9 +8,11 @@ import { UserIcon } from "@heroicons/react/24/solid";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { Link } from "react-router";
 
-import type { HTConference, HTEvent, HTPerson } from "@/types/db";
+import type { HTConference, HTPerson } from "@/types/db";
+import type { ProcessedScheduledContent } from "@/types/ht";
 
 import Markdown from "@/components/Markdown";
+import { contentPath, peoplePath } from "@/lib/utils/routes";
 
 const PERSON_ACCENT_COLORS = ["#017FA4", "#2D7FF9", "#0F766E", "#7C3AED", "#C2410C", "#0E7490"];
 
@@ -41,11 +43,6 @@ function fmtTimeRange(
     timeZone,
   });
   return `${date} • ${t.format(b)} – ${t.format(e)}`;
-}
-
-function getLocationName(loc?: { name?: string | null } | string | null): string | null {
-  if (!loc) return null;
-  return typeof loc === "string" ? loc : (loc.name ?? null);
 }
 
 function isHttpUrl(url?: string | null): url is string {
@@ -118,11 +115,11 @@ function getPersonAccent(name?: string | null): string {
 export default function PersonDetails({
   conference,
   person,
-  events,
+  scheduledContents,
 }: {
   conference: HTConference;
   person: HTPerson;
-  events: HTEvent[];
+  scheduledContents: ProcessedScheduledContent[];
   timeZone?: string;
 }) {
   const [hasAvatarError, setHasAvatarError] = useState(false);
@@ -133,16 +130,16 @@ export default function PersonDetails({
   const personDescription = getOptionalText(person.description);
   const accentColor = getPersonAccent(person.name);
 
-  const sortedEvents = useMemo(
+  const sortedScheduledContents = useMemo(
     () =>
-      (events ?? [])
+      (scheduledContents ?? [])
         .slice()
         .sort((a, b) => new Date(a.begin).getTime() - new Date(b.begin).getTime()),
-    [events],
+    [scheduledContents],
   );
-  const primaryEventColor = sortedEvents.find((event) => event.type?.color)?.type.color;
+  const primarySessionColor = sortedScheduledContents.find((item) => item.color)?.color;
   const headerStyle = {
-    "--event-color": primaryEventColor ?? accentColor,
+    "--content-color": primarySessionColor ?? accentColor,
   } as CSSProperties;
   const avatarStyle = {
     backgroundImage: `linear-gradient(135deg, ${accentColor}22 0%, rgba(15, 23, 42, 0.92) 100%)`,
@@ -173,7 +170,7 @@ export default function PersonDetails({
   }, [personAvatarUrl]);
 
   return (
-    <div className="mx-auto max-w-screen-lg space-y-10 px-4 py-8 text-gray-100">
+    <div className="ui-container ui-page-content max-w-5xl space-y-10 text-gray-100">
       <header
         style={headerStyle}
         aria-labelledby="person-header"
@@ -185,7 +182,7 @@ export default function PersonDetails({
         <div className="relative z-10 flex flex-col gap-6 px-5 py-5 pl-6 sm:px-6 sm:py-6 sm:pl-7">
           <div className="flex items-start justify-between gap-3">
             <Link
-              to={`/people?conf=${encodeURIComponent(conference.code)}`}
+              to={peoplePath(conference.code)}
               className="ui-focus-ring inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 text-sm font-semibold text-gray-300 hover:border-white/14 hover:bg-white/[0.05] hover:text-gray-100 focus-visible:outline-none"
             >
               <ArrowLeftIcon className="h-4.5 w-4.5" aria-hidden="true" />
@@ -285,7 +282,7 @@ export default function PersonDetails({
 
       {personDescription ? (
         <section aria-labelledby="about-title" className="space-y-4">
-          <h2 id="about-title" className="text-sm font-semibold tracking-[0.02em] text-gray-300">
+          <h2 id="about-title" className="ui-section-heading">
             About
           </h2>
           <div className="ui-card px-5 py-5 sm:px-6">
@@ -296,41 +293,45 @@ export default function PersonDetails({
         </section>
       ) : null}
 
-      {sortedEvents.length > 0 ? (
+      {sortedScheduledContents.length > 0 ? (
         <section aria-labelledby="events-title" className="space-y-4">
-          <h2 id="events-title" className="text-sm font-semibold tracking-[0.02em] text-gray-300">
+          <h2 id="events-title" className="ui-section-heading">
             Sessions
           </h2>
-          <ul role="list" className="space-y-4">
-            {sortedEvents.map((event) => {
-              const when = fmtTimeRange(event.begin, event.end, conference.timezone);
-              const where = getLocationName(event.location);
-              const id = String(event.id);
-              const eventStyle = {
-                "--event-color": event.type?.color ?? primaryEventColor ?? accentColor,
+          <ul role="list" className="ui-list-stack">
+            {sortedScheduledContents.map((scheduledContent) => {
+              const when = fmtTimeRange(
+                scheduledContent.begin,
+                scheduledContent.end ?? scheduledContent.begin,
+                conference.timezone,
+              );
+              const where = scheduledContent.location;
+              const id = String(scheduledContent.contentId);
+              const sessionStyle = {
+                "--content-color": scheduledContent.color ?? primarySessionColor ?? accentColor,
               } as CSSProperties;
 
               return (
                 <li
-                  key={`${id}-${event.title}`}
+                  key={`${id}-${scheduledContent.sessionId}`}
                   className="ui-card ui-card-interactive group relative overflow-hidden"
-                  style={eventStyle}
+                  style={sessionStyle}
                 >
                   <span aria-hidden="true" className="ui-accent-rail" />
                   <span aria-hidden="true" className="ui-accent-rail-overlay" />
                   <Link
-                    to={`/event?conf=${encodeURIComponent(conference.code)}&event=${encodeURIComponent(
-                      id,
-                    )}`}
+                    to={contentPath(conference.code, scheduledContent.contentId)}
                     className="ui-focus-ring relative z-10 block rounded-[inherit] px-4 py-4 pl-5 focus-visible:outline-none sm:px-5 sm:py-5 sm:pl-6"
                   >
                     <div className="min-w-0 space-y-1.5">
                       <h3 className="line-clamp-2 text-base leading-6 font-semibold text-gray-100 transition-colors group-hover:text-white sm:text-lg">
-                        {event.title}
+                        {scheduledContent.title}
                       </h3>
                       <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-gray-100 sm:text-base">
                         <CalendarDaysIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                        <time dateTime={new Date(event.begin).toISOString()}>{when}</time>
+                        <time dateTime={new Date(scheduledContent.begin).toISOString()}>
+                          {when}
+                        </time>
                       </div>
                       {where ? (
                         <div className="flex min-w-0 items-center gap-2 text-sm text-gray-400">
