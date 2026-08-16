@@ -1,21 +1,3 @@
-@font-face {
-  font-family: "Atkinson Hyperlegible";
-  src: url("/fonts/atkinson-hl.woff2") format("woff2");
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Lato";
-  src: url("/fonts/lato.woff2") format("woff2");
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Museo";
-  src: url("/fonts/Museo700-Regular.woff2") format("woff2");
-  font-display: swap;
-}
-
 :root {
   color-scheme: dark;
 
@@ -82,16 +64,5 @@
 }
 
 body {
-  background:
-    radial-gradient(
-      circle at top,
-      color-mix(in oklab, var(--accent), transparent 94%),
-      transparent 34%
-    ),
-    radial-gradient(
-      circle at 20% 20%,
-      color-mix(in oklab, var(--dc34-accent-warning), transparent 95%),
-      transparent 22%
-    ),
-    var(--color-bg);
+  background: var(--color-bg);
 }

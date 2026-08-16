@@ -75,7 +75,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--border);
+  padding: 0.65rem 0;
   color: var(--accent-light);
   font-size: 0.9rem;
   font-weight: 600;
@@ -88,22 +89,34 @@
   white-space: nowrap;
 }
 
-.pill-link {
+.resource-list {
+  display: grid;
+  list-style: none;
+  gap: 0.2rem;
+}
+
+.plain-link {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 999px;
-  background: rgba(30, 41, 59, 0.7);
-  padding: 0.25rem 0.75rem;
-  color: #e2e8f0;
-  font-size: 0.875rem;
-  text-decoration: none;
+  padding-block: 0.4rem;
+  color: var(--accent-light);
+  font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
-.pill-link:hover {
-  border-color: rgba(1, 127, 164, 0.65);
-  background: rgba(1, 127, 164, 0.28);
+.plain-link:hover,
+.resource-link:hover {
+  color: white;
+}
+
+.plain-link svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.simple-copy {
+  padding: 0;
 }
 
 .markdown {

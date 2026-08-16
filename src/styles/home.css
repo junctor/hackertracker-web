@@ -3,58 +3,88 @@
   flex: 1;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 2.5rem 0 3rem;
-  text-align: center;
 }
 
 .hero {
-  width: 100%;
-  padding-inline: var(--page-padding);
+  width: min(34rem, calc(100% - (var(--page-padding) * 2)));
+  border: 1px solid #2d3a34;
+  border-radius: 8px;
+  background: #10151a;
+  padding: clamp(1.25rem, 4vw, 1.5rem);
+  box-shadow: 0 1rem 2.25rem rgb(0 0 0 / 34%);
+  text-align: left;
 }
 
 .hero h1 {
-  background: linear-gradient(90deg, #22d3ee, white, #fb7185);
-  background-clip: text;
-  color: transparent;
-  font-size: clamp(3.1rem, 9vw, 4.8rem);
+  max-width: 8ch;
+  color: white;
+  font-size: clamp(3rem, 16vw, 5.25rem);
   font-weight: 850;
-  letter-spacing: -0.05em;
-  line-height: 1.05;
+  letter-spacing: 0;
+  line-height: 0.95;
+  overflow-wrap: anywhere;
+  text-shadow:
+    0.045em 0.045em 0 #00ffff,
+    -0.045em -0.045em 0 #fe0000;
 }
 
 .hero p {
   margin-top: 1rem;
-  color: #d4d4d8;
+  color: #bac5be;
   font-size: 1.08rem;
 }
 
 .hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.75rem;
+  display: grid;
+  gap: 0.8rem;
   margin-top: 1.5rem;
 }
 
 .store-button {
-  border: 0;
-  border-radius: 999px;
-  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.2);
+  display: grid;
+  min-height: 4.4rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  padding: 0.95rem 1rem 1rem;
+  font-size: 1.05rem;
+  font-weight: 800;
 }
 
 .store-button:hover {
-  transform: translateY(-2px);
+  filter: brightness(1.04);
 }
 
 .store-button--apple {
-  background: white;
-  color: black;
+  background: #5eb6ff;
+  color: #06111b;
 }
 
 .store-button--play {
-  background: #16a34a;
-  color: white;
+  background: #a6ff4d;
+  color: #071006;
+}
+
+.store-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.18rem;
+  line-height: 1.05;
+}
+
+.store-copy strong {
+  font-size: 1.1rem;
+}
+
+.store-copy small {
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.25;
+  opacity: 0.74;
 }
 
 .home-conferences {
@@ -144,7 +174,6 @@
   color: #cbd5e1;
   font-size: 0.75rem;
   font-weight: 600;
-  text-transform: uppercase;
 }
 
 .updated-at {

@@ -93,7 +93,6 @@
 .stack-list,
 .people-grid,
 .tag-list,
-.pill-list,
 .team-grid,
 .info-grid,
 .affiliations {
@@ -151,6 +150,7 @@
   color: #f1f5f9;
   font-size: clamp(1.05rem, 3vw, 1.25rem);
   line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
 .schedule-summary > p {
@@ -186,8 +186,7 @@
   color: #f1b435;
 }
 
-.tag-list,
-.pill-list {
+.tag-list {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
