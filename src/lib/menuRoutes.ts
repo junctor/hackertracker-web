@@ -59,9 +59,13 @@ function organizationRoute(item: ConferenceMenuItem): MenuRouteKey | null {
  * Tracker functions to Vue-owned URLs; unsupported functions are omitted.
  */
 export function resolveMenuItem(code: string, item: ConferenceMenuItem): SupportedMenuItem | null {
+  const normalizedItem =
+    item.function === "locations" && /tree/i.test(item.titleText)
+      ? { ...item, titleText: "Locations" }
+      : item;
   let routeKey: MenuRouteKey | null = null;
   let href = "";
-  switch (item.function) {
+  switch (normalizedItem.function) {
     case "news":
       routeKey = "announcements";
       href = conferenceSectionPath(code, routeKey);
@@ -85,35 +89,37 @@ export function resolveMenuItem(code: string, item: ConferenceMenuItem): Support
     case "locations":
     case "maps":
     case "search":
-      routeKey = item.function;
+      routeKey = normalizedItem.function;
       href = conferenceSectionPath(code, routeKey);
       break;
     case "organizations":
-      routeKey = organizationRoute(item);
+      routeKey = organizationRoute(normalizedItem);
       if (routeKey) href = conferenceSectionPath(code, routeKey);
       break;
     case "document":
-      if (item.documentId !== null) {
+      if (normalizedItem.documentId !== null) {
         routeKey = "document";
-        href = documentPath(code, item.documentId);
+        href = documentPath(code, normalizedItem.documentId);
       }
       break;
     case "menu":
-      if (item.menuId !== null) {
+      if (normalizedItem.menuId !== null) {
         routeKey = "menu";
         href =
-          slugify(item.titleText) === "readme-nfo"
+          slugify(normalizedItem.titleText) === "readme-nfo"
             ? conferenceSectionPath(code, "readme.nfo")
-            : nestedMenuPath(code, item.menuId);
+            : nestedMenuPath(code, normalizedItem.menuId);
       }
       break;
   }
   if (!routeKey || !href) {
     if (import.meta.env.DEV)
-      console.warn(`Unsupported Hacker Tracker menu function: ${item.function || "(empty)"}`);
+      console.warn(
+        `Unsupported Hacker Tracker menu function: ${normalizedItem.function || "(empty)"}`,
+      );
     return null;
   }
-  return { ...item, routeKey, href };
+  return { ...normalizedItem, routeKey, href };
 }
 
 export function resolveMenuItems(code: string, items: ConferenceMenuItem[]): SupportedMenuItem[] {

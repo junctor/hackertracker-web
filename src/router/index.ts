@@ -115,11 +115,4 @@ const router = createRouter({
   ],
 });
 
-router.afterEach(() => {
-  window.requestAnimationFrame(() => {
-    const heading = document.querySelector("main h1") as HTMLElement | null;
-    heading?.focus({ preventScroll: true });
-  });
-});
-
 export default router;
