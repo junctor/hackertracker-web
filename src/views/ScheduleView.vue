@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { watchEffect } from "vue";
 
-import ConferenceHeader from "../components/ConferenceHeader.vue";
 import PageState from "../components/PageState.vue";
 import ScheduleList from "../components/ScheduleList.vue";
-import SiteFooter from "../components/SiteFooter.vue";
 import { useConferenceSchedule } from "../composables/useConferenceSchedule";
 
 const { conference, grouped, loading, error } = useConferenceSchedule();
@@ -18,27 +16,23 @@ watchEffect(() => {
 </script>
 
 <template>
-  <div class="page-shell">
-    <ConferenceHeader v-if="conference" :conference="conference" />
-    <main id="main" class="main-grow">
-      <PageState
-        v-if="loading && !conference && !grouped"
-        kind="loading"
-        message="Loading schedule..."
-      />
-      <PageState v-else-if="error" kind="error" title="We couldn't load this page" :message="error">
-        <div class="state-actions">
-          <RouterLink class="button focus-ring" to="/">Return Home</RouterLink
-          ><RouterLink class="button focus-ring" to="/support">Contact Support</RouterLink>
-        </div>
-      </PageState>
-      <ScheduleList
-        v-else-if="conference && grouped"
-        :conference="conference"
-        :date-group="grouped"
-        page-title="Schedule"
-      />
-    </main>
-    <SiteFooter v-if="error" />
+  <div>
+    <PageState
+      v-if="loading && !conference && !grouped"
+      kind="loading"
+      message="Loading schedule..."
+    />
+    <PageState v-else-if="error" kind="error" title="We couldn't load this page" :message="error">
+      <div class="state-actions">
+        <RouterLink class="button focus-ring" to="/">Return Home</RouterLink
+        ><RouterLink class="button focus-ring" to="/support">Contact Support</RouterLink>
+      </div>
+    </PageState>
+    <ScheduleList
+      v-else-if="conference && grouped"
+      :conference="conference"
+      :date-group="grouped"
+      page-title="Schedule"
+    />
   </div>
 </template>

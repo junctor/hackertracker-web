@@ -8,6 +8,10 @@ export const cacheTtl = {
   tags: 10 * 60 * 1000,
   schedule: 10 * 60 * 1000,
   speakers: 10 * 60 * 1000,
+  menus: 6 * 60 * 60 * 1000,
+  organizations: 30 * 60 * 1000,
+  documents: 6 * 60 * 60 * 1000,
+  articles: 10 * 60 * 1000,
 } as const;
 
 interface CacheEntry<T> {

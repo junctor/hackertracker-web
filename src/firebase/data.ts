@@ -11,10 +11,15 @@ import {
 
 import type {
   Conference,
+  ConferenceArticle,
+  ConferenceDocument,
+  ConferenceMenu,
+  ConferenceMenuItem,
   ConferenceSchedule,
   Content,
   GroupedSchedule,
   Location,
+  Organization,
   Person,
   TagGroup,
 } from "../types/hackertracker";
@@ -31,6 +36,10 @@ const speakerKey = (code: string, id: number) => `speaker:${code}:${id}`;
 const locationsKey = (code: string) => `locations:${code}`;
 const tagsKey = (code: string) => `tags:${code}`;
 const scheduleKey = (code: string) => `schedule-content:${code}`;
+const menusKey = (code: string) => `menus:${code}`;
+const organizationsKey = (code: string) => `organizations:${code}`;
+const documentsKey = (code: string) => `documents:${code}`;
+const articlesKey = (code: string) => `articles:${code}`;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object";
@@ -69,6 +78,76 @@ const isGroupedSchedule = (value: unknown): value is GroupedSchedule =>
           typeof item.title === "string",
       ),
   );
+
+const numberOrNull = (value: unknown): number | null =>
+  typeof value === "number" && Number.isFinite(value) ? value : null;
+const text = (value: unknown): string => (typeof value === "string" ? value : "");
+const numberList = (value: unknown): number[] =>
+  Array.isArray(value) ? value.filter((item): item is number => typeof item === "number") : [];
+
+function normalizeMenuItem(value: unknown): ConferenceMenuItem | null {
+  if (!isRecord(value) || typeof value.id !== "number") return null;
+  const prohibited = value.prohibit_tag_filter;
+  return {
+    id: value.id,
+    titleText: text(value.title_text),
+    function: text(value.function).trim().toLowerCase(),
+    sortOrder: typeof value.sort_order === "number" ? value.sort_order : Number.MAX_SAFE_INTEGER,
+    appleSfSymbol: text(value.apple_sfsymbol),
+    googleMaterialSymbol: text(value.google_materialsymbol),
+    appliedTagIds: numberList(value.applied_tag_ids),
+    documentId: numberOrNull(value.document_id),
+    menuId: numberOrNull(value.menu_id),
+    prohibitTagFilter:
+      prohibited === true || prohibited === 1 || String(prohibited).toLowerCase() === "true",
+  };
+}
+
+function normalizeMenu(value: unknown): ConferenceMenu | null {
+  if (!isRecord(value) || typeof value.id !== "number") return null;
+  const items = Array.isArray(value.items)
+    ? value.items
+        .map(normalizeMenuItem)
+        .filter((item): item is ConferenceMenuItem => item !== null)
+        .sort((a, b) => a.sortOrder - b.sortOrder || a.titleText.localeCompare(b.titleText))
+    : [];
+  return {
+    id: value.id,
+    conference: text(value.conference),
+    conferenceId: numberOrNull(value.conference_id) ?? 0,
+    titleText: text(value.title_text),
+    items,
+  };
+}
+
+const isMenuList = (value: unknown): value is ConferenceMenu[] =>
+  Array.isArray(value) && value.every((item) => isRecord(item) && Array.isArray(item.items));
+const isOrganizationList = (value: unknown): value is Organization[] =>
+  Array.isArray(value) && value.every((item) => isRecord(item) && typeof item.id === "number");
+const isDocumentList = (value: unknown): value is ConferenceDocument[] =>
+  Array.isArray(value) && value.every((item) => isRecord(item) && typeof item.id === "number");
+const isArticleList = (value: unknown): value is ConferenceArticle[] =>
+  Array.isArray(value) && value.every((item) => isRecord(item) && typeof item.id === "number");
+
+function normalizeDocument(value: unknown): ConferenceDocument | null {
+  if (!isRecord(value) || typeof value.id !== "number") return null;
+  return {
+    id: value.id,
+    titleText: text(value.title_text),
+    bodyText: text(value.body_text),
+    updatedAt: (value.updated as ConferenceDocument["updatedAt"]) ?? null,
+  };
+}
+
+function normalizeArticle(value: unknown): ConferenceArticle | null {
+  if (!isRecord(value) || typeof value.id !== "number") return null;
+  return {
+    id: value.id,
+    name: text(value.name),
+    text: text(value.text),
+    updatedAt: (value.updated as ConferenceArticle["updatedAt"]) ?? null,
+  };
+}
 
 function cacheConferences(conferences: Conference[]): void {
   for (const conference of conferences) setCached(conferenceKey(conference.code), conference);
@@ -132,6 +211,71 @@ export async function getConference(code: string): Promise<Conference | null> {
       return snapshot.exists() ? (snapshot.data() as Conference) : null;
     },
     (value): value is Conference | null => value === null || isConference(value),
+  );
+}
+
+export async function getConferenceMenus(code: string): Promise<ConferenceMenu[]> {
+  return cachedLoad(
+    menusKey(code),
+    cacheTtl.menus,
+    async () => {
+      const snapshot = await getDocs(collection(db, "conferences", code, "menus"));
+      return snapshot.docs
+        .map((item) => normalizeMenu(item.data()))
+        .filter((item): item is ConferenceMenu => item !== null);
+    },
+    isMenuList,
+  );
+}
+
+export async function getConferenceMenu(
+  code: string,
+  menuId: number,
+): Promise<ConferenceMenu | null> {
+  return (await getConferenceMenus(code)).find((menu) => menu.id === menuId) ?? null;
+}
+
+export async function getOrganizations(code: string): Promise<Organization[]> {
+  return cachedLoad(
+    organizationsKey(code),
+    cacheTtl.organizations,
+    async () => {
+      const snapshot = await getDocs(collection(db, "conferences", code, "organizations"));
+      return snapshot.docs.map((item) => item.data() as Organization);
+    },
+    isOrganizationList,
+  );
+}
+
+export async function getDocuments(code: string): Promise<ConferenceDocument[]> {
+  return cachedLoad(
+    documentsKey(code),
+    cacheTtl.documents,
+    async () => {
+      const snapshot = await getDocs(collection(db, "conferences", code, "documents"));
+      return snapshot.docs
+        .map((item) => normalizeDocument(item.data()))
+        .filter((item): item is ConferenceDocument => item !== null);
+    },
+    isDocumentList,
+  );
+}
+
+export async function getDocument(code: string, id: number): Promise<ConferenceDocument | null> {
+  return (await getDocuments(code)).find((item) => item.id === id) ?? null;
+}
+
+export async function getArticles(code: string): Promise<ConferenceArticle[]> {
+  return cachedLoad(
+    articlesKey(code),
+    cacheTtl.articles,
+    async () => {
+      const snapshot = await getDocs(collection(db, "conferences", code, "articles"));
+      return snapshot.docs
+        .map((item) => normalizeArticle(item.data()))
+        .filter((item): item is ConferenceArticle => item !== null);
+    },
+    isArticleList,
   );
 }
 

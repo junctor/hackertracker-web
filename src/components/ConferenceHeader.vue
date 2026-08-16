@@ -3,142 +3,300 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
 import type { Conference } from "../types/hackertracker";
+import type { MenuRouteKey, SupportedMenuItem } from "../lib/menuRoutes";
 
-import { bookmarksPath, conferencePath, peoplePath, schedulePath } from "../lib/routes";
+import { conferenceMenuPath } from "../lib/routes";
 import AppIcon from "./AppIcon.vue";
 
-const props = defineProps<{ conference: Conference }>();
+const props = defineProps<{ conference: Conference; items: SupportedMenuItem[] }>();
 const route = useRoute();
 const open = ref(false);
-const scrolled = ref(false);
 const menu = ref<HTMLElement | null>(null);
 
-interface NavigationItem {
-  label: string;
-  to: string;
-  icon: "bookmark" | "calendar" | "external" | "home" | "people";
-  active: boolean;
-}
+const iconFor = (key: MenuRouteKey) => {
+  if (key === "schedule") return "calendar" as const;
+  if (key === "bookmarks") return "bookmark" as const;
+  if (key === "people") return "people" as const;
+  if (key === "search") return "search" as const;
+  if (key === "locations" || key === "maps") return "pin" as const;
+  return "info" as const;
+};
+const schedule = computed(() => props.items.find((item) => item.routeKey === "schedule"));
+const search = computed(() => props.items.find((item) => item.routeKey === "search"));
+const isActive = (href: string) => {
+  const current = route.path.replace(/\/$/, "");
+  const target = href.replace(/\/$/, "");
+  return current === target || current.startsWith(`${target}/`);
+};
 
-const items = computed<NavigationItem[]>(() => {
-  const code = props.conference.code;
-  const current = route.path.toLowerCase().replace(/\/+$/, "") || "/";
-  const root = conferencePath(code);
-  const schedule = schedulePath(code);
-  const bookmarks = bookmarksPath(code);
-  const people = peoplePath(code);
-  const result: NavigationItem[] = [
-    {
-      label: "Schedule",
-      to: schedule,
-      icon: "calendar" as const,
-      active: current === root || current === schedule,
-    },
-    { label: "Bookmarks", to: bookmarks, icon: "bookmark" as const, active: current === bookmarks },
-    {
-      label: "People",
-      to: people,
-      icon: "people" as const,
-      active: current === people || current.startsWith(`${people}/`),
-    },
-  ];
-  if (props.conference.link)
-    result.push({
-      label: "Conference",
-      to: props.conference.link,
-      icon: "external" as const,
-      active: false,
-    });
-  result.push({ label: "Home", to: "/", icon: "home" as const, active: false });
-  return result;
-});
-
-function closeOutside(event: MouseEvent): void {
+function closeOutside(event: PointerEvent): void {
   if (open.value && menu.value && !menu.value.contains(event.target as Node)) open.value = false;
 }
-function updateScroll(): void {
-  scrolled.value = window.scrollY > 8;
+function closeOnEscape(event: KeyboardEvent): void {
+  if (event.key !== "Escape" || !open.value) return;
+  open.value = false;
+  menu.value?.querySelector<HTMLButtonElement>("button")?.focus();
 }
 watch(
   () => route.fullPath,
   () => (open.value = false),
 );
 onMounted(() => {
-  updateScroll();
-  window.addEventListener("scroll", updateScroll, { passive: true });
-  document.addEventListener("click", closeOutside);
+  document.addEventListener("pointerdown", closeOutside);
+  document.addEventListener("keydown", closeOnEscape);
 });
 onBeforeUnmount(() => {
-  window.removeEventListener("scroll", updateScroll);
-  document.removeEventListener("click", closeOutside);
+  document.removeEventListener("pointerdown", closeOutside);
+  document.removeEventListener("keydown", closeOnEscape);
 });
 </script>
 
 <template>
-  <header class="site-header" :class="{ 'site-header--scrolled': scrolled }">
+  <header class="conference-header">
     <a class="skip-link focus-ring" href="#main">Skip to content</a>
-    <div class="header-inner">
-      <RouterLink
-        class="conference-brand focus-ring"
-        :to="schedulePath(conference.code)"
-        :aria-label="`${conference.name} — view schedule`"
-      >
-        {{ conference.name }}
-      </RouterLink>
-      <nav class="desktop-nav" aria-label="Conference navigation">
-        <template v-for="item in items" :key="item.label">
-          <a
-            v-if="item.label === 'Conference'"
-            class="nav-button focus-ring"
-            :href="item.to"
-            target="_blank"
-            rel="noopener noreferrer"
-            ><AppIcon :name="item.icon" /><span>{{ item.label }}</span></a
-          >
-          <RouterLink
-            v-else
-            class="nav-button focus-ring"
-            :class="{ active: item.active }"
-            :to="item.to"
-            :aria-current="item.active ? 'page' : undefined"
-            ><AppIcon :name="item.icon" /><span v-if="item.label !== 'Home'">{{
-              item.label
-            }}</span></RouterLink
-          >
-        </template>
-      </nav>
-      <div ref="menu" class="mobile-nav">
-        <button
-          class="icon-button focus-ring"
-          type="button"
-          :aria-expanded="open"
-          aria-controls="conference-mobile-menu"
-          :aria-label="open ? 'Close menu' : 'Open menu'"
-          @click.stop="open = !open"
+    <div class="header-rule" aria-hidden="true" />
+    <div class="header-inner container">
+      <div class="brand-group">
+        <RouterLink class="home-link focus-ring" to="/" aria-label="Hacker Tracker home">
+          <AppIcon name="home" />
+        </RouterLink>
+        <RouterLink
+          class="conference-brand focus-ring"
+          :to="conferenceMenuPath(conference.code)"
+          :aria-label="`${conference.name} home`"
         >
-          <AppIcon :name="open ? 'close' : 'menu'" />
-        </button>
-        <nav
-          v-if="open"
-          id="conference-mobile-menu"
-          class="mobile-menu"
-          aria-label="Conference navigation"
+          {{ conference.name }}
+        </RouterLink>
+      </div>
+
+      <div class="header-actions">
+        <RouterLink
+          v-if="schedule"
+          class="action-link focus-ring"
+          :class="{ active: isActive(schedule.href) }"
+          :to="schedule.href"
+          :aria-current="isActive(schedule.href) ? 'page' : undefined"
         >
-          <template v-for="item in items" :key="item.label">
-            <a
-              v-if="item.label === 'Conference'"
-              :href="item.to"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="mobile-menu-link focus-ring"
-              ><AppIcon :name="item.icon" />{{ item.label }}</a
-            >
-            <RouterLink v-else :to="item.to" class="mobile-menu-link focus-ring">
-              <AppIcon :name="item.icon" />{{ item.label }}
-            </RouterLink>
-          </template>
-        </nav>
+          <AppIcon name="calendar" /><span>Schedule</span>
+        </RouterLink>
+        <RouterLink
+          v-if="search"
+          class="icon-link focus-ring"
+          :to="search.href"
+          :aria-current="isActive(search.href) ? 'page' : undefined"
+          :aria-label="`Search ${conference.name}`"
+        >
+          <AppIcon name="search" />
+        </RouterLink>
+
+        <div ref="menu" class="menu-wrap">
+          <button
+            class="menu-button focus-ring"
+            type="button"
+            :aria-expanded="open"
+            aria-controls="conference-menu"
+            @click.stop="open = !open"
+          >
+            <AppIcon name="menu" /><span>Menu</span>
+          </button>
+          <nav v-if="open" id="conference-menu" class="menu-popover" aria-label="Conference">
+            <ul>
+              <li v-for="item in items" :key="item.id">
+                <RouterLink
+                  class="menu-item focus-ring"
+                  :class="{ active: isActive(item.href) }"
+                  :to="item.href"
+                  :aria-current="isActive(item.href) ? 'page' : undefined"
+                >
+                  <span class="menu-icon"><AppIcon :name="iconFor(item.routeKey)" /></span>
+                  <span>{{ item.titleText }}</span>
+                  <span class="chevron" aria-hidden="true">›</span>
+                </RouterLink>
+              </li>
+            </ul>
+          </nav>
+        </div>
       </div>
     </div>
   </header>
 </template>
+
+<style scoped>
+.conference-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid var(--border-chrome);
+  background: color-mix(in oklab, var(--color-bg), black 10%);
+}
+
+.header-rule {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--accent), transparent 65%),
+    transparent
+  );
+}
+
+.header-inner,
+.brand-group,
+.header-actions,
+.action-link,
+.icon-link,
+.menu-button,
+.menu-item {
+  display: flex;
+  align-items: center;
+}
+
+.header-inner {
+  min-height: 4rem;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block: 0.625rem;
+}
+
+.brand-group {
+  min-width: 0;
+  gap: var(--space-2);
+}
+.home-link,
+.icon-link {
+  display: grid;
+  width: var(--control-min);
+  min-width: var(--control-min);
+  height: var(--control-min);
+  place-items: center;
+  border-radius: 0.75rem;
+  color: var(--text-muted);
+}
+.home-link svg,
+.icon-link svg,
+.action-link svg,
+.menu-button svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.home-link:hover,
+.icon-link:hover {
+  background: var(--surface-muted);
+  color: var(--text-primary);
+}
+.conference-brand {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  padding: 0.4rem var(--space-2);
+  color: var(--text-primary);
+  font-family: "Museo", sans-serif;
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
+  font-weight: 700;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.conference-brand:hover {
+  background: rgb(255 255 255 / 0.04);
+  color: white;
+}
+.header-actions {
+  flex-shrink: 0;
+  gap: var(--space-1);
+  margin-left: auto;
+}
+.action-link,
+.menu-button {
+  min-height: var(--control-min);
+  gap: var(--space-2);
+  border-radius: 0.75rem;
+  padding-inline: 0.65rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+.action-link:hover,
+.action-link.active,
+.menu-button:hover,
+.menu-button[aria-expanded="true"] {
+  background: var(--surface-muted);
+  color: color-mix(in oklab, var(--accent-success), white 14%);
+}
+.menu-wrap {
+  position: relative;
+}
+.menu-popover {
+  position: absolute;
+  top: calc(100% + 0.75rem);
+  right: 0;
+  width: min(24rem, calc(100vw - 2rem));
+  max-height: min(36rem, calc(100dvh - 6rem));
+  overflow: auto;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-3);
+  background: color-mix(in oklab, var(--color-bg), black 20%);
+  padding: var(--space-2);
+  box-shadow: var(--shadow-lg);
+}
+.menu-popover ul {
+  display: grid;
+  list-style: none;
+  gap: 0.2rem;
+}
+.menu-item {
+  min-height: var(--control-min);
+  gap: var(--space-3);
+  border-radius: var(--radius-2);
+  padding: 0.65rem 0.75rem;
+  color: var(--text-muted);
+  font-weight: 650;
+}
+.menu-item:hover,
+.menu-item.active {
+  background: var(--surface-interactive);
+  color: var(--text-primary);
+}
+.menu-icon {
+  display: grid;
+  width: 1.8rem;
+  place-items: center;
+  color: var(--accent-success);
+}
+.menu-icon :deep(svg) {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+.chevron {
+  margin-left: auto;
+  color: var(--text-subtle);
+  font-size: 1.35rem;
+}
+
+@media (width < 40rem) {
+  .home-link {
+    display: none;
+  }
+  .brand-group {
+    flex: 1 1 auto;
+  }
+  .conference-brand {
+    padding-inline: 0;
+    font-size: 1rem;
+  }
+  .action-link span,
+  .menu-button span {
+    display: none;
+  }
+  .action-link,
+  .menu-button {
+    min-width: var(--control-min);
+    justify-content: center;
+    padding: 0;
+  }
+}
+</style>

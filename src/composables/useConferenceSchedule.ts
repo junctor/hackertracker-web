@@ -1,25 +1,23 @@
 import { computed, ref, watch } from "vue";
-import { useRoute } from "vue-router";
 
-import type { Conference, GroupedSchedule } from "../types/hackertracker";
+import type { GroupedSchedule } from "../types/hackertracker";
 
+import { useConferenceContext } from "./useConferenceContext";
 import {
   filterSchedule,
   getCachedConferenceSchedule,
   getConferenceSchedule,
 } from "../firebase/data";
 import { loadBookmarks } from "../lib/bookmarks";
-import { normalizeConferenceCode } from "../lib/routes";
 
 export function useConferenceSchedule(bookmarksOnly = false) {
-  const route = useRoute();
-  const conference = ref<Conference | null>(null);
+  const { conference } = useConferenceContext();
   const grouped = ref<GroupedSchedule | null>(null);
   const loading = ref(true);
   const error = ref("");
   let request = 0;
 
-  const code = computed(() => normalizeConferenceCode(route.params.confCode));
+  const code = computed(() => conference.value?.code);
   const applyFilter = (schedule: GroupedSchedule, conferenceCode: string) =>
     bookmarksOnly ? filterSchedule(schedule, loadBookmarks(conferenceCode)) : schedule;
 
@@ -35,11 +33,9 @@ export function useConferenceSchedule(bookmarksOnly = false) {
       error.value = "";
       const cached = getCachedConferenceSchedule(conferenceCode);
       if (cached) {
-        conference.value = cached.conference;
         grouped.value = applyFilter(cached.grouped, conferenceCode);
         loading.value = false;
       } else {
-        conference.value = null;
         grouped.value = null;
         loading.value = true;
       }
@@ -50,7 +46,6 @@ export function useConferenceSchedule(bookmarksOnly = false) {
           error.value = "Conference not found.";
           return;
         }
-        conference.value = schedule.conference;
         grouped.value = applyFilter(schedule.grouped, conferenceCode);
       } catch (reason) {
         if (current === request)

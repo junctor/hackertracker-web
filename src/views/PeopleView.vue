@@ -2,17 +2,16 @@
 import { computed, ref, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
-import type { Conference, Person } from "../types/hackertracker";
+import type { Person } from "../types/hackertracker";
 
 import AppIcon from "../components/AppIcon.vue";
-import ConferenceHeader from "../components/ConferenceHeader.vue";
 import PageState from "../components/PageState.vue";
-import SiteFooter from "../components/SiteFooter.vue";
-import { getConference, getSpeakers } from "../firebase/data";
+import { useConferenceContext } from "../composables/useConferenceContext";
+import { getSpeakers } from "../firebase/data";
 import { normalizeConferenceCode, personPath } from "../lib/routes";
 
 const route = useRoute();
-const conference = ref<Conference | null>(null);
+const { conference } = useConferenceContext();
 const people = ref<Person[]>([]);
 const loading = ref(true);
 const error = ref("");
@@ -60,13 +59,8 @@ watch(
     loading.value = true;
     error.value = "";
     try {
-      const [loadedConference, loadedPeople] = await Promise.all([
-        getConference(conferenceCode),
-        getSpeakers(conferenceCode),
-      ]);
+      const loadedPeople = await getSpeakers(conferenceCode);
       if (current !== request) return;
-      if (!loadedConference) throw new Error("People not found.");
-      conference.value = loadedConference;
       people.value = loadedPeople;
     } catch (reason) {
       if (current === request)
@@ -117,90 +111,81 @@ function highlightedName(person: Person): { before: string; match: string; after
 </script>
 
 <template>
-  <div class="page-shell">
-    <ConferenceHeader v-if="conference" :conference="conference" />
-    <main id="main" class="main-grow">
-      <PageState v-if="loading" kind="loading" message="Loading people..." />
-      <PageState
-        v-else-if="error"
-        kind="error"
-        title="We couldn't load this page"
-        :message="error"
-      />
-      <section v-else-if="conference && code" class="container wide page-content">
-        <div class="people-heading">
-          <div class="title-with-count">
-            <h1 tabindex="-1">People</h1>
-            <span class="count" aria-live="polite"
-              >{{ filtered.length.toLocaleString() }}
-              {{ filtered.length === 1 ? "result" : "results" }}</span
-            >
-          </div>
-          <form class="people-controls" role="search" @submit.prevent>
-            <label class="search-field"
-              ><AppIcon name="search" /><input
-                v-model="query"
-                class="input focus-ring"
-                type="search"
-                placeholder="Search people..."
-                aria-label="Search people"
-            /></label>
-            <label
-              ><span class="visually-hidden">Sort people</span
-              ><select v-model="sort" class="input select focus-ring">
-                <option value="name-asc">Name (A-Z)</option>
-                <option value="name-desc">Name (Z-A)</option>
-              </select></label
-            >
-          </form>
+  <div>
+    <PageState v-if="loading" kind="loading" message="Loading people..." />
+    <PageState v-else-if="error" kind="error" title="We couldn't load this page" :message="error" />
+    <section v-else-if="conference && code" class="container wide page-content">
+      <div class="people-heading">
+        <div class="title-with-count">
+          <h1 tabindex="-1">People</h1>
+          <span class="count" aria-live="polite"
+            >{{ filtered.length.toLocaleString() }}
+            {{ filtered.length === 1 ? "result" : "results" }}</span
+          >
         </div>
-        <div v-if="!filtered.length" class="empty-state people-empty">
-          <h2>No people found</h2>
-          <p v-if="query.trim()">No people found for “{{ query.trim() }}”.</p>
-          <p v-else>When people are added, they will appear here.</p>
-          <button v-if="query.trim()" type="button" class="button focus-ring" @click="query = ''">
-            Clear search
-          </button>
-        </div>
-        <ul v-else class="people-grid">
-          <li v-for="person in filtered" :key="person.id">
-            <article
-              class="card interactive accent-card person-card"
-              :style="{ '--content-color': accent(person) }"
-            >
-              <span class="accent-rail" aria-hidden="true" />
-              <RouterLink class="person-card-link focus-ring" :to="personPath(code, person.id)">
-                <span
-                  class="avatar"
-                  :style="{
-                    backgroundImage: `linear-gradient(135deg, ${accent(person)}22, rgba(15, 23, 42, .9))`,
-                  }"
-                >
-                  <img
-                    v-if="avatarUrl(person) && !brokenAvatars.has(person.id)"
-                    :src="avatarUrl(person)!"
-                    alt=""
-                    loading="lazy"
-                    @error="markBroken(person.id)"
-                  />
-                  <span v-else>{{ initials(person) }}</span>
-                </span>
-                <span class="person-card-copy"
-                  ><strong
-                    ><template v-for="part in [highlightedName(person)]" :key="part.before"
-                      ><span>{{ part.before }}</span
-                      ><mark v-if="part.match">{{ part.match }}</mark
-                      ><span>{{ part.after }}</span></template
-                    ></strong
-                  ><span v-if="text(person.title)">{{ text(person.title) }}</span
-                  ><span v-else-if="affiliation(person)">{{ affiliation(person) }}</span></span
-                >
-              </RouterLink>
-            </article>
-          </li>
-        </ul>
-      </section>
-    </main>
-    <SiteFooter />
+        <form class="people-controls" role="search" @submit.prevent>
+          <label class="search-field"
+            ><AppIcon name="search" /><input
+              v-model="query"
+              class="input focus-ring"
+              type="search"
+              placeholder="Search people..."
+              aria-label="Search people"
+          /></label>
+          <label
+            ><span class="visually-hidden">Sort people</span
+            ><select v-model="sort" class="input select focus-ring">
+              <option value="name-asc">Name (A-Z)</option>
+              <option value="name-desc">Name (Z-A)</option>
+            </select></label
+          >
+        </form>
+      </div>
+      <div v-if="!filtered.length" class="empty-state people-empty">
+        <h2>No people found</h2>
+        <p v-if="query.trim()">No people found for “{{ query.trim() }}”.</p>
+        <p v-else>When people are added, they will appear here.</p>
+        <button v-if="query.trim()" type="button" class="button focus-ring" @click="query = ''">
+          Clear search
+        </button>
+      </div>
+      <ul v-else class="people-grid">
+        <li v-for="person in filtered" :key="person.id">
+          <article
+            class="card interactive accent-card person-card"
+            :style="{ '--content-color': accent(person) }"
+          >
+            <span class="accent-rail" aria-hidden="true" />
+            <RouterLink class="person-card-link focus-ring" :to="personPath(code, person.id)">
+              <span
+                class="avatar"
+                :style="{
+                  backgroundImage: `linear-gradient(135deg, ${accent(person)}22, rgba(15, 23, 42, .9))`,
+                }"
+              >
+                <img
+                  v-if="avatarUrl(person) && !brokenAvatars.has(person.id)"
+                  :src="avatarUrl(person)!"
+                  alt=""
+                  loading="lazy"
+                  @error="markBroken(person.id)"
+                />
+                <span v-else>{{ initials(person) }}</span>
+              </span>
+              <span class="person-card-copy"
+                ><strong
+                  ><template v-for="part in [highlightedName(person)]" :key="part.before"
+                    ><span>{{ part.before }}</span
+                    ><mark v-if="part.match">{{ part.match }}</mark
+                    ><span>{{ part.after }}</span></template
+                  ></strong
+                ><span v-if="text(person.title)">{{ text(person.title) }}</span
+                ><span v-else-if="affiliation(person)">{{ affiliation(person) }}</span></span
+              >
+            </RouterLink>
+          </article>
+        </li>
+      </ul>
+    </section>
   </div>
 </template>

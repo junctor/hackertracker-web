@@ -180,6 +180,56 @@ export interface Conference {
   updated_at: TimestampParts;
 }
 
+/** Normalized UI model for the snake_case Firestore menu documents. */
+export interface ConferenceMenu {
+  id: number;
+  conference: string;
+  conferenceId: number;
+  titleText: string;
+  items: ConferenceMenuItem[];
+}
+
+export interface ConferenceMenuItem {
+  id: number;
+  titleText: string;
+  function: string;
+  sortOrder: number;
+  appleSfSymbol: string;
+  googleMaterialSymbol: string;
+  appliedTagIds: number[];
+  documentId: number | null;
+  menuId: number | null;
+  prohibitTagFilter: boolean;
+}
+
+export interface Organization {
+  id: number;
+  name: string;
+  description: string;
+  tag_ids: number[];
+  tag_id_as_organizer: number | null;
+  people: ContentPersonRole[];
+  locations: number[];
+  documents: number[];
+  links: ContentLink[];
+  logo: Media | Record<string, unknown> | null;
+  media: Media[];
+}
+
+export interface ConferenceDocument {
+  id: number;
+  titleText: string;
+  bodyText: string;
+  updatedAt: DateTimeString | TimestampParts | null;
+}
+
+export interface ConferenceArticle {
+  id: number;
+  name: string;
+  text: string;
+  updatedAt: DateTimeString | TimestampParts | null;
+}
+
 export interface ProcessedTag {
   id: number;
   label: string;

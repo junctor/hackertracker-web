@@ -2,19 +2,18 @@
 import { computed, ref, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
-import type { Conference, Person, ScheduledContent } from "../types/hackertracker";
+import type { Person, ScheduledContent } from "../types/hackertracker";
 
 import AppIcon from "../components/AppIcon.vue";
-import ConferenceHeader from "../components/ConferenceHeader.vue";
 import MarkdownContent from "../components/MarkdownContent.vue";
 import PageState from "../components/PageState.vue";
-import SiteFooter from "../components/SiteFooter.vue";
-import { getConference, getContentByIds, getSpeaker, getTags } from "../firebase/data";
+import { useConferenceContext } from "../composables/useConferenceContext";
+import { getContentByIds, getSpeaker, getTags } from "../firebase/data";
 import { contentPath, normalizeConferenceCode, parseNumericParam, peoplePath } from "../lib/routes";
 import { processScheduleData } from "../lib/schedule";
 
 const route = useRoute();
-const conference = ref<Conference | null>(null);
+const { conference } = useConferenceContext();
 const person = ref<Person | null>(null);
 const sessions = ref<ScheduledContent[]>([]);
 const loading = ref(true);
@@ -78,9 +77,6 @@ watch(
     error.value = "";
     avatarError.value = false;
     try {
-      const loadedConference = await getConference(conferenceCode);
-      if (!loadedConference) throw new Error("Conference not found.");
-      conference.value = loadedConference;
       const loadedPerson = await getSpeaker(conferenceCode, personId);
       if (!loadedPerson) throw new Error("Person not found.");
       let scheduled: ScheduledContent[] = [];
@@ -123,99 +119,87 @@ function timeRange(item: ScheduledContent): string {
 </script>
 
 <template>
-  <div class="page-shell">
-    <ConferenceHeader v-if="conference" :conference="conference" />
-    <main id="main" class="main-grow">
-      <PageState v-if="loading" kind="loading" message="Loading person..." />
-      <PageState
-        v-else-if="error"
-        kind="error"
-        title="We couldn't load this page"
-        :message="error"
-      />
-      <div v-else-if="person && conference" class="container detail-page person-detail">
-        <header class="card accent-card detail-hero" :style="{ '--content-color': accent }">
-          <span class="accent-rail" aria-hidden="true" />
-          <RouterLink class="button icon-label-button focus-ring" :to="peoplePath(conference.code)"
-            ><AppIcon name="arrow-left" /><span>People</span></RouterLink
-          >
-          <div class="person-hero-content">
-            <span
-              class="avatar avatar--large"
-              :style="{
-                backgroundImage: `linear-gradient(135deg, ${accent}22, rgba(15, 23, 42, .92))`,
-              }"
-              ><img
-                v-if="avatar && !avatarError"
-                :src="avatar"
-                alt=""
-                @error="avatarError = true"
-              /><span v-else>{{ initials }}</span></span
-            >
-            <div class="person-identity">
-              <div class="person-name">
-                <h1 tabindex="-1">{{ name }}</h1>
-                <span v-if="text(person.pronouns)" class="pronouns">{{
-                  text(person.pronouns)
-                }}</span>
-              </div>
-              <ul v-if="affiliations.length" class="affiliations">
-                <li v-for="(item, index) in affiliations" :key="index">
-                  <strong v-if="text(item.title)">{{ text(item.title) }}</strong
-                  ><span v-if="text(item.title) && text(item.organization)"> @ </span
-                  >{{ text(item.organization) }}
-                </li>
-              </ul>
-              <ul v-if="links.length" class="pill-list">
-                <li v-for="link in links" :key="`${link.url}-${link.title}`">
-                  <a
-                    class="pill-link focus-ring"
-                    :href="link.url"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    >{{ link.title || link.url }}<AppIcon name="external"
-                  /></a>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </header>
-        <section
-          v-if="text(person.description)"
-          class="detail-section"
-          aria-labelledby="about-person"
+  <div>
+    <PageState v-if="loading" kind="loading" message="Loading person..." />
+    <PageState v-else-if="error" kind="error" title="We couldn't load this page" :message="error" />
+    <div v-else-if="person && conference" class="container detail-page person-detail">
+      <header class="card accent-card detail-hero" :style="{ '--content-color': accent }">
+        <span class="accent-rail" aria-hidden="true" />
+        <RouterLink class="button icon-label-button focus-ring" :to="peoplePath(conference.code)"
+          ><AppIcon name="arrow-left" /><span>People</span></RouterLink
         >
-          <h2 id="about-person">About</h2>
-          <div class="card detail-copy"><MarkdownContent :content="person.description" /></div>
-        </section>
-        <section v-if="sessions.length" class="detail-section" aria-labelledby="person-sessions">
-          <h2 id="person-sessions">Sessions</h2>
-          <ul class="stack-list">
-            <li v-for="item in sessions" :key="`${item.contentId}-${item.sessionId}`">
-              <article
-                class="card interactive accent-card person-session"
-                :style="{ '--content-color': item.color ?? accent }"
+        <div class="person-hero-content">
+          <span
+            class="avatar avatar--large"
+            :style="{
+              backgroundImage: `linear-gradient(135deg, ${accent}22, rgba(15, 23, 42, .92))`,
+            }"
+            ><img
+              v-if="avatar && !avatarError"
+              :src="avatar"
+              alt=""
+              @error="avatarError = true"
+            /><span v-else>{{ initials }}</span></span
+          >
+          <div class="person-identity">
+            <div class="person-name">
+              <h1 tabindex="-1">{{ name }}</h1>
+              <span v-if="text(person.pronouns)" class="pronouns">{{ text(person.pronouns) }}</span>
+            </div>
+            <ul v-if="affiliations.length" class="affiliations">
+              <li v-for="(item, index) in affiliations" :key="index">
+                <strong v-if="text(item.title)">{{ text(item.title) }}</strong
+                ><span v-if="text(item.title) && text(item.organization)"> @ </span
+                >{{ text(item.organization) }}
+              </li>
+            </ul>
+            <ul v-if="links.length" class="pill-list">
+              <li v-for="link in links" :key="`${link.url}-${link.title}`">
+                <a
+                  class="pill-link focus-ring"
+                  :href="link.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >{{ link.title || link.url }}<AppIcon name="external"
+                /></a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <section
+        v-if="text(person.description)"
+        class="detail-section"
+        aria-labelledby="about-person"
+      >
+        <h2 id="about-person">About</h2>
+        <div class="card detail-copy"><MarkdownContent :content="person.description" /></div>
+      </section>
+      <section v-if="sessions.length" class="detail-section" aria-labelledby="person-sessions">
+        <h2 id="person-sessions">Sessions</h2>
+        <ul class="stack-list">
+          <li v-for="item in sessions" :key="`${item.contentId}-${item.sessionId}`">
+            <article
+              class="card interactive accent-card person-session"
+              :style="{ '--content-color': item.color ?? accent }"
+            >
+              <span class="accent-rail" aria-hidden="true" /><RouterLink
+                class="person-session-link focus-ring"
+                :to="contentPath(conference.code, item.contentId)"
+                ><h3>{{ item.title }}</h3>
+                <p class="icon-text">
+                  <AppIcon name="calendar" /><time :datetime="new Date(item.begin).toISOString()">{{
+                    timeRange(item)
+                  }}</time>
+                </p>
+                <p v-if="item.location" class="icon-text muted">
+                  <AppIcon name="pin" />{{ item.location }}
+                </p></RouterLink
               >
-                <span class="accent-rail" aria-hidden="true" /><RouterLink
-                  class="person-session-link focus-ring"
-                  :to="contentPath(conference.code, item.contentId)"
-                  ><h3>{{ item.title }}</h3>
-                  <p class="icon-text">
-                    <AppIcon name="calendar" /><time
-                      :datetime="new Date(item.begin).toISOString()"
-                      >{{ timeRange(item) }}</time
-                    >
-                  </p>
-                  <p v-if="item.location" class="icon-text muted">
-                    <AppIcon name="pin" />{{ item.location }}
-                  </p></RouterLink
-                >
-              </article>
-            </li>
-          </ul>
-        </section>
-      </div>
-    </main>
-    <SiteFooter />
+            </article>
+          </li>
+        </ul>
+      </section>
+    </div>
   </div>
 </template>

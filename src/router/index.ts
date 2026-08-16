@@ -1,22 +1,29 @@
 import { createRouter, createWebHistory } from "vue-router";
 
-import { bookmarksPath, contentPath, peoplePath, personPath, schedulePath } from "../lib/routes";
+import { conferenceMenuPath } from "../lib/routes";
 
-const integer = (value: unknown): number | null =>
-  typeof value === "string" && /^\d+$/.test(value) ? Number(value) : null;
-
-function legacyRedirect(to: { path: string; query: Record<string, unknown> }) {
-  const code = to.query.conf ?? to.query.conference;
-  if (typeof code !== "string" || !code) return { name: "not-found" };
-  const contentId = integer(to.query.event ?? to.query.content ?? to.query.id);
-  const personId = integer(to.query.person ?? to.query.id);
-  if (to.path === "/schedule") return schedulePath(code);
-  if (to.path === "/bookmarks") return bookmarksPath(code);
-  if (to.path === "/people" || to.path === "/people/")
-    return personId ? personPath(code, personId) : peoplePath(code);
-  if (to.path === "/person") return personId ? personPath(code, personId) : { name: "not-found" };
-  return contentId ? contentPath(code, contentId) : { name: "not-found" };
-}
+const directoryChildren = [
+  "communities",
+  "contests",
+  "departments",
+  "exhibitors",
+  "organizations",
+  "vendors",
+  "villages",
+].flatMap((section) => [
+  {
+    path: section,
+    name: section,
+    component: () => import("../views/OrganizationDirectoryView.vue"),
+    meta: { section },
+  },
+  {
+    path: `${section}/:organizationId`,
+    name: `${section}-detail`,
+    component: () => import("../views/OrganizationDirectoryView.vue"),
+    meta: { section },
+  },
+]);
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -32,55 +39,74 @@ const router = createRouter({
       name: "conferences",
       component: () => import("../views/ConferencesView.vue"),
     },
-    { path: "/schedule", redirect: legacyRedirect },
-    { path: "/bookmarks", redirect: legacyRedirect },
-    { path: "/people", redirect: legacyRedirect },
-    { path: "/people/", redirect: legacyRedirect },
-    { path: "/person", redirect: legacyRedirect },
-    { path: "/event", redirect: legacyRedirect },
-    { path: "/content", redirect: legacyRedirect },
-    { path: "/content/", redirect: legacyRedirect },
-    {
-      path: "/:confCode",
-      name: "conference",
-      component: () => import("../views/ScheduleView.vue"),
-    },
-    {
-      path: "/:confCode/schedule",
-      name: "schedule",
-      component: () => import("../views/ScheduleView.vue"),
-    },
-    {
-      path: "/:confCode/bookmarks",
-      name: "bookmarks",
-      component: () => import("../views/BookmarksView.vue"),
-    },
-    {
-      path: "/:confCode/people",
-      name: "people",
-      component: () => import("../views/PeopleView.vue"),
-    },
-    {
-      path: "/:confCode/people/:personId",
-      name: "person",
-      component: () => import("../views/PersonView.vue"),
-    },
-    {
-      path: "/:confCode/content/:contentId",
-      name: "content",
-      component: () => import("../views/ContentView.vue"),
-    },
-    {
-      path: "/:confCode/event/:contentId",
-      redirect: (to) => {
-        const id = integer(to.params.contentId);
-        return typeof to.params.confCode === "string" && id
-          ? contentPath(to.params.confCode, id)
-          : { name: "not-found" };
-      },
-    },
     { path: "/about", name: "about", component: () => import("../views/AboutView.vue") },
     { path: "/support", name: "support", component: () => import("../views/SupportView.vue") },
+    {
+      path: "/:confCode",
+      component: () => import("../layouts/ConferenceLayout.vue"),
+      children: [
+        { path: "", redirect: (to) => conferenceMenuPath(String(to.params.confCode)) },
+        {
+          path: "menu",
+          name: "conference-menu",
+          component: () => import("../views/ConferenceMenuView.vue"),
+        },
+        {
+          path: "menu/:menuId",
+          name: "nested-menu",
+          component: () => import("../views/ConferenceMenuView.vue"),
+        },
+        {
+          path: "readme.nfo",
+          name: "readme",
+          component: () => import("../views/ConferenceMenuView.vue"),
+        },
+        {
+          path: "announcements",
+          name: "announcements",
+          component: () => import("../views/AnnouncementsView.vue"),
+        },
+        {
+          path: "schedule",
+          name: "schedule",
+          component: () => import("../views/ScheduleView.vue"),
+        },
+        {
+          path: "bookmarks",
+          name: "bookmarks",
+          component: () => import("../views/BookmarksView.vue"),
+        },
+        {
+          path: "content",
+          name: "content-list",
+          component: () => import("../views/ContentListView.vue"),
+        },
+        {
+          path: "content/:contentId",
+          name: "content-detail",
+          component: () => import("../views/ContentView.vue"),
+        },
+        { path: "people", name: "people", component: () => import("../views/PeopleView.vue") },
+        {
+          path: "people/:personId",
+          name: "person",
+          component: () => import("../views/PersonView.vue"),
+        },
+        {
+          path: "locations",
+          name: "locations",
+          component: () => import("../views/LocationsView.vue"),
+        },
+        { path: "maps", name: "maps", component: () => import("../views/MapsView.vue") },
+        { path: "search", name: "search", component: () => import("../views/SearchView.vue") },
+        {
+          path: "documents/:documentId",
+          name: "document",
+          component: () => import("../views/DocumentView.vue"),
+        },
+        ...directoryChildren,
+      ],
+    },
     {
       path: "/:pathMatch(.*)*",
       name: "not-found",

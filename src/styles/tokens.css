@@ -1,0 +1,97 @@
+@font-face {
+  font-family: "Atkinson Hyperlegible";
+  src: url("/fonts/atkinson-hl.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Lato";
+  src: url("/fonts/lato.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Museo";
+  src: url("/fonts/Museo700-Regular.woff2") format("woff2");
+  font-display: swap;
+}
+
+:root {
+  color-scheme: dark;
+
+  --dc34-bg-primary: #0d294a;
+  --dc34-bg-secondary: #105f68;
+  --dc34-accent-primary: #017fa4;
+  --dc34-accent-secondary: #6ccdb8;
+  --dc34-accent-warning: #f1b435;
+  --dc34-accent-critical: #e0004e;
+
+  --color-bg: color-mix(in oklab, var(--dc34-bg-primary), black 55%);
+  --color-surface: color-mix(in oklab, var(--dc34-bg-primary), black 35%);
+  --color-surface-elevated: color-mix(in oklab, var(--dc34-bg-primary), black 24%);
+  --color-fg: color-mix(in oklab, white, var(--dc34-accent-secondary) 5%);
+  --color-muted: color-mix(in oklab, var(--color-fg), var(--color-bg) 42%);
+  --color-border: color-mix(in oklab, var(--dc34-bg-secondary), white 16%);
+
+  --surface: var(--color-surface);
+  --surface-muted: color-mix(in oklab, var(--color-surface), transparent 18%);
+  --surface-elevated: var(--color-surface-elevated);
+  --surface-interactive: color-mix(in oklab, var(--color-surface-elevated), transparent 4%);
+  --border: rgb(148 163 184 / 18%);
+  --border-strong: color-mix(in oklab, var(--color-border), white 8%);
+  --border-chrome: color-mix(in oklab, var(--border), white 14%);
+  --text-primary: var(--color-fg);
+  --text-muted: var(--color-muted);
+  --text-subtle: color-mix(in oklab, var(--color-muted), var(--color-bg) 24%);
+  --accent: var(--dc34-accent-primary);
+  --accent-soft: color-mix(in oklab, var(--accent), transparent 82%);
+  --accent-success: var(--dc34-accent-secondary);
+  --focus: var(--dc34-accent-secondary);
+
+  /* Compatibility aliases retained while older Vue components are colocated incrementally. */
+  --bg: var(--color-bg);
+  --surface-raised: var(--surface-elevated);
+  --text: var(--text-primary);
+  --muted: var(--text-muted);
+  --subtle: var(--text-subtle);
+  --accent-light: var(--accent-success);
+
+  --layout-max: 72rem;
+  --layout-gutter: clamp(0.875rem, 3vw, 1.5rem);
+  --page-padding: var(--layout-gutter);
+  --section-space: clamp(1.5rem, 4vw, 3rem);
+  --radius-1: 0.375rem;
+  --radius-2: 0.625rem;
+  --radius-3: 0.875rem;
+  --radius-4: 1.125rem;
+  --radius-pill: 9999px;
+  --radius: var(--radius-3);
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --shadow-sm: 0 8px 20px rgb(0 0 0 / 20%);
+  --shadow-md: 0 14px 32px rgb(0 0 0 / 28%);
+  --shadow-lg: 0 20px 48px rgb(0 0 0 / 36%);
+  --control-min: 44px;
+}
+
+body {
+  background:
+    radial-gradient(
+      circle at top,
+      color-mix(in oklab, var(--accent), transparent 94%),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 20% 20%,
+      color-mix(in oklab, var(--dc34-accent-warning), transparent 95%),
+      transparent 22%
+    ),
+    var(--color-bg);
+}

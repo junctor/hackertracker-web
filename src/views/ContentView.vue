@@ -2,19 +2,16 @@
 import { computed, ref, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
-import type { Conference, Content, Location, Person, TagGroup } from "../types/hackertracker";
+import type { Content, Location, Person, TagGroup } from "../types/hackertracker";
 
 import AppIcon from "../components/AppIcon.vue";
-import ConferenceHeader from "../components/ConferenceHeader.vue";
 import MarkdownContent from "../components/MarkdownContent.vue";
 import PageState from "../components/PageState.vue";
-import SiteFooter from "../components/SiteFooter.vue";
+import { useConferenceContext } from "../composables/useConferenceContext";
 import {
-  getCachedConference,
   getCachedContent,
   getCachedLocations,
   getCachedTags,
-  getConference,
   getContent,
   getLocations,
   getSpeakersByIds,
@@ -23,13 +20,7 @@ import {
 import { toggleBookmark, loadBookmarks } from "../lib/bookmarks";
 import { generateCalendar } from "../lib/calendar";
 import { formatSessionTime } from "../lib/dates";
-import {
-  contentPath,
-  normalizeConferenceCode,
-  parseNumericParam,
-  personPath,
-  schedulePath,
-} from "../lib/routes";
+import { contentPath, parseNumericParam, personPath, schedulePath } from "../lib/routes";
 import {
   getAccentColor,
   getContentPersonIds,
@@ -38,7 +29,7 @@ import {
 } from "../lib/schedule";
 
 const route = useRoute();
-const conference = ref<Conference | null>(null);
+const { conference } = useConferenceContext();
 const content = ref<Content | null>(null);
 const people = ref<Person[]>([]);
 const tags = ref<TagGroup[]>([]);
@@ -48,7 +39,7 @@ const error = ref("");
 const bookmarked = ref(false);
 let request = 0;
 
-const code = computed(() => normalizeConferenceCode(route.params.confCode));
+const code = computed(() => conference.value?.code);
 const contentId = computed(() => parseNumericParam(route.params.contentId));
 const sessions = computed(() => (content.value ? sortedSessions(content.value) : []));
 const displayTags = computed(() =>
@@ -87,18 +78,15 @@ watch(
     }
     error.value = "";
     bookmarked.value = loadBookmarks(conferenceCode).has(id);
-    const cachedConference = getCachedConference(conferenceCode);
     const cachedContent = getCachedContent(conferenceCode, id);
     const cachedTags = getCachedTags(conferenceCode);
-    if (cachedConference && cachedContent && cachedTags) {
-      conference.value = cachedConference;
+    if (cachedContent && cachedTags) {
       content.value = cachedContent;
       tags.value = cachedTags;
       locations.value = getCachedLocations(conferenceCode) ?? [];
       people.value = [];
       loading.value = false;
     } else {
-      conference.value = null;
       content.value = null;
       tags.value = [];
       locations.value = [];
@@ -106,10 +94,6 @@ watch(
       loading.value = true;
     }
     try {
-      const loadedConference = await getConference(conferenceCode);
-      if (current !== request) return;
-      if (!loadedConference) throw new Error("Conference not found");
-      conference.value = loadedConference;
       const loadedContent = await getContent(conferenceCode, id);
       if (!loadedContent) throw new Error("Content not found");
       const personIds = getContentPersonIds(loadedContent);
@@ -173,172 +157,166 @@ function addToCalendar(sessionId: number): void {
 </script>
 
 <template>
-  <div class="page-shell">
-    <ConferenceHeader v-if="conference" :conference="conference" />
-    <main id="main" class="main-grow">
-      <PageState
-        v-if="loading && !conference && !content"
-        kind="loading"
-        message="Loading content..."
-      />
-      <PageState
-        v-else-if="error && (!conference || !content)"
-        kind="error"
-        title="We couldn't load this page"
-        :message="error"
-      />
-      <article
-        v-else-if="conference && content"
-        class="container detail-page"
-        aria-labelledby="content-title"
-        :style="{ '--content-color': accentColor }"
-      >
-        <header class="card accent-card detail-hero">
-          <span class="accent-rail" aria-hidden="true" />
-          <div class="detail-actions">
-            <RouterLink
-              class="button icon-label-button focus-ring"
-              :to="schedulePath(conference.code)"
+  <div>
+    <PageState
+      v-if="loading && !conference && !content"
+      kind="loading"
+      message="Loading content..."
+    />
+    <PageState
+      v-else-if="error && (!conference || !content)"
+      kind="error"
+      title="We couldn't load this page"
+      :message="error"
+    />
+    <article
+      v-else-if="conference && content"
+      class="container detail-page"
+      aria-labelledby="content-title"
+      :style="{ '--content-color': accentColor }"
+    >
+      <header class="card accent-card detail-hero">
+        <span class="accent-rail" aria-hidden="true" />
+        <div class="detail-actions">
+          <RouterLink
+            class="button icon-label-button focus-ring"
+            :to="schedulePath(conference.code)"
+          >
+            <AppIcon name="arrow-left" /><span>Schedule</span>
+          </RouterLink>
+          <div>
+            <button
+              type="button"
+              class="icon-button focus-ring"
+              title="Share"
+              aria-label="Share event link"
+              @click="handleShare"
             >
-              <AppIcon name="arrow-left" /><span>Schedule</span>
-            </RouterLink>
+              <AppIcon name="share" />
+            </button>
+            <button
+              type="button"
+              class="icon-button focus-ring"
+              :aria-pressed="bookmarked"
+              :aria-label="`${bookmarked ? 'Remove' : 'Add'} bookmark for ${content.title}`"
+              @click="handleBookmark"
+            >
+              <AppIcon name="bookmark" :filled="bookmarked" />
+            </button>
+          </div>
+        </div>
+        <h1 id="content-title" tabindex="-1">{{ content.title }}</h1>
+        <ul v-if="displayTags.length" class="tag-list">
+          <li
+            v-for="tag in displayTags.slice(0, 6)"
+            :key="tag.id"
+            class="tag"
+            :style="{
+              backgroundColor: tag.color_background ?? undefined,
+              color: tag.color_foreground ?? undefined,
+            }"
+          >
+            {{ tag.label }}
+          </li>
+          <li v-if="displayTags.length > 6" class="tag tag--more">
+            +{{ displayTags.length - 6 }} more
+          </li>
+        </ul>
+      </header>
+
+      <section v-if="sessions.length" class="detail-section" aria-labelledby="sessions-title">
+        <h2 id="sessions-title">Sessions</h2>
+        <ul class="stack-list small-gap">
+          <li v-for="session in sessions" :key="session.session_id" class="card session-card">
             <div>
-              <button
-                type="button"
-                class="icon-button focus-ring"
-                title="Share"
-                aria-label="Share event link"
-                @click="handleShare"
-              >
-                <AppIcon name="share" />
-              </button>
-              <button
-                type="button"
-                class="icon-button focus-ring"
-                :aria-pressed="bookmarked"
-                :aria-label="`${bookmarked ? 'Remove' : 'Add'} bookmark for ${content.title}`"
-                @click="handleBookmark"
-              >
-                <AppIcon name="bookmark" :filled="bookmarked" />
-              </button>
+              <time :datetime="new Date(session.begin_tsz).toISOString()">{{
+                formatSessionTime(
+                  new Date(session.begin_tsz),
+                  new Date(session.end_tsz),
+                  session.timezone_name || conference.timezone || "UTC",
+                )
+              }}</time>
+              <p v-if="locationById.get(session.location_id)" class="icon-text">
+                <AppIcon name="pin" />{{ locationById.get(session.location_id)?.name }}
+              </p>
             </div>
-          </div>
-          <h1 id="content-title" tabindex="-1">{{ content.title }}</h1>
-          <ul v-if="displayTags.length" class="tag-list">
-            <li
-              v-for="tag in displayTags.slice(0, 6)"
-              :key="tag.id"
-              class="tag"
-              :style="{
-                backgroundColor: tag.color_background ?? undefined,
-                color: tag.color_foreground ?? undefined,
-              }"
+            <button
+              type="button"
+              class="icon-button focus-ring"
+              title="Add session to calendar"
+              aria-label="Add session to calendar"
+              @click="addToCalendar(session.session_id)"
             >
-              {{ tag.label }}
-            </li>
-            <li v-if="displayTags.length > 6" class="tag tag--more">
-              +{{ displayTags.length - 6 }} more
-            </li>
-          </ul>
-        </header>
+              <AppIcon name="calendar" />
+            </button>
+          </li>
+        </ul>
+      </section>
 
-        <section v-if="sessions.length" class="detail-section" aria-labelledby="sessions-title">
-          <h2 id="sessions-title">Sessions</h2>
-          <ul class="stack-list small-gap">
-            <li v-for="session in sessions" :key="session.session_id" class="card session-card">
-              <div>
-                <time :datetime="new Date(session.begin_tsz).toISOString()">{{
-                  formatSessionTime(
-                    new Date(session.begin_tsz),
-                    new Date(session.end_tsz),
-                    session.timezone_name || conference.timezone || "UTC",
-                  )
-                }}</time>
-                <p v-if="locationById.get(session.location_id)" class="icon-text">
-                  <AppIcon name="pin" />{{ locationById.get(session.location_id)?.name }}
-                </p>
-              </div>
-              <button
-                type="button"
-                class="icon-button focus-ring"
-                title="Add session to calendar"
-                aria-label="Add session to calendar"
-                @click="addToCalendar(session.session_id)"
-              >
-                <AppIcon name="calendar" />
-              </button>
-            </li>
-          </ul>
-        </section>
-
-        <section
-          v-if="content.description"
-          class="detail-section"
-          aria-labelledby="description-title"
-        >
-          <h2 id="description-title">Description</h2>
-          <div class="card detail-copy"><MarkdownContent :content="content.description" /></div>
-        </section>
-        <section v-if="content.links?.length" class="detail-section" aria-labelledby="links-title">
-          <h2 id="links-title">Links</h2>
-          <ul class="stack-list small-gap">
-            <li v-for="link in content.links" :key="link.url">
-              <a
-                class="card interactive resource-link focus-ring"
-                :href="link.url"
-                target="_blank"
-                rel="noopener noreferrer"
-                ><span>{{ link.label }}</span
-                ><AppIcon name="external"
-              /></a>
-            </li>
-          </ul>
-        </section>
-        <section v-if="content.media?.length" class="detail-section" aria-labelledby="media-title">
-          <h2 id="media-title">Media</h2>
-          <ul class="stack-list small-gap">
-            <li v-for="media in content.media" :key="`${media.name}-${media.url}`">
-              <a
-                class="card interactive resource-link focus-ring"
-                :href="media.url"
-                target="_blank"
-                rel="noopener noreferrer"
-                ><span>{{ media.name }}</span
-                ><AppIcon name="external"
-              /></a>
-            </li>
-          </ul>
-        </section>
-        <section
-          v-if="content.related_content_ids?.length"
-          class="detail-section"
-          aria-labelledby="related-title"
-        >
-          <h2 id="related-title">Related</h2>
+      <section
+        v-if="content.description"
+        class="detail-section"
+        aria-labelledby="description-title"
+      >
+        <h2 id="description-title">Description</h2>
+        <div class="card detail-copy"><MarkdownContent :content="content.description" /></div>
+      </section>
+      <section v-if="content.links?.length" class="detail-section" aria-labelledby="links-title">
+        <h2 id="links-title">Links</h2>
+        <ul class="stack-list small-gap">
+          <li v-for="link in content.links" :key="link.url">
+            <a
+              class="card interactive resource-link focus-ring"
+              :href="link.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              ><span>{{ link.label }}</span
+              ><AppIcon name="external"
+            /></a>
+          </li>
+        </ul>
+      </section>
+      <section v-if="content.media?.length" class="detail-section" aria-labelledby="media-title">
+        <h2 id="media-title">Media</h2>
+        <ul class="stack-list small-gap">
+          <li v-for="media in content.media" :key="`${media.name}-${media.url}`">
+            <a
+              class="card interactive resource-link focus-ring"
+              :href="media.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              ><span>{{ media.name }}</span
+              ><AppIcon name="external"
+            /></a>
+          </li>
+        </ul>
+      </section>
+      <section
+        v-if="content.related_content_ids?.length"
+        class="detail-section"
+        aria-labelledby="related-title"
+      >
+        <h2 id="related-title">Related</h2>
+        <ul class="pill-list">
+          <li v-for="id in content.related_content_ids" :key="id">
+            <RouterLink class="pill-link focus-ring" :to="contentPath(conference.code, id)"
+              >Content {{ id }}</RouterLink
+            >
+          </li>
+        </ul>
+      </section>
+      <section v-if="people.length" class="detail-section" aria-labelledby="people-title">
+        <h2 id="people-title">People</h2>
+        <div class="card detail-copy">
           <ul class="pill-list">
-            <li v-for="id in content.related_content_ids" :key="id">
-              <RouterLink class="pill-link focus-ring" :to="contentPath(conference.code, id)"
-                >Content {{ id }}</RouterLink
+            <li v-for="person in people" :key="person.id">
+              <RouterLink class="pill-link focus-ring" :to="personPath(conference.code, person.id)"
+                ><AppIcon name="people" />{{ person.name }}</RouterLink
               >
             </li>
           </ul>
-        </section>
-        <section v-if="people.length" class="detail-section" aria-labelledby="people-title">
-          <h2 id="people-title">People</h2>
-          <div class="card detail-copy">
-            <ul class="pill-list">
-              <li v-for="person in people" :key="person.id">
-                <RouterLink
-                  class="pill-link focus-ring"
-                  :to="personPath(conference.code, person.id)"
-                  ><AppIcon name="people" />{{ person.name }}</RouterLink
-                >
-              </li>
-            </ul>
-          </div>
-        </section>
-      </article>
-    </main>
-    <SiteFooter />
+        </div>
+      </section>
+    </article>
   </div>
 </template>

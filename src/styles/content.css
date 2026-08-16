@@ -1,0 +1,200 @@
+.detail-page {
+  display: grid;
+  max-width: min(64rem, calc(100% - var(--page-padding) * 2));
+  gap: 2rem;
+}
+
+.detail-hero {
+  padding: 1.25rem 1.4rem 1.4rem 1.8rem;
+}
+
+.detail-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.detail-hero h1 {
+  font-size: clamp(2rem, 6vw, 2.6rem);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.detail-hero > .tag-list {
+  margin-top: 0.9rem;
+}
+
+.detail-section {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.detail-section > h2 {
+  color: #e2e8f0;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+}
+
+.detail-copy,
+.session-card {
+  padding: 1.15rem 1.25rem;
+}
+
+.session-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.session-card time {
+  color: #f1f5f9;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.icon-text {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.4rem;
+  color: #cbd5e1;
+  font-size: 0.875rem;
+}
+
+.icon-text svg {
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+
+.resource-link {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem 1rem;
+  color: var(--accent-light);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.resource-link span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pill-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(30, 41, 59, 0.7);
+  padding: 0.25rem 0.75rem;
+  color: #e2e8f0;
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.pill-link:hover {
+  border-color: rgba(1, 127, 164, 0.65);
+  background: rgba(1, 127, 164, 0.28);
+}
+
+.markdown {
+  color: #cbd5e1;
+  overflow-wrap: anywhere;
+}
+
+.markdown > * + * {
+  margin-top: 1rem;
+}
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4 {
+  color: #f1f5f9;
+  line-height: 1.25;
+}
+.markdown ul {
+  padding-left: 1.25rem;
+}
+.markdown li + li {
+  margin-top: 0.35rem;
+}
+.markdown code {
+  border-radius: 0.25rem;
+  background: #334155;
+  padding: 0.1rem 0.25rem;
+  color: #f1f5f9;
+}
+.markdown pre {
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  background: #0f172a;
+  padding: 1rem;
+}
+.markdown pre code {
+  padding: 0;
+  background: transparent;
+}
+.markdown blockquote {
+  border-left: 4px solid #105f66;
+  padding-left: 1rem;
+  font-style: italic;
+}
+.markdown hr {
+  border: 0;
+  border-top: 1px solid #334155;
+}
+
+.person-hero-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.avatar--large {
+  width: 7rem;
+  height: 7rem;
+  flex-basis: 7rem;
+  border-radius: 1.2rem;
+  font-size: 1.75rem;
+}
+
+.person-identity {
+  display: grid;
+  min-width: 0;
+  gap: 0.8rem;
+}
+
+.person-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.affiliations {
+  display: grid;
+  gap: 0.25rem;
+  color: #cbd5e1;
+  font-size: 0.875rem;
+}
+
+.person-session-link {
+  display: block;
+  padding: 1rem 1.25rem 1rem 1.6rem;
+  border-radius: inherit;
+  text-decoration: none;
+}
+
+.muted {
+  color: var(--muted);
+}
