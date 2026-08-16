@@ -153,10 +153,10 @@ function timeRange(item: ScheduledContent): string {
                 >{{ text(item.organization) }}
               </li>
             </ul>
-            <ul v-if="links.length" class="pill-list">
+            <ul v-if="links.length" class="resource-list">
               <li v-for="link in links" :key="`${link.url}-${link.title}`">
                 <a
-                  class="pill-link focus-ring"
+                  class="plain-link focus-ring"
                   :href="link.url"
                   target="_blank"
                   rel="noopener noreferrer"

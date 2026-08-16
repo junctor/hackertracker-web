@@ -208,7 +208,7 @@ function addToCalendar(sessionId: number): void {
         <h1 id="content-title" tabindex="-1">{{ content.title }}</h1>
         <ul v-if="displayTags.length" class="tag-list">
           <li
-            v-for="tag in displayTags.slice(0, 6)"
+            v-for="tag in displayTags.slice(0, 3)"
             :key="tag.id"
             class="tag"
             :style="{
@@ -218,15 +218,15 @@ function addToCalendar(sessionId: number): void {
           >
             {{ tag.label }}
           </li>
-          <li v-if="displayTags.length > 6" class="tag tag--more">
-            +{{ displayTags.length - 6 }} more
+          <li v-if="displayTags.length > 3" class="tag tag--more">
+            +{{ displayTags.length - 3 }} more
           </li>
         </ul>
       </header>
 
       <section v-if="sessions.length" class="detail-section" aria-labelledby="sessions-title">
         <h2 id="sessions-title">Sessions</h2>
-        <ul class="stack-list small-gap">
+        <ul class="resource-list">
           <li v-for="session in sessions" :key="session.session_id" class="card session-card">
             <div>
               <time :datetime="new Date(session.begin_tsz).toISOString()">{{
@@ -266,7 +266,7 @@ function addToCalendar(sessionId: number): void {
         <ul class="stack-list small-gap">
           <li v-for="link in content.links" :key="link.url">
             <a
-              class="card interactive resource-link focus-ring"
+              class="resource-link focus-ring"
               :href="link.url"
               target="_blank"
               rel="noopener noreferrer"
@@ -278,10 +278,10 @@ function addToCalendar(sessionId: number): void {
       </section>
       <section v-if="content.media?.length" class="detail-section" aria-labelledby="media-title">
         <h2 id="media-title">Media</h2>
-        <ul class="stack-list small-gap">
+        <ul class="resource-list">
           <li v-for="media in content.media" :key="`${media.name}-${media.url}`">
             <a
-              class="card interactive resource-link focus-ring"
+              class="resource-link focus-ring"
               :href="media.url"
               target="_blank"
               rel="noopener noreferrer"
@@ -297,9 +297,9 @@ function addToCalendar(sessionId: number): void {
         aria-labelledby="related-title"
       >
         <h2 id="related-title">Related</h2>
-        <ul class="pill-list">
+        <ul class="resource-list">
           <li v-for="id in content.related_content_ids" :key="id">
-            <RouterLink class="pill-link focus-ring" :to="contentPath(conference.code, id)"
+            <RouterLink class="plain-link focus-ring" :to="contentPath(conference.code, id)"
               >Content {{ id }}</RouterLink
             >
           </li>
@@ -307,10 +307,10 @@ function addToCalendar(sessionId: number): void {
       </section>
       <section v-if="people.length" class="detail-section" aria-labelledby="people-title">
         <h2 id="people-title">People</h2>
-        <div class="card detail-copy">
-          <ul class="pill-list">
+        <div class="detail-copy simple-copy">
+          <ul class="resource-list">
             <li v-for="person in people" :key="person.id">
-              <RouterLink class="pill-link focus-ring" :to="personPath(conference.code, person.id)"
+              <RouterLink class="plain-link focus-ring" :to="personPath(conference.code, person.id)"
                 ><AppIcon name="people" />{{ person.name }}</RouterLink
               >
             </li>

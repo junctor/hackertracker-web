@@ -71,10 +71,9 @@ watchEffect(() => {
 }
 .kicker {
   color: var(--accent-success);
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 h1 {
   margin-top: 0.2rem;

@@ -166,10 +166,9 @@ watchEffect(() => {
 }
 .kicker {
   color: var(--accent-success);
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 h1 {
   margin-top: 0.2rem;
@@ -214,10 +213,14 @@ header > p:last-child {
 }
 .result-link {
   display: block;
+  min-width: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius-2);
   background: var(--surface-muted);
   padding: var(--space-4);
+}
+.result-link strong {
+  overflow-wrap: anywhere;
 }
 .result-link:hover {
   border-color: color-mix(in oklab, var(--accent), transparent 50%);

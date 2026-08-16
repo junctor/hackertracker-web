@@ -90,11 +90,9 @@ watchEffect(() => {
               :class="{ featured: index < 2 }"
               :to="item.href"
             >
-              <span class="menu-card-top">
-                <span class="menu-card-icon"><AppIcon :name="iconFor(item.routeKey)" /></span>
-                <span class="menu-card-arrow" aria-hidden="true">›</span>
-              </span>
+              <span class="menu-card-icon"><AppIcon :name="iconFor(item.routeKey)" /></span>
               <strong>{{ item.titleText }}</strong>
+              <span class="menu-card-arrow" aria-hidden="true">›</span>
             </RouterLink>
           </li>
         </ul>
@@ -125,10 +123,9 @@ watchEffect(() => {
 }
 .kicker {
   color: var(--accent-success);
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 h1 {
   margin-top: var(--space-2);
@@ -161,19 +158,21 @@ nav {
 }
 .menu-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
   list-style: none;
   gap: var(--space-4);
 }
 .menu-card {
-  display: flex;
-  min-height: 9rem;
+  display: grid;
+  min-height: 4.75rem;
   height: 100%;
-  flex-direction: column;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
   border: 1px solid color-mix(in oklab, var(--border), white 8%);
   border-radius: var(--radius-2);
   background: color-mix(in oklab, var(--surface-muted), transparent 42%);
-  padding: var(--space-5);
+  padding: var(--space-3) var(--space-4);
   transition:
     border-color 0.2s,
     background-color 0.2s;
@@ -185,16 +184,11 @@ nav {
   border-color: color-mix(in oklab, var(--accent), transparent 52%);
   background: var(--surface-interactive);
 }
-.menu-card-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-}
 .menu-card-icon,
 .menu-card-arrow {
   display: grid;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2.25rem;
+  height: 2.25rem;
   place-items: center;
   border: 1px solid var(--border);
   border-radius: var(--radius-2);
@@ -212,7 +206,7 @@ nav {
   font-size: 1.35rem;
 }
 .menu-card strong {
-  margin-top: var(--space-4);
   font-size: 1rem;
+  overflow-wrap: anywhere;
 }
 </style>

@@ -1,21 +1,78 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
-import type { Conference, GroupedSchedule, ScheduledContent } from "../types/hackertracker";
+import type {
+  Conference,
+  GroupedSchedule,
+  ScheduledContent,
+  TagGroup,
+} from "../types/hackertracker";
 
 import { loadBookmarks, toggleBookmark } from "../lib/bookmarks";
 import { formatScheduleTime } from "../lib/dates";
 import { bookmarksPath, contentPath, schedulePath } from "../lib/routes";
 import { formatDayHeading, formatDayTab } from "../lib/schedule";
 import AppIcon from "./AppIcon.vue";
+import ScheduleFilters from "./ScheduleFilters.vue";
 
 const props = defineProps<{
   dateGroup: GroupedSchedule;
   conference: Conference;
   pageTitle: string;
+  tagGroups?: TagGroup[];
 }>();
+const route = useRoute();
+const router = useRouter();
+const allScheduledContent = computed(() => Object.values(props.dateGroup).flat());
+const availableTagGroups = computed(() => {
+  const used = new Set(allScheduledContent.value.flatMap((item) => item.tags.map((tag) => tag.id)));
+  return (props.tagGroups ?? [])
+    .filter((group) => group.is_browsable)
+    .map((group) => ({ ...group, tags: group.tags.filter((tag) => used.has(tag.id)) }))
+    .filter((group) => group.tags.length);
+});
+const selectedTagIds = computed(() => {
+  const values = route.query.tag_group;
+  const groups = Array.isArray(values) ? values : values ? [values] : [];
+  return Array.from(
+    new Set(
+      groups.flatMap((group) =>
+        typeof group === "string"
+          ? group
+              .split(",")
+              .filter((value) => /^\d+$/.test(value))
+              .map(Number)
+          : [],
+      ),
+    ),
+  );
+});
+const selectedGroups = computed(() => {
+  const selected = new Set(selectedTagIds.value);
+  return availableTagGroups.value
+    .map((group) => group.tags.filter((tag) => selected.has(tag.id)).map((tag) => tag.id))
+    .filter((group) => group.length);
+});
+const filteredDateGroup = computed<GroupedSchedule>(() => {
+  if (!selectedGroups.value.length) return props.dateGroup;
+  return Object.fromEntries(
+    Object.entries(props.dateGroup)
+      .map(([day, items]) => [
+        day,
+        items.filter((item) => {
+          const tags = new Set(item.tags.map((tag) => tag.id));
+          return selectedGroups.value.every((group) => group.some((tagId) => tags.has(tagId)));
+        }),
+      ])
+      .filter(([, items]) => items.length),
+  );
+});
 const days = computed(() =>
-  Object.entries(props.dateGroup).map(([day, scheduledContents]) => ({ day, scheduledContents })),
+  Object.entries(filteredDateGroup.value).map(([day, scheduledContents]) => ({
+    day,
+    scheduledContents,
+  })),
 );
 const selectedDay = ref("");
 const bookmarks = ref(new Set<number>());
@@ -43,6 +100,18 @@ watch(
 
 function bookmark(id: number): void {
   bookmarks.value = toggleBookmark(props.conference.code, id);
+}
+
+function updateFilters(ids: number[]): void {
+  const selected = new Set(ids);
+  const groups = availableTagGroups.value
+    .map((group) => group.tags.filter((tag) => selected.has(tag.id)).map((tag) => tag.id))
+    .filter((group) => group.length)
+    .map((group) => group.join(","));
+  const query = { ...route.query };
+  if (groups.length) query.tag_group = groups;
+  else delete query.tag_group;
+  void router.replace({ query });
 }
 
 function timestamp(content: ScheduledContent, key: "begin" | "end"): number {
@@ -84,20 +153,28 @@ onMounted(() => (bookmarks.value = loadBookmarks(props.conference.code)));
     <div class="schedule-tools">
       <div class="container wide schedule-tools-inner">
         <h1 tabindex="-1">{{ pageTitle }}</h1>
-        <RouterLink
-          v-if="pageTitle === 'Schedule'"
-          class="tool-button focus-ring"
-          :to="bookmarksPath(conference.code)"
-          aria-label="View bookmarked events"
-          ><AppIcon name="bookmark" /><span>Bookmarks</span></RouterLink
-        >
-        <RouterLink
-          v-else
-          class="tool-button focus-ring"
-          :to="schedulePath(conference.code)"
-          aria-label="Schedule"
-          ><AppIcon name="calendar" /><span>Schedule</span></RouterLink
-        >
+        <div class="schedule-actions">
+          <ScheduleFilters
+            v-if="pageTitle === 'Schedule' && availableTagGroups.length"
+            :groups="availableTagGroups"
+            :selected-ids="selectedTagIds"
+            @change="updateFilters"
+          />
+          <RouterLink
+            v-if="pageTitle === 'Schedule'"
+            class="tool-button focus-ring"
+            :to="bookmarksPath(conference.code)"
+            aria-label="View bookmarked events"
+            ><AppIcon name="bookmark" /><span>Bookmarks</span></RouterLink
+          >
+          <RouterLink
+            v-else
+            class="tool-button focus-ring"
+            :to="schedulePath(conference.code)"
+            aria-label="Schedule"
+            ><AppIcon name="calendar" /><span>Schedule</span></RouterLink
+          >
+        </div>
       </div>
     </div>
 
@@ -131,7 +208,23 @@ onMounted(() => (bookmarks.value = loadBookmarks(props.conference.code)));
     </div>
 
     <div v-if="!days.length" class="container wide page-content">
-      <div class="empty-state">No events are available.</div>
+      <div class="empty-state">
+        <p>
+          {{
+            selectedTagIds.length
+              ? "No sessions match the selected filters."
+              : "No events are available."
+          }}
+        </p>
+        <button
+          v-if="selectedTagIds.length"
+          type="button"
+          class="button focus-ring"
+          @click="updateFilters([])"
+        >
+          Clear filters
+        </button>
+      </div>
     </div>
     <section
       v-else-if="activeDay"
@@ -182,7 +275,7 @@ onMounted(() => (bookmarks.value = loadBookmarks(props.conference.code)));
                 <p v-if="content.location">{{ content.location }}</p>
                 <ul v-if="content.tags.length" class="tag-list">
                   <li
-                    v-for="tag in content.tags.slice(0, 4)"
+                    v-for="tag in content.tags.slice(0, 2)"
                     :key="tag.id"
                     class="tag"
                     :style="{
@@ -192,8 +285,8 @@ onMounted(() => (bookmarks.value = loadBookmarks(props.conference.code)));
                   >
                     {{ tag.label }}
                   </li>
-                  <li v-if="content.tags.length > 4" class="tag tag--more">
-                    +{{ content.tags.length - 4 }} more
+                  <li v-if="content.tags.length > 2" class="tag tag--more">
+                    +{{ content.tags.length - 2 }} more
                   </li>
                 </ul>
               </div>
@@ -213,3 +306,14 @@ onMounted(() => (bookmarks.value = loadBookmarks(props.conference.code)));
     </section>
   </div>
 </template>
+
+<style scoped>
+.schedule-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.empty-state .button {
+  margin-top: var(--space-3);
+}
+</style>

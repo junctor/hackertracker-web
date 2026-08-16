@@ -47,7 +47,9 @@ const displayTags = computed(() => getDisplayTags(props.content, props.tags).sli
 <style scoped>
 .content-card {
   display: block;
+  min-width: 0;
   height: 100%;
+  overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius-3);
   background: var(--surface-muted);
@@ -74,6 +76,7 @@ h2 {
   margin-top: var(--space-3);
   font-size: 1.05rem;
   line-height: 1.25;
+  overflow-wrap: anywhere;
   text-wrap: balance;
 }
 p {

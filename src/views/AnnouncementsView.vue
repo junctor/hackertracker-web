@@ -85,10 +85,9 @@ watchEffect(() => {
 }
 .kicker {
   color: var(--accent-success);
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 h1 {
   margin-top: 0.2rem;
@@ -111,11 +110,33 @@ header > p:last-child {
   background: var(--surface-muted);
 }
 summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
   cursor: pointer;
+  list-style: none;
   padding: var(--space-5);
+}
+summary::-webkit-details-marker {
+  display: none;
+}
+summary::after {
+  content: "›";
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--text-subtle);
+  font-size: 1.35rem;
+  line-height: 1;
+  transform: rotate(90deg);
+  transition: transform 0.18s ease;
+}
+details[open] summary::after {
+  transform: rotate(-90deg);
 }
 summary > span {
   display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
   justify-content: space-between;
   gap: var(--space-4);
 }

@@ -37,14 +37,18 @@ onMounted(async () => {
             href="https://apps.apple.com/us/app/hackertracker/id1021141595?mt=8"
             target="_blank"
             rel="noopener noreferrer"
-            >Download on the App Store</a
+            ><span class="store-copy"
+              ><strong>Download for iOS</strong><small>Download on the App Store</small></span
+            ><span aria-hidden="true">→</span></a
           >
           <a
             class="store-button store-button--play focus-ring"
             href="https://play.google.com/store/apps/details?id=com.shortstack.hackertracker"
             target="_blank"
             rel="noopener noreferrer"
-            >Get it on Google Play</a
+            ><span class="store-copy"
+              ><strong>Download for Android</strong><small>Get it on Google Play</small></span
+            ><span aria-hidden="true">→</span></a
           >
         </div>
       </header>

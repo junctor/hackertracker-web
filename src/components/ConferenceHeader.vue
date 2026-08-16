@@ -127,7 +127,7 @@ onBeforeUnmount(() => {
   top: 0;
   z-index: 50;
   border-bottom: 1px solid var(--border-chrome);
-  background: color-mix(in oklab, var(--color-bg), black 10%);
+  background: var(--color-bg);
 }
 
 .header-rule {
@@ -194,7 +194,7 @@ onBeforeUnmount(() => {
   border-radius: 0.75rem;
   padding: 0.4rem var(--space-2);
   color: var(--text-primary);
-  font-family: "Museo", sans-serif;
+  font-family: inherit;
   font-size: clamp(1rem, 2.5vw, 1.5rem);
   font-weight: 700;
   line-height: 1.1;

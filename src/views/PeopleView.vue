@@ -16,7 +16,6 @@ const people = ref<Person[]>([]);
 const loading = ref(true);
 const error = ref("");
 const query = ref("");
-const sort = ref<"name-asc" | "name-desc">("name-asc");
 const brokenAvatars = ref(new Set<number>());
 const collator = new Intl.Collator(undefined, { sensitivity: "base" });
 let request = 0;
@@ -37,9 +36,7 @@ const filtered = computed(() => {
           .includes(needle),
       )
     : [...people.value];
-  return result.sort(
-    (a, b) => (sort.value === "name-asc" ? 1 : -1) * collator.compare(a.name, b.name),
-  );
+  return result.sort((a, b) => collator.compare(a.name, b.name));
 });
 
 watchEffect(() => {
@@ -87,12 +84,6 @@ const affiliation = (person: Person) => {
   if (!first) return null;
   return [text(first.title), text(first.organization)].filter(Boolean).join(" @ ");
 };
-const palette = ["#017FA4", "#2D7FF9", "#0F766E", "#7C3AED", "#C2410C", "#0E7490"];
-const accent = (person: Person) => {
-  let hash = 0;
-  for (const character of displayName(person)) hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
-  return palette[hash % palette.length] ?? palette[0];
-};
 function markBroken(id: number): void {
   brokenAvatars.value = new Set([...brokenAvatars.value, id]);
 }
@@ -132,13 +123,6 @@ function highlightedName(person: Person): { before: string; match: string; after
               placeholder="Search people..."
               aria-label="Search people"
           /></label>
-          <label
-            ><span class="visually-hidden">Sort people</span
-            ><select v-model="sort" class="input select focus-ring">
-              <option value="name-asc">Name (A-Z)</option>
-              <option value="name-desc">Name (Z-A)</option>
-            </select></label
-          >
         </form>
       </div>
       <div v-if="!filtered.length" class="empty-state people-empty">
@@ -151,18 +135,9 @@ function highlightedName(person: Person): { before: string; match: string; after
       </div>
       <ul v-else class="people-grid">
         <li v-for="person in filtered" :key="person.id">
-          <article
-            class="card interactive accent-card person-card"
-            :style="{ '--content-color': accent(person) }"
-          >
-            <span class="accent-rail" aria-hidden="true" />
+          <article class="card interactive person-card">
             <RouterLink class="person-card-link focus-ring" :to="personPath(code, person.id)">
-              <span
-                class="avatar"
-                :style="{
-                  backgroundImage: `linear-gradient(135deg, ${accent(person)}22, rgba(15, 23, 42, .9))`,
-                }"
-              >
+              <span class="avatar">
                 <img
                   v-if="avatarUrl(person) && !brokenAvatars.has(person.id)"
                   :src="avatarUrl(person)!"
