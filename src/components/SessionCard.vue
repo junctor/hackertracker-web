@@ -110,23 +110,23 @@ withDefaults(
   top: 0;
   bottom: 0;
   left: 0;
-  width: 0.18rem;
+  width: 0.24rem;
   background: color-mix(in srgb, var(--session-accent) 72%, black);
   transition: width 180ms ease;
 }
 
 .session-card--content:hover .session-accent,
 .session-card--content:focus-within .session-accent {
-  width: 0.34rem;
+  width: 0.4rem;
 }
 
 .session-card--schedule .session-accent {
-  width: 0.12rem;
+  width: 0.18rem;
 }
 
 .session-card--schedule:hover .session-accent,
 .session-card--schedule:focus-within .session-accent {
-  width: 0.24rem;
+  width: 0.3rem;
 }
 
 .session-row {
