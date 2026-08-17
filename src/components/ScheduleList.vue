@@ -103,15 +103,25 @@ const days = computed(() =>
   })),
 );
 const selectedDay = ref("");
+const SESSION_BATCH_SIZE = 40;
+const visibleSessionCount = ref(SESSION_BATCH_SIZE);
 const nowSeconds = Math.floor(Date.now() / 1000);
 const tabButtons = ref<HTMLButtonElement[]>([]);
 const tabScroll = ref<HTMLElement | null>(null);
+const loadMoreTrigger = ref<HTMLButtonElement | null>(null);
 const canScrollEarlier = ref(false);
 const canScrollLater = ref(false);
 let tabResizeObserver: ResizeObserver | undefined;
+let loadMoreObserver: IntersectionObserver | undefined;
 
 const activeDay = computed(
   () => days.value.find(({ day }) => day === selectedDay.value) ?? days.value[0] ?? null,
+);
+const visibleSessions = computed(
+  () => activeDay.value?.scheduledContents.slice(0, visibleSessionCount.value) ?? [],
+);
+const remainingSessionCount = computed(() =>
+  Math.max(0, (activeDay.value?.scheduledContents.length ?? 0) - visibleSessions.value.length),
 );
 
 watch(
@@ -122,6 +132,21 @@ watch(
     void nextTick(updateTabScrollState);
   },
   { immediate: true },
+);
+watch(
+  activeDay,
+  () => {
+    visibleSessionCount.value = SESSION_BATCH_SIZE;
+  },
+  { flush: "sync" },
+);
+watch(
+  loadMoreTrigger,
+  (element, previous) => {
+    if (previous) loadMoreObserver?.unobserve(previous);
+    if (element) loadMoreObserver?.observe(element);
+  },
+  { flush: "post" },
 );
 
 function updateFilters(ids: number[]): void {
@@ -179,6 +204,10 @@ function scrollTabs(direction: -1 | 1): void {
   element.scrollBy({ left: direction * element.clientWidth * 0.75, behavior: "smooth" });
 }
 
+function showMoreSessions(): void {
+  visibleSessionCount.value += SESSION_BATCH_SIZE;
+}
+
 async function selectDay(day: string, index: number): Promise<void> {
   selectedDay.value = day;
   await nextTick();
@@ -204,9 +233,19 @@ async function handleTabKey(event: KeyboardEvent, index: number): Promise<void> 
 onMounted(() => {
   tabResizeObserver = new ResizeObserver(updateTabScrollState);
   if (tabScroll.value) tabResizeObserver.observe(tabScroll.value);
+  loadMoreObserver = new IntersectionObserver(
+    ([entry]) => {
+      if (entry?.isIntersecting) showMoreSessions();
+    },
+    { rootMargin: "600px 0px" },
+  );
+  if (loadMoreTrigger.value) loadMoreObserver.observe(loadMoreTrigger.value);
   void nextTick(updateTabScrollState);
 });
-onBeforeUnmount(() => tabResizeObserver?.disconnect());
+onBeforeUnmount(() => {
+  tabResizeObserver?.disconnect();
+  loadMoreObserver?.disconnect();
+});
 </script>
 
 <template>
@@ -236,7 +275,6 @@ onBeforeUnmount(() => tabResizeObserver?.disconnect());
             v-if="pageTitle === 'Schedule'"
             class="icon-button focus-ring"
             :to="bookmarksPath(conference.code)"
-            title="Bookmarks"
             aria-label="View bookmarked events"
             ><Bookmark aria-hidden="true"
           /></RouterLink>
@@ -244,7 +282,6 @@ onBeforeUnmount(() => tabResizeObserver?.disconnect());
             v-else
             class="icon-button focus-ring"
             :to="schedulePath(conference.code)"
-            title="Schedule"
             aria-label="Schedule"
             ><Calendar aria-hidden="true"
           /></RouterLink>
@@ -329,6 +366,7 @@ onBeforeUnmount(() => tabResizeObserver?.disconnect());
     <section
       v-else-if="activeDay"
       :id="`day-panel-${activeDay.day}`"
+      :key="activeDay.day"
       role="tabpanel"
       :aria-labelledby="`day-tab-${activeDay.day}`"
       tabindex="0"
@@ -342,10 +380,7 @@ onBeforeUnmount(() => tabResizeObserver?.disconnect());
         </p>
       </header>
       <ul class="stack-list schedule-list">
-        <li
-          v-for="content in activeDay.scheduledContents"
-          :key="`${content.contentId}:${content.sessionId}`"
-        >
+        <li v-for="content in visibleSessions" :key="`${content.contentId}:${content.sessionId}`">
           <ScheduleSessionCard
             :conference="conference"
             :session="content"
@@ -353,6 +388,15 @@ onBeforeUnmount(() => tabResizeObserver?.disconnect());
           />
         </li>
       </ul>
+      <button
+        v-if="remainingSessionCount"
+        ref="loadMoreTrigger"
+        type="button"
+        class="load-more-button focus-ring"
+        @click="showMoreSessions"
+      >
+        Show {{ Math.min(SESSION_BATCH_SIZE, remainingSessionCount) }} more
+      </button>
     </section>
   </div>
 </template>
@@ -502,9 +546,10 @@ onBeforeUnmount(() => tabResizeObserver?.disconnect());
 }
 
 .day-tab .count {
-  color: inherit;
-  font-size: 0.75rem;
-  opacity: 0.7;
+  color: var(--text-subtle);
+  font-size: 0.65rem;
+  font-weight: 550;
+  opacity: 0.72;
 }
 
 .schedule-panel {
@@ -526,8 +571,8 @@ onBeforeUnmount(() => tabResizeObserver?.disconnect());
 }
 
 .schedule-day-heading p {
-  color: var(--text-muted);
-  font-size: 0.875rem;
+  color: var(--text-subtle);
+  font-size: 0.75rem;
 }
 
 .stack-list {
@@ -537,6 +582,23 @@ onBeforeUnmount(() => tabResizeObserver?.disconnect());
 .stack-list {
   display: grid;
   gap: var(--space-3);
+}
+
+.schedule-list > li {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 8rem;
+}
+
+.load-more-button {
+  display: block;
+  margin: var(--space-5) auto 0;
+  padding: var(--space-2);
+  color: var(--accent-success);
+  font-weight: 700;
+}
+
+.load-more-button:hover {
+  color: white;
 }
 
 .empty-state .button {

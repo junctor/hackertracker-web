@@ -90,7 +90,6 @@ watchEffect(() => {
             v-if="scheduledLocationIds.has(location.id)"
             class="icon-button focus-ring schedule-link"
             :to="filteredScheduleRoute(conference.code, { locationId: location.id })"
-            :title="`View ${location.name} on the schedule`"
             :aria-label="`View ${location.name} on the schedule`"
           >
             <Calendar aria-hidden="true" />

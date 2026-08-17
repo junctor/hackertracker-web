@@ -57,7 +57,6 @@ watchEffect(() => {
               :href="map.href"
               target="_blank"
               rel="noopener noreferrer"
-              :title="`Open ${map.displayName}`"
               :aria-label="`Open ${map.displayName} in a new tab`"
               ><ExternalLink aria-hidden="true"
             /></a>

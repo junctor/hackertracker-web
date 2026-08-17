@@ -56,7 +56,6 @@ function downloadCalendar(): void {
       <button
         type="button"
         class="icon-button focus-ring"
-        title="Download iCal event"
         :aria-label="`Download iCal event for ${session.title}`"
         @click="downloadCalendar"
       >

@@ -145,7 +145,7 @@ nav {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
   list-style: none;
-  column-gap: var(--space-6);
+  gap: var(--space-4);
 }
 .menu-button-link {
   display: grid;
@@ -154,16 +154,16 @@ nav {
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: var(--space-3);
-  border-bottom: 1px solid var(--border);
-  padding: 0.9rem var(--space-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-2);
+  padding: 0.75rem var(--space-4);
   transition:
     border-color 0.2s,
     background-color 0.2s;
 }
 .menu-button-link:hover {
-  border-color: color-mix(in oklab, var(--accent), transparent 40%);
-  background: transparent;
-  color: white;
+  border-color: color-mix(in oklab, var(--accent), transparent 52%);
+  background: var(--surface-interactive);
 }
 .menu-button-link > svg {
   width: 1.2rem;

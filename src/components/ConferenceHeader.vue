@@ -48,7 +48,7 @@ onBeforeUnmount(() => {
   <header class="conference-header">
     <a class="skip-link focus-ring" href="#main">Skip to content</a>
     <div class="header-rule" aria-hidden="true" />
-    <div class="header-inner container">
+    <div class="header-inner container wide">
       <div class="brand-group">
         <RouterLink class="home-link focus-ring" to="/" aria-label="Hacker Tracker home">
           <img src="/images/logos/ht-logo.png" alt="" />

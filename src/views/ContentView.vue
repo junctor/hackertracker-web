@@ -166,7 +166,6 @@ async function handleShare(): Promise<void> {
             <button
               type="button"
               class="icon-button focus-ring"
-              title="Share"
               aria-label="Share event link"
               @click="handleShare"
             >
