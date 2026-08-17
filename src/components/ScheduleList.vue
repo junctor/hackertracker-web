@@ -205,7 +205,10 @@ function scrollTabs(direction: -1 | 1): void {
 }
 
 function showMoreSessions(): void {
-  visibleSessionCount.value += SESSION_BATCH_SIZE;
+  visibleSessionCount.value = Math.min(
+    activeDay.value?.scheduledContents.length ?? 0,
+    visibleSessionCount.value + SESSION_BATCH_SIZE,
+  );
 }
 
 async function selectDay(day: string, index: number): Promise<void> {
@@ -235,7 +238,12 @@ onMounted(() => {
   if (tabScroll.value) tabResizeObserver.observe(tabScroll.value);
   loadMoreObserver = new IntersectionObserver(
     ([entry]) => {
-      if (entry?.isIntersecting) showMoreSessions();
+      if (
+        entry?.isIntersecting &&
+        entry.target === loadMoreTrigger.value &&
+        remainingSessionCount.value
+      )
+        showMoreSessions();
     },
     { rootMargin: "600px 0px" },
   );
