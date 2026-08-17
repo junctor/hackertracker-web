@@ -1,12 +1,13 @@
 <script setup lang="ts">
+import { ArrowLeft, Bookmark, Calendar, ExternalLink, Share2, Users } from "@lucide/vue";
 import { computed, ref, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
 import type { Content, Location, Person, TagGroup } from "../types/hackertracker";
 
-import AppIcon from "../components/AppIcon.vue";
 import MarkdownContent from "../components/MarkdownContent.vue";
 import PageState from "../components/PageState.vue";
+import SessionCard from "../components/SessionCard.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
 import {
   getCachedContent,
@@ -19,7 +20,8 @@ import {
 } from "../firebase/data";
 import { toggleBookmark, loadBookmarks } from "../lib/bookmarks";
 import { generateCalendar } from "../lib/calendar";
-import { formatSessionTime } from "../lib/dates";
+import { formatScheduleTime } from "../lib/dates";
+import { friendlyLoadError } from "../lib/errors";
 import { contentPath, parseNumericParam, personPath, schedulePath } from "../lib/routes";
 import {
   getAccentColor,
@@ -72,7 +74,7 @@ watch(
   async ([conferenceCode, id]) => {
     const current = ++request;
     if (!conferenceCode || !id) {
-      error.value = "Missing required URL parameters.";
+      error.value = "This link is missing a valid conference or session.";
       loading.value = false;
       return;
     }
@@ -108,8 +110,7 @@ watch(
       people.value = loadedPeople;
       locations.value = loadedLocations;
     } catch (reason) {
-      if (current === request)
-        error.value = reason instanceof Error ? reason.message : "Failed to load content";
+      if (current === request) error.value = friendlyLoadError(reason, "this session");
     } finally {
       if (current === request) loading.value = false;
     }
@@ -161,12 +162,12 @@ function addToCalendar(sessionId: number): void {
     <PageState
       v-if="loading && !conference && !content"
       kind="loading"
-      message="Loading content..."
+      message="Getting session details…"
     />
     <PageState
       v-else-if="error && (!conference || !content)"
       kind="error"
-      title="We couldn't load this page"
+      title="Session unavailable"
       :message="error"
     />
     <article
@@ -175,14 +176,13 @@ function addToCalendar(sessionId: number): void {
       aria-labelledby="content-title"
       :style="{ '--content-color': accentColor }"
     >
-      <header class="card accent-card detail-hero">
-        <span class="accent-rail" aria-hidden="true" />
+      <header class="detail-hero">
         <div class="detail-actions">
           <RouterLink
             class="button icon-label-button focus-ring"
             :to="schedulePath(conference.code)"
           >
-            <AppIcon name="arrow-left" /><span>Schedule</span>
+            <ArrowLeft aria-hidden="true" /><span>Schedule</span>
           </RouterLink>
           <div>
             <button
@@ -192,7 +192,7 @@ function addToCalendar(sessionId: number): void {
               aria-label="Share event link"
               @click="handleShare"
             >
-              <AppIcon name="share" />
+              <Share2 aria-hidden="true" />
             </button>
             <button
               type="button"
@@ -201,7 +201,7 @@ function addToCalendar(sessionId: number): void {
               :aria-label="`${bookmarked ? 'Remove' : 'Add'} bookmark for ${content.title}`"
               @click="handleBookmark"
             >
-              <AppIcon name="bookmark" :filled="bookmarked" />
+              <Bookmark aria-hidden="true" :fill="bookmarked ? 'currentColor' : 'none'" />
             </button>
           </div>
         </div>
@@ -226,29 +226,42 @@ function addToCalendar(sessionId: number): void {
 
       <section v-if="sessions.length" class="detail-section" aria-labelledby="sessions-title">
         <h2 id="sessions-title">Sessions</h2>
-        <ul class="resource-list">
-          <li v-for="session in sessions" :key="session.session_id" class="card session-card">
-            <div>
-              <time :datetime="new Date(session.begin_tsz).toISOString()">{{
-                formatSessionTime(
-                  new Date(session.begin_tsz),
-                  new Date(session.end_tsz),
-                  session.timezone_name || conference.timezone || "UTC",
+        <ul class="stack-list">
+          <li v-for="session in sessions" :key="session.session_id">
+            <SessionCard
+              accent="content"
+              :accent-color="accentColor"
+              :title="content.title"
+              :begin="
+                formatScheduleTime(
+                  session.begin_tsz,
+                  session.timezone_name || conference.timezone || 'UTC',
+                  true,
                 )
-              }}</time>
-              <p v-if="locationById.get(session.location_id)" class="icon-text">
-                <AppIcon name="pin" />{{ locationById.get(session.location_id)?.name }}
-              </p>
-            </div>
-            <button
-              type="button"
-              class="icon-button focus-ring"
-              title="Add session to calendar"
-              aria-label="Add session to calendar"
-              @click="addToCalendar(session.session_id)"
+              "
+              :end="
+                formatScheduleTime(
+                  session.end_tsz,
+                  session.timezone_name || conference.timezone || 'UTC',
+                )
+              "
+              :begin-date-time="new Date(session.begin_tsz).toISOString()"
+              :end-date-time="new Date(session.end_tsz).toISOString()"
+              :people="speakerNames"
+              :location="locationById.get(session.location_id)?.name"
             >
-              <AppIcon name="calendar" />
-            </button>
+              <template #actions>
+                <button
+                  type="button"
+                  class="icon-button focus-ring"
+                  title="Add session to calendar"
+                  aria-label="Add session to calendar"
+                  @click="addToCalendar(session.session_id)"
+                >
+                  <Calendar aria-hidden="true" />
+                </button>
+              </template>
+            </SessionCard>
           </li>
         </ul>
       </section>
@@ -271,7 +284,7 @@ function addToCalendar(sessionId: number): void {
               target="_blank"
               rel="noopener noreferrer"
               ><span>{{ link.label }}</span
-              ><AppIcon name="external"
+              ><ExternalLink aria-hidden="true"
             /></a>
           </li>
         </ul>
@@ -286,7 +299,7 @@ function addToCalendar(sessionId: number): void {
               target="_blank"
               rel="noopener noreferrer"
               ><span>{{ media.name }}</span
-              ><AppIcon name="external"
+              ><ExternalLink aria-hidden="true"
             /></a>
           </li>
         </ul>
@@ -311,7 +324,7 @@ function addToCalendar(sessionId: number): void {
           <ul class="resource-list">
             <li v-for="person in people" :key="person.id">
               <RouterLink class="plain-link focus-ring" :to="personPath(conference.code, person.id)"
-                ><AppIcon name="people" />{{ person.name }}</RouterLink
+                ><Users aria-hidden="true" />{{ person.name }}</RouterLink
               >
             </li>
           </ul>

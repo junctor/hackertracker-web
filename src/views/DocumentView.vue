@@ -9,6 +9,7 @@ import PageState from "../components/PageState.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
 import { getDocument } from "../firebase/data";
 import { toDate } from "../lib/dates";
+import { friendlyLoadError } from "../lib/errors";
 import { conferenceMenuPath, parseNumericParam } from "../lib/routes";
 
 const route = useRoute();
@@ -31,7 +32,7 @@ watch(
       currentDocument.value = await getDocument(current.code, id);
       if (!currentDocument.value) error.value = "Document not found.";
     } catch (reason) {
-      error.value = reason instanceof Error ? reason.message : "Failed to load document";
+      error.value = friendlyLoadError(reason, "this document");
     } finally {
       loading.value = false;
     }
@@ -46,7 +47,7 @@ watchEffect(() => {
 
 <template>
   <article v-if="conference" class="container page-content document-page">
-    <PageState v-if="loading" kind="loading" message="Loading document..." />
+    <PageState v-if="loading" kind="loading" message="Getting the document…" />
     <PageState
       v-else-if="error || !currentDocument"
       kind="error"
@@ -55,7 +56,7 @@ watchEffect(() => {
     />
     <template v-else>
       <RouterLink class="back-link focus-ring" :to="conferenceMenuPath(conference.code)"
-        >← Conference menu</RouterLink
+        >← Conference Menu</RouterLink
       >
       <header>
         <p class="kicker">Conference document</p>

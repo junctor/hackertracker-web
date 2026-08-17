@@ -7,6 +7,7 @@ import type { Content, Organization, Person } from "../types/hackertracker";
 import PageState from "../components/PageState.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
 import { getAllContent, getOrganizations, getSpeakers } from "../firebase/data";
+import { friendlyLoadError } from "../lib/errors";
 import { conferenceSectionPath, contentPath, personPath } from "../lib/routes";
 
 const route = useRoute();
@@ -57,7 +58,7 @@ watch(
         getOrganizations(current.code),
       ]);
     } catch (reason) {
-      error.value = reason instanceof Error ? reason.message : "Failed to load search data";
+      error.value = friendlyLoadError(reason, "conference search");
     } finally {
       loading.value = false;
     }
@@ -85,7 +86,7 @@ watchEffect(() => {
 <template>
   <section v-if="conference" class="container page-content search-page">
     <header>
-      <p class="kicker">Global search</p>
+      <p class="kicker">Global Search</p>
       <h1 tabindex="-1">Search {{ conference.name }}</h1>
       <p>Search content, people, and organizations.</p>
     </header>
@@ -98,7 +99,7 @@ watchEffect(() => {
         placeholder="Search the conference..."
         autofocus
     /></label>
-    <PageState v-if="loading" kind="loading" message="Preparing search..." />
+    <PageState v-if="loading" kind="loading" message="Indexing conference content…" />
     <PageState v-else-if="error" kind="error" title="Search unavailable" :message="error" />
     <PageState
       v-else-if="!needle"
@@ -199,9 +200,7 @@ header > p:last-child {
   font-size: 1.25rem;
 }
 .result-groups h2 span {
-  border-radius: var(--radius-pill);
-  background: var(--accent-soft);
-  padding: 0.1rem 0.5rem;
+  padding-left: var(--space-1);
   color: var(--accent-success);
   font-size: 0.7rem;
 }

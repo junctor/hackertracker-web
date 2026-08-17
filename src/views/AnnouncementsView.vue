@@ -8,6 +8,7 @@ import PageState from "../components/PageState.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
 import { getArticles } from "../firebase/data";
 import { toDate } from "../lib/dates";
+import { friendlyLoadError } from "../lib/errors";
 
 const { conference } = useConferenceContext();
 const articles = ref<ConferenceArticle[]>([]);
@@ -23,7 +24,7 @@ watch(
         (a, b) => (toDate(b.updatedAt)?.getTime() ?? 0) - (toDate(a.updatedAt)?.getTime() ?? 0),
       );
     } catch (reason) {
-      error.value = reason instanceof Error ? reason.message : "Failed to load announcements";
+      error.value = friendlyLoadError(reason, "announcements");
     } finally {
       loading.value = false;
     }
@@ -39,17 +40,12 @@ watchEffect(() => {
 <template>
   <section v-if="conference" class="container page-content announcements-page">
     <header>
-      <p class="kicker">Latest updates</p>
+      <p class="kicker">Latest Updates</p>
       <h1 tabindex="-1">Announcements</h1>
       <p>Conference announcements and updates.</p>
     </header>
-    <PageState v-if="loading" kind="loading" message="Loading announcements..." />
-    <PageState
-      v-else-if="error"
-      kind="error"
-      title="Couldn't load announcements"
-      :message="error"
-    />
+    <PageState v-if="loading" kind="loading" message="Checking for announcements…" />
+    <PageState v-else-if="error" kind="error" title="Announcements unavailable" :message="error" />
     <PageState v-else-if="!articles.length" kind="empty" message="No announcements at this time." />
     <ul v-else class="announcement-list">
       <li v-for="(article, index) in articles" :key="article.id">

@@ -31,9 +31,9 @@ watchEffect(() => {
     <PageState
       v-if="loading && !conference && !grouped"
       kind="loading"
-      message="Loading schedule..."
+      message="Getting the latest schedule…"
     />
-    <PageState v-else-if="error" kind="error" title="We couldn't load this page" :message="error">
+    <PageState v-else-if="error" kind="error" title="Schedule unavailable" :message="error">
       <div class="state-actions">
         <RouterLink class="button focus-ring" to="/">Return Home</RouterLink
         ><RouterLink class="button focus-ring" to="/support">Contact Support</RouterLink>

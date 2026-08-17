@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ExternalLink } from "@lucide/vue";
 import { computed, ref, watchEffect } from "vue";
 import PageState from "../components/PageState.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
@@ -29,7 +30,7 @@ watchEffect(() => {
 <template>
   <section v-if="conference" class="container page-content maps-page">
     <header>
-      <p class="kicker">Venue guide</p>
+      <p class="kicker">Venue Guide</p>
       <h1 tabindex="-1">{{ conference.name }} Maps</h1>
       <p>Venue maps for {{ conference.name }}.</p>
     </header>
@@ -46,19 +47,22 @@ watchEffect(() => {
             <p v-if="map.description">{{ map.description }}</p>
             <small v-if="map.filename || map.file">{{ map.filename || map.file }}</small>
           </div>
-          <img
-            v-if="safeUrl(map.svg_url) && !broken.has(map.id)"
-            :src="safeUrl(map.svg_url)!"
-            :alt="`Preview of ${name(map)}`"
-            @error="broken = new Set([...broken, map.id])"
-          /><a
-            v-if="safeUrl(map.url)"
-            class="button focus-ring"
-            :href="safeUrl(map.url)!"
-            target="_blank"
-            rel="noopener noreferrer"
-            >Open map ↗</a
-          >
+          <div v-if="safeUrl(map.svg_url) && !broken.has(map.id)" class="map-preview">
+            <img
+              :src="safeUrl(map.svg_url)!"
+              :alt="`Preview of ${name(map)}`"
+              @error="broken = new Set([...broken, map.id])"
+            />
+          </div>
+          <div v-if="safeUrl(map.url)" class="map-actions">
+            <a
+              class="button focus-ring"
+              :href="safeUrl(map.url)!"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Open Map <ExternalLink aria-hidden="true"
+            /></a>
+          </div>
         </article>
       </li>
     </ul>
@@ -85,37 +89,51 @@ header > p:last-child {
 }
 .map-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+  grid-template-columns: minmax(0, 1fr);
   list-style: none;
   gap: var(--space-5);
   margin-top: var(--space-6);
 }
 article {
-  display: flex;
-  height: 100%;
-  flex-direction: column;
+  display: grid;
+  min-width: 0;
+  gap: var(--space-4);
   border: 1px solid var(--border);
-  border-radius: var(--radius-3);
-  background: var(--surface-muted);
-  padding: var(--space-5);
+  border-radius: var(--radius-2);
+  padding: var(--space-4);
 }
 article p,
 article small {
   display: block;
   margin-top: var(--space-2);
   color: var(--text-muted);
+  overflow-wrap: anywhere;
 }
-img {
-  width: 100%;
-  max-height: 25rem;
-  margin-top: var(--space-4);
+
+.map-preview {
+  overflow: hidden;
+  border: 1px solid var(--border);
   border-radius: var(--radius-2);
   background: white;
+}
+
+img {
+  display: block;
+  width: 100%;
+  max-height: min(70vh, 34rem);
   object-fit: contain;
 }
-article .button {
-  align-self: flex-start;
-  margin-top: auto;
+
+.map-actions {
   padding-top: var(--space-4);
+}
+
+.map-actions .button {
+  gap: var(--space-2);
+}
+
+.map-actions svg {
+  width: 1rem;
+  height: 1rem;
 }
 </style>

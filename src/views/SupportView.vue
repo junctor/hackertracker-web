@@ -44,7 +44,7 @@ onMounted(() => (document.title = "Support · Hacker Tracker"));
               href="https://github.com/junctor"
               target="_blank"
               rel="noopener noreferrer"
-              >GitHub org</a
+              >GitHub Org</a
             ><a
               class="button focus-ring"
               href="https://defcon.social/@aNullValue"
@@ -57,7 +57,7 @@ onMounted(() => (document.title = "Support · Hacker Tracker"));
       </section>
       <div class="container static-content">
         <section>
-          <h2>How can a conference use Hacker Tracker?</h2>
+          <h2>How Can a Conference Use Hacker Tracker?</h2>
           <p class="lead">
             If you represent a conference and want to make your information available in Hacker
             Tracker, please reach out to
@@ -66,7 +66,7 @@ onMounted(() => (document.title = "Support · Hacker Tracker"));
             >.
           </p>
           <ul class="info-grid">
-            <li v-for="item in benefits" :key="item" class="card info-item">
+            <li v-for="item in benefits" :key="item" class="info-item">
               <span class="dot" />{{ item }}
             </li>
           </ul>
@@ -75,7 +75,7 @@ onMounted(() => (document.title = "Support · Hacker Tracker"));
           <h2>Source Code</h2>
           <p class="lead">Our project is made up of several apps maintained separately:</p>
           <div class="info-grid">
-            <div v-for="repository in repositories" :key="repository.name" class="card info-item">
+            <div v-for="repository in repositories" :key="repository.name" class="info-item">
               <span
                 ><a
                   v-if="repository.href"
@@ -92,21 +92,21 @@ onMounted(() => (document.title = "Support · Hacker Tracker"));
         <section>
           <h2>Bug Reports &amp; Contributions</h2>
           <div class="info-grid">
-            <article class="card info-card">
+            <article class="info-card">
               <h3>Security</h3>
               <p>
                 Found a vulnerability? Use GitHub’s <em>Report a vulnerability</em> in the
                 appropriate repo.
               </p>
             </article>
-            <article class="card info-card">
+            <article class="info-card">
               <h3>Bugs &amp; Features</h3>
               <p>
                 Open an issue in the relevant repo. If it spans multiple repos, one report is
                 enough.
               </p>
             </article>
-            <article class="card info-card wide-card">
+            <article class="info-card wide-card">
               <h3>Contributing</h3>
               <p>
                 Interested in contributing? Reach out to any of us. We don’t yet have a formal

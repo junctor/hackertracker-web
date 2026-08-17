@@ -56,10 +56,7 @@ onMounted(() => (document.title = "About · Hacker Tracker"));
       <section class="static-hero">
         <div class="container">
           <div class="about-title">
-            <img
-              src="https://github.com/junctor/android/blob/main/app/src/main/play_store_512.png?raw=1"
-              alt="Hacker Tracker Logo"
-            />
+            <img src="/images/logos/ht-logo.png" alt="" />
             <div>
               <h1 tabindex="-1">About Hacker Tracker</h1>
               <p>Help your conference attendees help themselves.</p>
@@ -75,11 +72,11 @@ onMounted(() => (document.title = "About · Hacker Tracker"));
       <div class="container static-content">
         <section>
           <div class="section-title-row">
-            <h2>Who uses Hacker Tracker?</h2>
+            <h2>Who Uses Hacker Tracker?</h2>
             <span class="count">Community-driven</span>
           </div>
           <ul class="info-grid three-columns">
-            <li v-for="name in conferences" :key="name" class="card info-item">
+            <li v-for="name in conferences" :key="name" class="info-item">
               <span class="dot" />{{ name }}
             </li>
           </ul>
@@ -91,7 +88,7 @@ onMounted(() => (document.title = "About · Hacker Tracker"));
             attendee communication at conferences everywhere.
           </p>
           <ul class="team-grid">
-            <li v-for="member in team" :key="member.handle" class="card">
+            <li v-for="member in team" :key="member.handle">
               <a :href="member.url" target="_blank" rel="noopener noreferrer"
                 ><img :src="member.avatar" :alt="`${member.handle} avatar`" /><span
                   ><strong>{{ member.handle }}</strong
@@ -104,17 +101,17 @@ onMounted(() => (document.title = "About · Hacker Tracker"));
         <section>
           <h2>Thanks</h2>
           <ul class="info-grid">
-            <li class="card info-item">
+            <li class="info-item">
               <a href="https://defcon.org" target="_blank" rel="noopener noreferrer">DEF CON</a>
             </li>
-            <li class="card info-item">
+            <li class="info-item">
               <span
                 ><a href="https://www.ccc.de/en/" target="_blank" rel="noopener noreferrer"
                   >Chaos Computer Club (CCC)</a
                 ><small>Source of inspiration</small></span
               >
             </li>
-            <li class="card info-item">
+            <li class="info-item">
               <span
                 ><a
                   href="https://infosec.exchange/@shortstack"

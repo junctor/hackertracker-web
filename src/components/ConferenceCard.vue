@@ -40,3 +40,49 @@ const updatedLabel = computed(() =>
     </article>
   </RouterLink>
 </template>
+
+<style scoped>
+.conference-card-link {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-2);
+  text-align: left;
+}
+
+.conference-card {
+  display: flex;
+  min-height: 7.25rem;
+  height: 100%;
+  flex-direction: column;
+  border-radius: var(--radius-2);
+  padding: 1rem;
+  box-shadow: none;
+}
+
+h3 {
+  display: -webkit-box;
+  overflow: hidden;
+  min-height: 2.75rem;
+  color: var(--text-primary);
+  font-size: 1.05rem;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.conference-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.updated-at {
+  margin-top: 0.4rem;
+  color: var(--text-subtle);
+  font-size: 0.72rem;
+}
+</style>

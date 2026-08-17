@@ -1,13 +1,14 @@
 <script setup lang="ts">
+import { Search } from "@lucide/vue";
 import { computed, ref, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
 import type { Person } from "../types/hackertracker";
 
-import AppIcon from "../components/AppIcon.vue";
 import PageState from "../components/PageState.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
 import { getSpeakers } from "../firebase/data";
+import { friendlyLoadError } from "../lib/errors";
 import { normalizeConferenceCode, personPath } from "../lib/routes";
 
 const route = useRoute();
@@ -49,7 +50,7 @@ watch(
   async (conferenceCode) => {
     const current = ++request;
     if (!conferenceCode) {
-      error.value = "Missing required URL parameters.";
+      error.value = "This link is missing a valid conference.";
       loading.value = false;
       return;
     }
@@ -60,8 +61,7 @@ watch(
       if (current !== request) return;
       people.value = loadedPeople;
     } catch (reason) {
-      if (current === request)
-        error.value = reason instanceof Error ? reason.message : "Failed to load people";
+      if (current === request) error.value = friendlyLoadError(reason, "the speaker list");
     } finally {
       if (current === request) loading.value = false;
     }
@@ -103,8 +103,8 @@ function highlightedName(person: Person): { before: string; match: string; after
 
 <template>
   <div>
-    <PageState v-if="loading" kind="loading" message="Loading people..." />
-    <PageState v-else-if="error" kind="error" title="We couldn't load this page" :message="error" />
+    <PageState v-if="loading" kind="loading" message="Getting the speaker list…" />
+    <PageState v-else-if="error" kind="error" title="People unavailable" :message="error" />
     <section v-else-if="conference && code" class="container wide page-content">
       <div class="people-heading">
         <div class="title-with-count">
@@ -116,7 +116,7 @@ function highlightedName(person: Person): { before: string; match: string; after
         </div>
         <form class="people-controls" role="search" @submit.prevent>
           <label class="search-field"
-            ><AppIcon name="search" /><input
+            ><Search aria-hidden="true" /><input
               v-model="query"
               class="input focus-ring"
               type="search"

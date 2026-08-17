@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import { Bookmark, Calendar, Info, MapPin, Search, Users } from "@lucide/vue";
 import { computed, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
-import AppIcon from "../components/AppIcon.vue";
 import PageState from "../components/PageState.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
 import { formatDateRange, toDate } from "../lib/dates";
@@ -44,12 +44,12 @@ const dateLabel = computed(() =>
     : undefined,
 );
 const iconFor = (key: MenuRouteKey) => {
-  if (key === "schedule") return "calendar" as const;
-  if (key === "bookmarks") return "bookmark" as const;
-  if (key === "people") return "people" as const;
-  if (key === "search") return "search" as const;
-  if (key === "locations" || key === "maps") return "pin" as const;
-  return "info" as const;
+  if (key === "schedule") return Calendar;
+  if (key === "bookmarks") return Bookmark;
+  if (key === "people") return Users;
+  if (key === "search") return Search;
+  if (key === "locations" || key === "maps") return MapPin;
+  return Info;
 };
 
 watchEffect(() => {
@@ -60,16 +60,20 @@ watchEffect(() => {
 
 <template>
   <section v-if="conference" class="conference-menu container">
-    <PageState v-if="menuLoading && !activeMenu" kind="loading" message="Loading menu..." />
+    <PageState
+      v-if="menuLoading && !activeMenu"
+      kind="loading"
+      message="Getting the Conference Menu…"
+    />
     <PageState
       v-else-if="menuError"
       kind="error"
-      title="We couldn't load this menu"
+      title="Conference Menu unavailable"
       :message="menuError"
     />
     <template v-else>
       <header class="menu-hero">
-        <p class="kicker">{{ isHome ? "Conference menu" : activeMenu?.titleText }}</p>
+        <p class="kicker">{{ isHome ? "Conference Menu" : activeMenu?.titleText }}</p>
         <h1 tabindex="-1">{{ isHome ? conference.name : activeMenu?.titleText }}</h1>
         <p v-if="isHome" class="description">
           {{
@@ -79,20 +83,15 @@ watchEffect(() => {
           }}
         </p>
         <p v-else class="description">Resources and information from {{ conference.name }}.</p>
-        <time v-if="isHome && dateLabel" class="date-pill">{{ dateLabel }}</time>
+        <time v-if="isHome && dateLabel" class="date-label">{{ dateLabel }}</time>
       </header>
 
       <nav v-if="items.length" :aria-label="`${activeMenu?.titleText || conference.name} sections`">
         <ul class="menu-grid">
-          <li v-for="(item, index) in items" :key="item.id">
-            <RouterLink
-              class="menu-card focus-ring"
-              :class="{ featured: index < 2 }"
-              :to="item.href"
-            >
-              <span class="menu-card-icon"><AppIcon :name="iconFor(item.routeKey)" /></span>
+          <li v-for="item in items" :key="item.id">
+            <RouterLink class="menu-button-link focus-ring" :to="item.href">
+              <component :is="iconFor(item.routeKey)" aria-hidden="true" />
               <strong>{{ item.titleText }}</strong>
-              <span class="menu-card-arrow" aria-hidden="true">›</span>
             </RouterLink>
           </li>
         </ul>
@@ -142,16 +141,12 @@ h1 {
   font-size: clamp(1rem, 2vw, 1.125rem);
   text-wrap: pretty;
 }
-.date-pill {
-  display: inline-flex;
+.date-label {
+  display: block;
   margin-top: var(--space-5);
-  border: 1px solid color-mix(in oklab, var(--accent-success), transparent 70%);
-  border-radius: var(--radius-pill);
-  background: color-mix(in oklab, var(--accent-success), transparent 90%);
-  padding: 0.35rem 0.75rem;
-  color: color-mix(in oklab, var(--accent-success), white 12%);
-  font-size: 0.8rem;
-  font-weight: 700;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 650;
 }
 nav {
   margin-top: clamp(2rem, 6vw, 3rem);
@@ -162,50 +157,30 @@ nav {
   list-style: none;
   gap: var(--space-4);
 }
-.menu-card {
+.menu-button-link {
   display: grid;
-  min-height: 4.75rem;
+  min-height: var(--control-min);
   height: 100%;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: var(--space-3);
-  border: 1px solid color-mix(in oklab, var(--border), white 8%);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-2);
-  background: color-mix(in oklab, var(--surface-muted), transparent 42%);
-  padding: var(--space-3) var(--space-4);
+  padding: 0.75rem var(--space-4);
   transition:
     border-color 0.2s,
     background-color 0.2s;
 }
-.menu-card.featured {
-  border-color: color-mix(in oklab, var(--accent-success), transparent 68%);
-}
-.menu-card:hover {
+.menu-button-link:hover {
   border-color: color-mix(in oklab, var(--accent), transparent 52%);
   background: var(--surface-interactive);
 }
-.menu-card-icon,
-.menu-card-arrow {
-  display: grid;
-  width: 2.25rem;
-  height: 2.25rem;
-  place-items: center;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-2);
+.menu-button-link > svg {
+  width: 1.2rem;
+  height: 1.2rem;
   color: var(--accent-success);
 }
-.menu-card-icon :deep(svg) {
-  width: 1.25rem;
-  height: 1.25rem;
-}
-.menu-card-arrow {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  color: var(--text-subtle);
-  font-size: 1.35rem;
-}
-.menu-card strong {
+.menu-button-link strong {
   font-size: 1rem;
   overflow-wrap: anywhere;
 }

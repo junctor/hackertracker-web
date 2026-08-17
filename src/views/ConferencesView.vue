@@ -4,10 +4,12 @@ import { computed, onMounted, ref } from "vue";
 import type { Conference, TimestampParts } from "../types/hackertracker";
 
 import ConferenceCard from "../components/ConferenceCard.vue";
+import PageState from "../components/PageState.vue";
 import SiteFooter from "../components/SiteFooter.vue";
 import SiteHeader from "../components/SiteHeader.vue";
 import { getConferences } from "../firebase/data";
 import { toDate, type DateLike } from "../lib/dates";
+import { friendlyLoadError } from "../lib/errors";
 
 const conferences = ref<Conference[]>([]);
 const loading = ref(true);
@@ -72,7 +74,7 @@ onMounted(async () => {
   try {
     conferences.value = await getConferences(500);
   } catch (reason) {
-    error.value = reason instanceof Error ? reason.message : "Failed to load conferences.";
+    error.value = friendlyLoadError(reason, "conferences");
   } finally {
     loading.value = false;
   }
@@ -90,7 +92,12 @@ onMounted(async () => {
       <div v-if="loading" class="conference-grid" aria-label="Loading conferences" aria-busy="true">
         <div v-for="index in 8" :key="index" class="card skeleton" />
       </div>
-      <div v-else-if="error" class="empty-state" role="alert">{{ error }}</div>
+      <PageState
+        v-else-if="error"
+        kind="error"
+        title="Conferences are unavailable"
+        :message="error"
+      />
       <div v-else class="conference-sections">
         <section
           v-for="group in groups"
@@ -129,3 +136,82 @@ onMounted(async () => {
     <SiteFooter />
   </div>
 </template>
+
+<style scoped>
+.page-heading {
+  margin-bottom: 1.75rem;
+}
+
+.page-heading h1 {
+  font-size: clamp(2rem, 5vw, 2.5rem);
+  line-height: 1.15;
+}
+
+.conference-sections {
+  display: grid;
+  gap: 2.5rem;
+}
+
+.section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.section-title-row h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.count {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.divider {
+  height: 1px;
+  margin-block: 0.75rem 1rem;
+  background: var(--border);
+}
+
+.conference-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 1rem;
+}
+
+.anchor-link {
+  color: var(--text-subtle);
+}
+
+.skeleton {
+  min-height: 7.25rem;
+  animation: pulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 0.85;
+  }
+}
+
+@media (width < 56rem) {
+  .conference-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (width < 40rem) {
+  .conference-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

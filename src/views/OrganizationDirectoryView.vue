@@ -8,6 +8,7 @@ import MarkdownContent from "../components/MarkdownContent.vue";
 import PageState from "../components/PageState.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
 import { getOrganizations } from "../firebase/data";
+import { friendlyLoadError } from "../lib/errors";
 import { resolveMenuItems, type MenuRouteKey } from "../lib/menuRoutes";
 import { conferenceSectionPath, parseNumericParam } from "../lib/routes";
 
@@ -71,7 +72,7 @@ watch(
     try {
       organizations.value = await getOrganizations(current.code);
     } catch (reason) {
-      error.value = reason instanceof Error ? reason.message : "Failed to load organizations";
+      error.value = friendlyLoadError(reason, title.value.toLowerCase());
     } finally {
       loading.value = false;
     }
@@ -86,13 +87,8 @@ watchEffect(() => {
 
 <template>
   <section v-if="conference" class="container page-content directory-page">
-    <PageState v-if="loading" kind="loading" :message="`Loading ${title.toLowerCase()}...`" />
-    <PageState
-      v-else-if="error"
-      kind="error"
-      :title="`Couldn't load ${title.toLowerCase()}`"
-      :message="error"
-    />
+    <PageState v-if="loading" kind="loading" :message="`Getting ${title.toLowerCase()}…`" />
+    <PageState v-else-if="error" kind="error" :title="`${title} unavailable`" :message="error" />
     <article v-else-if="organizationId && selected" class="organization-detail">
       <RouterLink class="back-link focus-ring" :to="conferenceSectionPath(conference.code, section)"
         >← {{ title }}</RouterLink
@@ -244,6 +240,12 @@ h1 {
   border-color: color-mix(in oklab, var(--accent), transparent 50%);
   background: var(--surface-interactive);
 }
+.organization-card strong {
+  min-width: 0;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
 .organization-logo {
   display: grid;
   width: 3rem;
@@ -276,6 +278,13 @@ h1 {
   align-items: center;
   gap: var(--space-5);
   margin-top: var(--space-6);
+}
+.detail-header > div:last-child {
+  min-width: 0;
+}
+.detail-header h1 {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .detail-body {
   max-width: 52rem;

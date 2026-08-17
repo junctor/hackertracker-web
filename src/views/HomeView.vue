@@ -4,6 +4,7 @@ import { onMounted, ref } from "vue";
 import type { Conference } from "../types/hackertracker";
 
 import ConferenceCard from "../components/ConferenceCard.vue";
+import PageState from "../components/PageState.vue";
 import SiteFooter from "../components/SiteFooter.vue";
 import SiteHeader from "../components/SiteHeader.vue";
 import { getUpcomingConferences } from "../firebase/data";
@@ -17,7 +18,7 @@ onMounted(async () => {
   try {
     conferences.value = await getUpcomingConferences();
   } catch {
-    error.value = "Failed to load conferences.";
+    error.value = "We couldn’t load upcoming conferences. Check your connection and try again.";
   } finally {
     loading.value = false;
   }
@@ -29,28 +30,7 @@ onMounted(async () => {
     <SiteHeader />
     <main id="main" class="home-main">
       <header class="hero">
-        <h1 tabindex="-1">Hacker Tracker</h1>
-        <p>For hackers, by hackers. All schedules. All talks. All parties.</p>
-        <div class="hero-actions">
-          <a
-            class="store-button store-button--apple focus-ring"
-            href="https://apps.apple.com/us/app/hackertracker/id1021141595?mt=8"
-            target="_blank"
-            rel="noopener noreferrer"
-            ><span class="store-copy"
-              ><strong>Download for iOS</strong><small>Download on the App Store</small></span
-            ><span aria-hidden="true">→</span></a
-          >
-          <a
-            class="store-button store-button--play focus-ring"
-            href="https://play.google.com/store/apps/details?id=com.shortstack.hackertracker"
-            target="_blank"
-            rel="noopener noreferrer"
-            ><span class="store-copy"
-              ><strong>Download for Android</strong><small>Get it on Google Play</small></span
-            ><span aria-hidden="true">→</span></a
-          >
-        </div>
+        <h1 tabindex="-1"><span>Hacker</span><span>Tracker</span></h1>
       </header>
 
       <section
@@ -73,7 +53,12 @@ onMounted(async () => {
         >
           <div v-for="index in 4" :key="index" class="card skeleton" />
         </div>
-        <div v-else-if="error" class="empty-state" role="alert">{{ error }}</div>
+        <PageState
+          v-else-if="error"
+          kind="error"
+          title="Conferences are unavailable"
+          :message="error"
+        />
         <div v-else class="conference-grid">
           <ConferenceCard
             v-for="conference in conferences"
@@ -89,3 +74,113 @@ onMounted(async () => {
     <SiteFooter />
   </div>
 </template>
+
+<style scoped>
+.home-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(3.5rem, 10vw, 7rem) 0 3rem;
+}
+
+.hero {
+  width: min(var(--layout-wide), calc(100% - (var(--page-padding) * 2)));
+}
+
+.hero h1 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+  font-size: clamp(3.5rem, 16vw, 7.75rem);
+  font-weight: 850;
+  letter-spacing: 0;
+  line-height: 0.9;
+  text-shadow:
+    0.045em 0.045em 0 var(--brand-cyan),
+    -0.045em -0.045em 0 var(--brand-red);
+}
+
+.hero h1 span {
+  white-space: nowrap;
+}
+
+.home-conferences {
+  margin-top: clamp(3.5rem, 9vw, 6rem);
+}
+
+.section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.section-title-row h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.divider {
+  height: 1px;
+  margin-block: 0.75rem 1rem;
+  background: var(--border);
+}
+
+.conference-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 1rem;
+}
+
+.skeleton {
+  min-height: 7.25rem;
+  animation: pulse 1.2s ease-in-out infinite alternate;
+}
+
+.view-all {
+  display: table;
+  margin-top: 1.5rem;
+  margin-inline: auto;
+}
+
+.count {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+@keyframes pulse {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 0.85;
+  }
+}
+
+@media (width < 56rem) {
+  .conference-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (width >= 56rem) {
+  .hero h1 {
+    flex-direction: row;
+    justify-content: center;
+    gap: 0.22em;
+    font-size: clamp(5rem, 10.4vw, 9rem);
+  }
+}
+
+@media (width < 40rem) {
+  .conference-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

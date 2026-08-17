@@ -1,9 +1,8 @@
 <script setup lang="ts">
+import { SlidersHorizontal } from "@lucide/vue";
 import { computed, ref } from "vue";
 
 import type { TagGroup } from "../types/hackertracker";
-
-import AppIcon from "./AppIcon.vue";
 
 const props = defineProps<{ groups: TagGroup[]; selectedIds: number[] }>();
 const emit = defineEmits<{ change: [ids: number[]] }>();
@@ -39,7 +38,7 @@ function toggle(id: number, checked: boolean): void {
 <template>
   <details class="schedule-filter">
     <summary class="tool-button focus-ring">
-      <AppIcon name="filter" />
+      <SlidersHorizontal aria-hidden="true" />
       <span>Filters</span>
       <span v-if="selectedIds.length" class="filter-count">{{ selectedIds.length }}</span>
     </summary>

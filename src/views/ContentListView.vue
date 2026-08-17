@@ -2,18 +2,18 @@
 import { computed, ref, watch, watchEffect } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
-import type { Content, Location, TagGroup } from "../types/hackertracker";
+import type { Content, TagGroup } from "../types/hackertracker";
 
 import ContentCard from "../components/ContentCard.vue";
 import PageState from "../components/PageState.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
-import { getAllContent, getLocations, getTags } from "../firebase/data";
+import { getAllContent, getTags } from "../firebase/data";
+import { friendlyLoadError } from "../lib/errors";
 
 const route = useRoute();
 const router = useRouter();
 const { conference, menuItems } = useConferenceContext();
 const contentItems = ref<Content[]>([]);
-const locations = ref<Location[]>([]);
 const tags = ref<TagGroup[]>([]);
 const loading = ref(true);
 const error = ref("");
@@ -55,13 +55,12 @@ watch(
     loading.value = true;
     error.value = "";
     try {
-      [contentItems.value, locations.value, tags.value] = await Promise.all([
+      [contentItems.value, tags.value] = await Promise.all([
         getAllContent(current.code),
-        getLocations(current.code),
         getTags(current.code),
       ]);
     } catch (reason) {
-      error.value = reason instanceof Error ? reason.message : "Failed to load content";
+      error.value = friendlyLoadError(reason, "conference content");
     } finally {
       loading.value = false;
     }
@@ -122,8 +121,8 @@ watchEffect(() => {
         </select>
       </label>
     </div>
-    <PageState v-if="loading" kind="loading" message="Loading content..." />
-    <PageState v-else-if="error" kind="error" title="Couldn't load content" :message="error" />
+    <PageState v-if="loading" kind="loading" message="Getting conference content…" />
+    <PageState v-else-if="error" kind="error" title="Content unavailable" :message="error" />
     <PageState
       v-else-if="!filtered.length"
       kind="empty"
@@ -132,7 +131,7 @@ watchEffect(() => {
     />
     <ul v-else class="content-grid">
       <li v-for="item in filtered" :key="item.id">
-        <ContentCard :conference="conference" :content="item" :locations="locations" :tags="tags" />
+        <ContentCard :conference="conference" :content="item" :tags="tags" />
       </li>
     </ul>
   </section>
@@ -189,9 +188,9 @@ h1 {
 }
 .content-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  grid-template-columns: minmax(0, 1fr);
   list-style: none;
-  gap: var(--space-4);
+  gap: var(--space-3);
   margin-top: var(--space-6);
 }
 @media (width < 40rem) {

@@ -8,6 +8,7 @@ import SiteFooter from "../components/SiteFooter.vue";
 import { conferenceContextKey } from "../composables/useConferenceContext";
 import { useConferenceMenu } from "../composables/useConferenceMenu";
 import { getConference } from "../firebase/data";
+import { friendlyLoadError } from "../lib/errors";
 import { normalizeConferenceCode } from "../lib/routes";
 import type { Conference } from "../types/hackertracker";
 
@@ -43,8 +44,7 @@ watch(
       if (!result) throw new Error(`No conference named ${code} was found.`);
       conference.value = result;
     } catch (reason) {
-      if (current === request)
-        error.value = reason instanceof Error ? reason.message : "Failed to load conference";
+      if (current === request) error.value = friendlyLoadError(reason, "this conference");
     } finally {
       if (current === request) loading.value = false;
     }
@@ -74,7 +74,7 @@ provide(conferenceContextKey, {
   <div class="conference-shell">
     <ConferenceHeader v-if="conference" :conference="conference" :items="menuItems" />
     <main id="main" class="conference-main">
-      <PageState v-if="loading" kind="loading" message="Loading conference..." />
+      <PageState v-if="loading" kind="loading" message="Getting conference details…" />
       <PageState
         v-else-if="error || !conference"
         kind="error"

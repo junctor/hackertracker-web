@@ -1,14 +1,17 @@
 <script setup lang="ts">
+import { ArrowLeft, ExternalLink } from "@lucide/vue";
 import { computed, ref, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
 import type { Person, ScheduledContent } from "../types/hackertracker";
 
-import AppIcon from "../components/AppIcon.vue";
 import MarkdownContent from "../components/MarkdownContent.vue";
 import PageState from "../components/PageState.vue";
+import SessionCard from "../components/SessionCard.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
 import { getContentByIds, getSpeaker, getTags } from "../firebase/data";
+import { formatScheduleTime } from "../lib/dates";
+import { friendlyLoadError } from "../lib/errors";
 import { contentPath, normalizeConferenceCode, parseNumericParam, peoplePath } from "../lib/routes";
 import { processScheduleData } from "../lib/schedule";
 
@@ -69,7 +72,7 @@ watch(
   async ([conferenceCode, personId]) => {
     const current = ++request;
     if (!conferenceCode || !personId) {
-      error.value = "Missing required URL parameters.";
+      error.value = "This link is missing a valid conference or person.";
       loading.value = false;
       return;
     }
@@ -91,42 +94,23 @@ watch(
       person.value = loadedPerson;
       sessions.value = scheduled;
     } catch (reason) {
-      if (current === request)
-        error.value = reason instanceof Error ? reason.message : "Failed to load person";
+      if (current === request) error.value = friendlyLoadError(reason, "this person");
     } finally {
       if (current === request) loading.value = false;
     }
   },
   { immediate: true },
 );
-
-function timeRange(item: ScheduledContent): string {
-  const begin = new Date(item.begin);
-  const end = new Date(item.end ?? item.begin);
-  const date = new Intl.DateTimeFormat(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    timeZone: conference.value?.timezone,
-  }).format(begin);
-  const times = new Intl.DateTimeFormat(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: conference.value?.timezone,
-  });
-  return `${date} • ${times.format(begin)} – ${times.format(end)}`;
-}
 </script>
 
 <template>
   <div>
-    <PageState v-if="loading" kind="loading" message="Loading person..." />
-    <PageState v-else-if="error" kind="error" title="We couldn't load this page" :message="error" />
+    <PageState v-if="loading" kind="loading" message="Getting person details…" />
+    <PageState v-else-if="error" kind="error" title="Person unavailable" :message="error" />
     <div v-else-if="person && conference" class="container detail-page person-detail">
-      <header class="card accent-card detail-hero" :style="{ '--content-color': accent }">
-        <span class="accent-rail" aria-hidden="true" />
+      <header class="detail-hero">
         <RouterLink class="button icon-label-button focus-ring" :to="peoplePath(conference.code)"
-          ><AppIcon name="arrow-left" /><span>People</span></RouterLink
+          ><ArrowLeft aria-hidden="true" /><span>People</span></RouterLink
         >
         <div class="person-hero-content">
           <span
@@ -160,7 +144,7 @@ function timeRange(item: ScheduledContent): string {
                   :href="link.url"
                   target="_blank"
                   rel="noopener noreferrer"
-                  >{{ link.title || link.url }}<AppIcon name="external"
+                  >{{ link.title || link.url }}<ExternalLink aria-hidden="true"
                 /></a>
               </li>
             </ul>
@@ -179,24 +163,18 @@ function timeRange(item: ScheduledContent): string {
         <h2 id="person-sessions">Sessions</h2>
         <ul class="stack-list">
           <li v-for="item in sessions" :key="`${item.contentId}-${item.sessionId}`">
-            <article
-              class="card interactive accent-card person-session"
-              :style="{ '--content-color': item.color ?? accent }"
-            >
-              <span class="accent-rail" aria-hidden="true" /><RouterLink
-                class="person-session-link focus-ring"
-                :to="contentPath(conference.code, item.contentId)"
-                ><h3>{{ item.title }}</h3>
-                <p class="icon-text">
-                  <AppIcon name="calendar" /><time :datetime="new Date(item.begin).toISOString()">{{
-                    timeRange(item)
-                  }}</time>
-                </p>
-                <p v-if="item.location" class="icon-text muted">
-                  <AppIcon name="pin" />{{ item.location }}
-                </p></RouterLink
-              >
-            </article>
+            <SessionCard
+              accent="none"
+              :title="item.title"
+              :to="contentPath(conference.code, item.contentId)"
+              :begin="formatScheduleTime(item.begin, item.timeZone, true)"
+              :end="item.end ? formatScheduleTime(item.end, item.timeZone) : undefined"
+              :begin-date-time="new Date(item.begin).toISOString()"
+              :end-date-time="item.end ? new Date(item.end).toISOString() : undefined"
+              :people="item.speakers"
+              :location="item.location"
+              :tags="item.tags"
+            />
           </li>
         </ul>
       </section>

@@ -5,6 +5,7 @@ import type { Location } from "../types/hackertracker";
 import PageState from "../components/PageState.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
 import { getLocations } from "../firebase/data";
+import { friendlyLoadError } from "../lib/errors";
 
 const { conference } = useConferenceContext();
 const route = useRoute();
@@ -33,7 +34,7 @@ watch(
     try {
       locations.value = await getLocations(current.code);
     } catch (reason) {
-      error.value = reason instanceof Error ? reason.message : "Failed to load locations";
+      error.value = friendlyLoadError(reason, "conference locations");
     } finally {
       loading.value = false;
     }
@@ -73,8 +74,8 @@ watchEffect(() => {
         type="search"
         placeholder="Search locations..."
     /></label>
-    <PageState v-if="loading" kind="loading" message="Loading locations..." />
-    <PageState v-else-if="error" kind="error" title="Couldn't load locations" :message="error" />
+    <PageState v-if="loading" kind="loading" message="Getting conference locations…" />
+    <PageState v-else-if="error" kind="error" title="Locations unavailable" :message="error" />
     <PageState
       v-else-if="!filtered.length"
       kind="empty"

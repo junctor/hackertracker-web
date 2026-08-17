@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Bookmark, Calendar, Info, MapPin, Menu, Search, Users } from "@lucide/vue";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
@@ -6,7 +7,6 @@ import type { Conference } from "../types/hackertracker";
 import type { MenuRouteKey, SupportedMenuItem } from "../lib/menuRoutes";
 
 import { conferenceMenuPath } from "../lib/routes";
-import AppIcon from "./AppIcon.vue";
 
 const props = defineProps<{ conference: Conference; items: SupportedMenuItem[] }>();
 const route = useRoute();
@@ -14,12 +14,12 @@ const open = ref(false);
 const menu = ref<HTMLElement | null>(null);
 
 const iconFor = (key: MenuRouteKey) => {
-  if (key === "schedule") return "calendar" as const;
-  if (key === "bookmarks") return "bookmark" as const;
-  if (key === "people") return "people" as const;
-  if (key === "search") return "search" as const;
-  if (key === "locations" || key === "maps") return "pin" as const;
-  return "info" as const;
+  if (key === "schedule") return Calendar;
+  if (key === "bookmarks") return Bookmark;
+  if (key === "people") return Users;
+  if (key === "search") return Search;
+  if (key === "locations" || key === "maps") return MapPin;
+  return Info;
 };
 const schedule = computed(() => props.items.find((item) => item.routeKey === "schedule"));
 const search = computed(() => props.items.find((item) => item.routeKey === "search"));
@@ -58,7 +58,7 @@ onBeforeUnmount(() => {
     <div class="header-inner container">
       <div class="brand-group">
         <RouterLink class="home-link focus-ring" to="/" aria-label="Hacker Tracker home">
-          <AppIcon name="home" />
+          <img src="/images/logos/ht-logo.png" alt="" />
         </RouterLink>
         <RouterLink
           class="conference-brand focus-ring"
@@ -77,7 +77,7 @@ onBeforeUnmount(() => {
           :to="schedule.href"
           :aria-current="isActive(schedule.href) ? 'page' : undefined"
         >
-          <AppIcon name="calendar" /><span>Schedule</span>
+          <Calendar aria-hidden="true" /><span>Schedule</span>
         </RouterLink>
         <RouterLink
           v-if="search"
@@ -86,7 +86,7 @@ onBeforeUnmount(() => {
           :aria-current="isActive(search.href) ? 'page' : undefined"
           :aria-label="`Search ${conference.name}`"
         >
-          <AppIcon name="search" />
+          <Search aria-hidden="true" />
         </RouterLink>
 
         <div ref="menu" class="menu-wrap">
@@ -97,7 +97,7 @@ onBeforeUnmount(() => {
             aria-controls="conference-menu"
             @click.stop="open = !open"
           >
-            <AppIcon name="menu" /><span>Menu</span>
+            <Menu aria-hidden="true" /><span>Menu</span>
           </button>
           <nav v-if="open" id="conference-menu" class="menu-popover" aria-label="Conference">
             <ul>
@@ -108,9 +108,10 @@ onBeforeUnmount(() => {
                   :to="item.href"
                   :aria-current="isActive(item.href) ? 'page' : undefined"
                 >
-                  <span class="menu-icon"><AppIcon :name="iconFor(item.routeKey)" /></span>
+                  <span class="menu-icon"
+                    ><component :is="iconFor(item.routeKey)" aria-hidden="true"
+                  /></span>
                   <span>{{ item.titleText }}</span>
-                  <span class="chevron" aria-hidden="true">›</span>
                 </RouterLink>
               </li>
             </ul>
@@ -182,6 +183,11 @@ onBeforeUnmount(() => {
 .menu-button svg {
   width: 1.25rem;
   height: 1.25rem;
+}
+.home-link img {
+  width: 1.75rem;
+  height: 1.75rem;
+  image-rendering: pixelated;
 }
 .home-link:hover,
 .icon-link:hover {
@@ -271,12 +277,6 @@ onBeforeUnmount(() => {
   width: 1.15rem;
   height: 1.15rem;
 }
-.chevron {
-  margin-left: auto;
-  color: var(--text-subtle);
-  font-size: 1.35rem;
-}
-
 @media (width < 40rem) {
   .home-link {
     display: none;

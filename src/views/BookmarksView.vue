@@ -21,9 +21,9 @@ watchEffect(() => {
     <PageState
       v-if="loading && !conference && !grouped"
       kind="loading"
-      message="Loading bookmarks..."
+      message="Loading saved events…"
     />
-    <PageState v-else-if="error" kind="error" title="We couldn't load this page" :message="error" />
+    <PageState v-else-if="error" kind="error" title="Bookmarks unavailable" :message="error" />
     <ScheduleList
       v-else-if="conference && grouped && Object.keys(grouped).length"
       :conference="conference"
