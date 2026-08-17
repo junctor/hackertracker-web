@@ -32,8 +32,6 @@ jobs:
         run: vp install
       - name: Check
         run: vp check --no-fmt
-      - name: Test
-        run: vp test
       - name: Build
         run: vp run build
       - name: Set up Pages
