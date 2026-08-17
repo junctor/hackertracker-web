@@ -1,4 +1,5 @@
 import type { ConferenceMenuItem } from "../types/hackertracker";
+import { compareBySortOrder } from "./sort";
 
 import {
   bookmarksPath,
@@ -127,5 +128,10 @@ export function resolveMenuItem(code: string, item: ConferenceMenuItem): Support
 export function resolveMenuItems(code: string, items: ConferenceMenuItem[]): SupportedMenuItem[] {
   return items
     .map((item) => resolveMenuItem(code, item))
-    .filter((item): item is SupportedMenuItem => item !== null);
+    .filter((item): item is SupportedMenuItem => item !== null)
+    .sort(
+      (a, b) =>
+        compareBySortOrder(a, b) ||
+        a.titleText.localeCompare(b.titleText, undefined, { sensitivity: "base" }),
+    );
 }

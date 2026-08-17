@@ -1,6 +1,5 @@
 import type {
   Content,
-  ContentSession,
   GroupedSchedule,
   Location,
   Person,
@@ -9,6 +8,8 @@ import type {
   Tag,
   TagGroup,
 } from "../types/hackertracker";
+import { toDate } from "./dates";
+import { compareBySortOrder, sortOrderOf } from "./sort";
 
 const normalizeOffset = (value: string) =>
   /[+-]0000$/.test(value)
@@ -21,7 +22,14 @@ function formatter(options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
   const key = JSON.stringify(options);
   const cached = formatters.get(key);
   if (cached) return cached;
-  const created = new Intl.DateTimeFormat(undefined, options);
+  let created: Intl.DateTimeFormat;
+  try {
+    created = new Intl.DateTimeFormat(undefined, options);
+  } catch {
+    const fallback = { ...options };
+    delete fallback.timeZone;
+    created = new Intl.DateTimeFormat(undefined, fallback);
+  }
   formatters.set(key, created);
   return created;
 }
@@ -72,7 +80,15 @@ function tagEntries(content: Content, index: ReadonlyMap<number, IndexedTag>): I
   return (content.tag_ids ?? [])
     .map((id) => index.get(id))
     .filter((entry): entry is IndexedTag => Boolean(entry))
-    .sort((a, b) => a.group.sort_order - b.group.sort_order || a.tag.sort_order - b.tag.sort_order);
+    .sort(
+      (a, b) =>
+        compareBySortOrder(a.group, b.group) ||
+        (a.group.label ?? "").localeCompare(b.group.label ?? "", undefined, {
+          sensitivity: "base",
+        }) ||
+        compareBySortOrder(a.tag, b.tag) ||
+        (a.tag.label ?? "").localeCompare(b.tag.label ?? "", undefined, { sensitivity: "base" }),
+    );
 }
 
 export function getDisplayTags(content: Content, groups: readonly TagGroup[]): ProcessedTag[] {
@@ -82,6 +98,7 @@ export function getDisplayTags(content: Content, groups: readonly TagGroup[]): P
     color_background: tag.color_background,
     color_foreground: tag.color_foreground,
     sort_order: tag.sort_order,
+    sortOrder: sortOrderOf(tag) ?? undefined,
   }));
 }
 
@@ -94,18 +111,18 @@ export function getAccentColor(content: Content, groups: readonly TagGroup[]): s
   );
 }
 
-export function getContentPersonIds(content: Content): number[] {
+export function getContentPersonIds(content: Content, people: readonly Person[] = []): number[] {
+  const names = new Map(people.map((person) => [person.id, person.name]));
   return [...(content.people ?? [])]
-    .sort((a, b) => a.sort_order - b.sort_order)
+    .sort(
+      (a, b) =>
+        compareBySortOrder(a, b) ||
+        (names.get(a.person_id) ?? "").localeCompare(names.get(b.person_id) ?? "", undefined, {
+          sensitivity: "base",
+        }) ||
+        a.person_id - b.person_id,
+    )
     .map((role) => role.person_id);
-}
-
-export function sortedSessions(content: Content): ContentSession[] {
-  return [...(content.sessions ?? [])].sort(
-    (a, b) =>
-      (a.begin_timestamp?.seconds ?? parseFixedIso(a.begin_tsz).getTime() / 1000) -
-      (b.begin_timestamp?.seconds ?? parseFixedIso(b.begin_tsz).getTime() / 1000),
-  );
 }
 
 export function processScheduleData(
@@ -113,25 +130,33 @@ export function processScheduleData(
   groups: readonly TagGroup[],
   people: readonly Person[] = [],
   locations: readonly Location[] = [],
+  defaultTimeZone = "UTC",
 ): ScheduledContent[] {
   const tagIndex = buildTagIndex(groups);
   const peopleById = new Map(people.map((person) => [person.id, person]));
   const locationsById = new Map(locations.map((location) => [location.id, location]));
   return contents
-    .flatMap((content) =>
-      (content.sessions ?? []).map((session): ScheduledContent => {
-        const entries = tagEntries(content, tagIndex);
-        const tags = entries.map(({ tag }) => ({
-          id: tag.id,
-          label: tag.label,
-          color_background: tag.color_background,
-          color_foreground: tag.color_foreground,
-          sort_order: tag.sort_order,
-        }));
-        const speakerNames = getContentPersonIds(content)
-          .map((id) => peopleById.get(id)?.name)
-          .filter((name): name is string => Boolean(name));
-        return {
+    .flatMap((content) => {
+      const entries = tagEntries(content, tagIndex);
+      const tags = entries.map(({ tag }) => ({
+        id: tag.id,
+        label: tag.label,
+        color_background: tag.color_background,
+        color_foreground: tag.color_foreground,
+        sort_order: tag.sort_order,
+        sortOrder: sortOrderOf(tag) ?? undefined,
+      }));
+      const speakerNames = getContentPersonIds(content, people)
+        .map((id) => peopleById.get(id)?.name)
+        .filter((name): name is string => Boolean(name));
+      const color =
+        entries.find(({ group }) => group.category === "content")?.tag.color_background ??
+        tags[0]?.color_background ??
+        null;
+
+      return (content.sessions ?? [])
+        .filter((session) => Boolean(toDate(session.begin_tsz)))
+        .map((session): ScheduledContent => ({
           contentId: content.id,
           sessionId: session.session_id,
           title: content.title ?? "",
@@ -140,28 +165,21 @@ export function processScheduleData(
           end: session.end_tsz || null,
           beginTimestampSeconds: session.begin_timestamp?.seconds ?? null,
           endTimestampSeconds: session.end_timestamp?.seconds ?? null,
-          timeZone: session.timezone_name || "UTC",
-          color:
-            entries.find(({ group }) => group.category === "content")?.tag.color_background ??
-            tags[0]?.color_background ??
-            null,
+          timeZone: session.timezone_name || defaultTimeZone,
+          color,
           tags,
           speakers: speakerNames.length ? speakerNames.join(", ") : null,
           location: locationsById.get(session.location_id)?.name ?? null,
-          locationId: session.location_id ?? null,
-          links: content.links ?? [],
-        };
-      }),
-    )
-    .sort((a, b) => eventEpoch(a) - eventEpoch(b));
+          sortOrder: sortOrderOf(session) ?? sortOrderOf(content),
+        }));
+    })
+    .sort((a, b) => compareBySortOrder(a, b) || eventEpoch(a) - eventEpoch(b));
 }
 
 function eventEpoch(content: ScheduledContent): number {
-  return (
-    content.beginTimestampSeconds ??
-    Math.floor(parseFixedIso(content.begin).getTime() / 1000) ??
-    Number.MAX_SAFE_INTEGER
-  );
+  const epoch =
+    content.beginTimestampSeconds ?? Math.floor(parseFixedIso(content.begin).getTime() / 1000);
+  return Number.isFinite(epoch) ? epoch : Number.MAX_SAFE_INTEGER;
 }
 
 export function buildScheduleBucketsByDay(
@@ -172,7 +190,7 @@ export function buildScheduleBucketsByDay(
   timeZone = "UTC",
 ): GroupedSchedule {
   const grouped: GroupedSchedule = {};
-  for (const content of processScheduleData(contents, tags, people, locations)) {
+  for (const content of processScheduleData(contents, tags, people, locations, timeZone)) {
     const key = dayKey(
       content.beginTimestampSeconds === null ? content.begin : content.beginTimestampSeconds * 1000,
       timeZone,

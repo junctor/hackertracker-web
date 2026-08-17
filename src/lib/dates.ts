@@ -18,6 +18,24 @@ export function toDate(value?: DateLike): Date | undefined {
   );
 }
 
+export function toIsoDateTime(value?: DateLike): string | undefined {
+  return toDate(value)?.toISOString();
+}
+
+export function formatDateTime(
+  value: DateLike,
+  timeZone?: string,
+  options: Intl.DateTimeFormatOptions = { dateStyle: "medium", timeStyle: "short" },
+): string | undefined {
+  const date = toDate(value);
+  if (!date) return undefined;
+  try {
+    return new Intl.DateTimeFormat(undefined, { ...options, timeZone }).format(date);
+  } catch {
+    return new Intl.DateTimeFormat(undefined, options).format(date);
+  }
+}
+
 export function formatDateRange(start?: Date, end?: Date, timeZone?: string): string | undefined {
   if (!start && !end) return undefined;
   const options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", timeZone };
@@ -48,60 +66,25 @@ export function timeZoneAbbreviation(timeZone?: string): string | undefined {
   }
 }
 
-function eventTime(date: Date, timeZone?: string, showZone = false): string {
-  return new Intl.DateTimeFormat(undefined, {
-    hour12: false,
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone,
-    ...(showZone ? { timeZoneName: "short" } : {}),
-  }).format(date);
-}
-
-export function formatSessionTime(begin: Date, end: Date, timeZone?: string): string {
-  const dateOptions: Intl.DateTimeFormatOptions = {
-    timeZone,
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  };
-  const beginDay = new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(begin);
-  const endDay = new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(end);
-  if (beginDay === endDay) {
-    const date = new Intl.DateTimeFormat(undefined, dateOptions).format(begin);
-    const start = eventTime(begin, timeZone);
-    const finish = eventTime(end, timeZone, true);
-    return start.slice(0, 5) === finish.slice(0, 5)
-      ? `${date} at ${finish}`
-      : `${date} at ${start} – ${finish}`;
-  }
-  const full: Intl.DateTimeFormatOptions = {
-    ...dateOptions,
-    hour12: false,
-    hour: "2-digit",
-    minute: "2-digit",
-  };
-  return `${new Intl.DateTimeFormat(undefined, full).format(begin)} – ${new Intl.DateTimeFormat(
-    undefined,
-    { ...full, timeZoneName: "short" },
-  ).format(end)}`;
-}
-
 export function formatScheduleTime(value: string, timeZone?: string, showZone = false): string {
-  return new Intl.DateTimeFormat(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone,
-    ...(showZone ? { timeZoneName: "short" } : {}),
-  }).format(new Date(value));
+  return (
+    formatDateTime(value, timeZone, {
+      hour: "numeric",
+      minute: "2-digit",
+      ...(showZone ? { timeZoneName: "short" } : {}),
+    }) ?? "Time unavailable"
+  );
+}
+
+export function formatDuration(start: DateLike, end: DateLike): string | undefined {
+  const startTime = toDate(start)?.getTime();
+  const endTime = toDate(end)?.getTime();
+  if (startTime === undefined || endTime === undefined) return undefined;
+
+  const totalMinutes = Math.round((endTime - startTime) / 60_000);
+  if (totalMinutes < 1) return undefined;
+
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return [hours && `${hours}h`, minutes && `${minutes}m`].filter(Boolean).join(" ");
 }

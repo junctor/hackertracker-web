@@ -35,7 +35,6 @@ const speakersKey = (code: string) => `speakers:${code}`;
 const speakerKey = (code: string, id: number) => `speaker:${code}:${id}`;
 const locationsKey = (code: string) => `locations:${code}`;
 const tagsKey = (code: string) => `tags:${code}`;
-const scheduleKey = (code: string) => `schedule-content:${code}`;
 const menusKey = (code: string) => `menus:${code}`;
 const organizationsKey = (code: string) => `organizations:${code}`;
 const documentsKey = (code: string) => `documents:${code}`;
@@ -46,11 +45,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 const isConference = (value: unknown): value is Conference =>
-  isRecord(value) && typeof value.code === "string";
+  isRecord(value) && typeof value.code === "string" && typeof value.name === "string";
 const isConferenceList = (value: unknown): value is Conference[] =>
   Array.isArray(value) && value.every(isConference);
 const isContent = (value: unknown): value is Content =>
-  isRecord(value) && typeof value.id === "number";
+  isRecord(value) && typeof value.id === "number" && typeof value.title === "string";
 const isContentList = (value: unknown): value is Content[] =>
   Array.isArray(value) && value.every(isContent);
 const isPerson = (value: unknown): value is Person =>
@@ -64,21 +63,6 @@ const isLocationList = (value: unknown): value is Location[] =>
   );
 const isTagGroupList = (value: unknown): value is TagGroup[] =>
   Array.isArray(value) && value.every((item) => isRecord(item) && Array.isArray(item.tags));
-const isGroupedSchedule = (value: unknown): value is GroupedSchedule =>
-  isRecord(value) &&
-  !Array.isArray(value) &&
-  Object.values(value).every(
-    (items) =>
-      Array.isArray(items) &&
-      items.every(
-        (item) =>
-          isRecord(item) &&
-          typeof item.contentId === "number" &&
-          typeof item.sessionId === "number" &&
-          typeof item.title === "string",
-      ),
-  );
-
 const numberOrNull = (value: unknown): number | null =>
   typeof value === "number" && Number.isFinite(value) ? value : null;
 const text = (value: unknown): string => (typeof value === "string" ? value : "");
@@ -92,7 +76,12 @@ function normalizeMenuItem(value: unknown): ConferenceMenuItem | null {
     id: value.id,
     titleText: text(value.title_text),
     function: text(value.function).trim().toLowerCase(),
-    sortOrder: typeof value.sort_order === "number" ? value.sort_order : Number.MAX_SAFE_INTEGER,
+    sortOrder:
+      typeof value.sortOrder === "number"
+        ? value.sortOrder
+        : typeof value.sort_order === "number"
+          ? value.sort_order
+          : Number.MAX_SAFE_INTEGER,
     appleSfSymbol: text(value.apple_sfsymbol),
     googleMaterialSymbol: text(value.google_materialsymbol),
     appliedTagIds: numberList(value.applied_tag_ids),
@@ -123,7 +112,10 @@ function normalizeMenu(value: unknown): ConferenceMenu | null {
 const isMenuList = (value: unknown): value is ConferenceMenu[] =>
   Array.isArray(value) && value.every((item) => isRecord(item) && Array.isArray(item.items));
 const isOrganizationList = (value: unknown): value is Organization[] =>
-  Array.isArray(value) && value.every((item) => isRecord(item) && typeof item.id === "number");
+  Array.isArray(value) &&
+  value.every(
+    (item) => isRecord(item) && typeof item.id === "number" && typeof item.name === "string",
+  );
 const isDocumentList = (value: unknown): value is ConferenceDocument[] =>
   Array.isArray(value) && value.every((item) => isRecord(item) && typeof item.id === "number");
 const isArticleList = (value: unknown): value is ConferenceArticle[] =>
@@ -146,6 +138,7 @@ function normalizeArticle(value: unknown): ConferenceArticle | null {
     name: text(value.name),
     text: text(value.text),
     updatedAt: (value.updated as ConferenceArticle["updatedAt"]) ?? null,
+    sortOrder: numberOrNull(value.sortOrder ?? value.sort_order) ?? undefined,
   };
 }
 
@@ -228,13 +221,6 @@ export async function getConferenceMenus(code: string): Promise<ConferenceMenu[]
   );
 }
 
-export async function getConferenceMenu(
-  code: string,
-  menuId: number,
-): Promise<ConferenceMenu | null> {
-  return (await getConferenceMenus(code)).find((menu) => menu.id === menuId) ?? null;
-}
-
 export async function getOrganizations(code: string): Promise<Organization[]> {
   return cachedLoad(
     organizationsKey(code),
@@ -279,7 +265,7 @@ export async function getArticles(code: string): Promise<ConferenceArticle[]> {
   );
 }
 
-function getCachedContentList(code: string): Content[] | undefined {
+export function getCachedContentList(code: string): Content[] | undefined {
   return getCached(contentKey(code), cacheTtl.events, isContentList);
 }
 
@@ -333,6 +319,10 @@ export async function getSpeakers(code: string): Promise<Person[]> {
     },
     isPersonList,
   );
+}
+
+export function getCachedSpeakers(code: string): Person[] | undefined {
+  return getCached(speakersKey(code), cacheTtl.speakers, isPersonList);
 }
 
 export async function getSpeaker(code: string, id: number): Promise<Person | null> {
@@ -391,36 +381,66 @@ export async function getTags(code: string): Promise<TagGroup[]> {
   );
 }
 
+interface DerivedScheduleCache {
+  conference: Conference;
+  content: Content[];
+  tags: TagGroup[];
+  people: Person[];
+  locations: Location[];
+  grouped: GroupedSchedule;
+}
+
+const derivedSchedules = new Map<string, DerivedScheduleCache>();
+
+function deriveSchedule(
+  conference: Conference,
+  content: Content[],
+  tags: TagGroup[],
+  people: Person[],
+  locations: Location[],
+): ConferenceSchedule {
+  const cached = derivedSchedules.get(conference.code);
+  if (
+    cached?.conference === conference &&
+    cached.content === content &&
+    cached.tags === tags &&
+    cached.people === people &&
+    cached.locations === locations
+  )
+    return { conference, grouped: cached.grouped };
+
+  const grouped = buildScheduleBucketsByDay(
+    content,
+    tags,
+    people,
+    locations,
+    conference.timezone || "UTC",
+  );
+  derivedSchedules.set(conference.code, { conference, content, tags, people, locations, grouped });
+  return { conference, grouped };
+}
+
 export function getCachedConferenceSchedule(code: string): ConferenceSchedule | null {
   const conference = getCachedConference(code);
-  const grouped = getCached(scheduleKey(code), cacheTtl.schedule, isGroupedSchedule);
-  return conference && grouped ? { conference, grouped } : null;
+  const content = getCachedContentList(code);
+  const tags = getCachedTags(code);
+  const people = getCachedSpeakers(code);
+  const locations = getCachedLocations(code);
+  return conference && content && tags && people && locations
+    ? deriveSchedule(conference, content, tags, people, locations)
+    : null;
 }
 
 export async function getConferenceSchedule(code: string): Promise<ConferenceSchedule | null> {
   const conference = await getConference(code);
   if (!conference) return null;
-  const grouped = await cachedLoad(
-    scheduleKey(code),
-    cacheTtl.schedule,
-    async () => {
-      const [content, tags, people, locations] = await Promise.all([
-        getAllContent(code),
-        getTags(code),
-        getSpeakers(code),
-        getLocations(code),
-      ]);
-      return buildScheduleBucketsByDay(
-        content,
-        tags,
-        people,
-        locations,
-        conference.timezone || "UTC",
-      );
-    },
-    isGroupedSchedule,
-  );
-  return { conference, grouped };
+  const [content, tags, people, locations] = await Promise.all([
+    getAllContent(code),
+    getTags(code),
+    getSpeakers(code),
+    getLocations(code),
+  ]);
+  return deriveSchedule(conference, content, tags, people, locations);
 }
 
 export function filterSchedule(

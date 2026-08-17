@@ -24,7 +24,7 @@ export function useConferenceMenu(conference: MaybeRefOrGetter<Conference | null
         const result = await getConferenceMenus(currentConference.code);
         if (current === request) menus.value = result;
       } catch (reason) {
-        if (current === request) error.value = friendlyLoadError(reason, "the Conference Menu");
+        if (current === request) error.value = friendlyLoadError(reason, "the conference menu");
       } finally {
         if (current === request) isLoading.value = false;
       }

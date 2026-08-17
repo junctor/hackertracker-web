@@ -6,7 +6,6 @@ export const cacheTtl = {
   events: 10 * 60 * 1000,
   locations: 10 * 60 * 1000,
   tags: 10 * 60 * 1000,
-  schedule: 10 * 60 * 1000,
   speakers: 10 * 60 * 1000,
   menus: 6 * 60 * 60 * 1000,
   organizations: 30 * 60 * 1000,
@@ -23,7 +22,7 @@ type Validator<T> = (value: unknown) => value is T;
 
 const memory = new Map<string, CacheEntry<unknown>>();
 const inFlight = new Map<string, Promise<unknown>>();
-const maximumTtl = Math.max(...Object.values(cacheTtl));
+const cacheRetention = 7 * 24 * 60 * 60 * 1000;
 let pruned = false;
 
 function storage(): Storage | null {
@@ -62,7 +61,7 @@ function pruneOnce(): void {
       try {
         const raw = target.getItem(key);
         const parsed: unknown = raw ? JSON.parse(raw) : null;
-        if (!isEntry(parsed) || !isFresh(parsed, maximumTtl)) target.removeItem(key);
+        if (!isEntry(parsed) || !isFresh(parsed, cacheRetention)) target.removeItem(key);
       } catch {
         target.removeItem(key);
       }
@@ -86,7 +85,9 @@ export function getCached<T>(key: string, ttl: number, validate?: Validator<T>):
   const fromMemory = memory.get(cacheKey);
   if (fromMemory) {
     if (isFresh(fromMemory, ttl) && valid(fromMemory.value, validate)) return fromMemory.value;
-    memory.delete(cacheKey);
+    if (!isFresh(fromMemory, cacheRetention) || !valid(fromMemory.value, validate))
+      memory.delete(cacheKey);
+    else return undefined;
   }
 
   const target = storage();
@@ -94,12 +95,12 @@ export function getCached<T>(key: string, ttl: number, validate?: Validator<T>):
   try {
     const raw = target.getItem(cacheKey);
     const parsed: unknown = raw ? JSON.parse(raw) : null;
-    if (!isEntry(parsed) || !isFresh(parsed, ttl) || !valid(parsed.value, validate)) {
+    if (!isEntry(parsed) || !isFresh(parsed, cacheRetention) || !valid(parsed.value, validate)) {
       if (raw) target.removeItem(cacheKey);
       return undefined;
     }
     memory.set(cacheKey, parsed);
-    return parsed.value;
+    return isFresh(parsed, ttl) ? parsed.value : undefined;
   } catch {
     return undefined;
   }
@@ -110,10 +111,43 @@ export function setCached<T>(key: string, value: T): void {
   const cacheKey = `${CACHE_PREFIX}:${key}`;
   const entry: CacheEntry<T> = { storedAt: Date.now(), value };
   memory.set(cacheKey, entry);
+  const target = storage();
+  if (!target) return;
+  let serialized: string;
   try {
-    storage()?.setItem(cacheKey, JSON.stringify(entry));
+    serialized = JSON.stringify(entry);
   } catch {
-    // Cache quota and privacy errors are non-fatal.
+    return;
+  }
+  try {
+    target.setItem(cacheKey, serialized);
+  } catch {
+    // Reclaim only our oldest cache entries if storage quota is tight, then try once more.
+    try {
+      const prefix = `${CACHE_PREFIX}:`;
+      const candidates = Array.from({ length: target.length }, (_, index) => target.key(index))
+        .filter((item): item is string => Boolean(item?.startsWith(prefix) && item !== cacheKey))
+        .map((item) => {
+          try {
+            const parsed: unknown = JSON.parse(target.getItem(item) ?? "null");
+            return { key: item, storedAt: isEntry(parsed) ? parsed.storedAt : 0 };
+          } catch {
+            return { key: item, storedAt: 0 };
+          }
+        })
+        .sort((a, b) => a.storedAt - b.storedAt);
+      for (const candidate of candidates) {
+        target.removeItem(candidate.key);
+        try {
+          target.setItem(cacheKey, serialized);
+          return;
+        } catch {
+          // Keep reclaiming this app's cache until the new entry fits or none remains.
+        }
+      }
+    } catch {
+      // Cache quota and privacy errors are non-fatal.
+    }
   }
 }
 
@@ -126,6 +160,7 @@ export async function cachedLoad<T>(
 ): Promise<T> {
   const cached = getCached(key, ttl, validate);
   if (cached !== undefined) return cached;
+  const stale = getCached(key, cacheRetention, validate);
   const cacheKey = `${CACHE_PREFIX}:${key}`;
   const current = inFlight.get(cacheKey) as Promise<T> | undefined;
   if (current) return current;
@@ -133,6 +168,10 @@ export async function cachedLoad<T>(
     .then((value) => {
       if (!validate || validate(value)) (onCache ?? ((result) => setCached(key, result)))(value);
       return value;
+    })
+    .catch((error: unknown) => {
+      if (stale !== undefined) return stale;
+      throw error;
     })
     .finally(() => inFlight.delete(cacheKey));
   inFlight.set(cacheKey, pending);

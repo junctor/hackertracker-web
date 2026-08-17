@@ -6,7 +6,12 @@ export interface TimestampParts {
   nanoseconds?: number;
 }
 
-export interface Media {
+export interface Sortable {
+  sort_order?: number;
+  sortOrder?: number;
+}
+
+export interface Media extends Sortable {
   name: string;
   url: string;
   filetype: string;
@@ -16,20 +21,19 @@ export interface Media {
   hash_sha256: string;
   person_id?: Id;
   asset_id?: Id;
-  sort_order?: number;
 }
 
 export interface Avatar extends Media {
   asset_uuid: string;
 }
 
-export interface ContentLink {
+export interface ContentLink extends Sortable {
   label: string;
   url: string;
   type: string;
 }
 
-export interface PersonLink {
+export interface PersonLink extends Sortable {
   url: string;
   sort_order: number;
   title: string;
@@ -38,7 +42,7 @@ export interface PersonLink {
 
 export type TagCategory = "content" | "content-person" | "orga" | "orga-person";
 
-export interface Tag {
+export interface Tag extends Sortable {
   id: Id;
   label: string;
   description: string;
@@ -47,7 +51,7 @@ export interface Tag {
   color_foreground: string;
 }
 
-export interface TagGroup {
+export interface TagGroup extends Sortable {
   id: Id;
   uuid: string;
   well_known_uuid: string;
@@ -66,7 +70,7 @@ export interface Affiliation {
   title: string;
 }
 
-export interface Person {
+export interface Person extends Sortable {
   id: Id;
   name: string;
   conference_id: Id;
@@ -87,13 +91,13 @@ export interface Person {
   updated_timestamp: TimestampParts;
 }
 
-export interface ContentPersonRole {
+export interface ContentPersonRole extends Sortable {
   person_id: Id;
   sort_order: number;
   tag_ids: Id[];
 }
 
-export interface ContentSession {
+export interface ContentSession extends Sortable {
   session_id: Id;
   begin_timestamp: TimestampParts;
   begin_tsz: DateTimeString;
@@ -105,7 +109,7 @@ export interface ContentSession {
   recordingpolicy_id: Id;
 }
 
-export interface Content {
+export interface Content extends Sortable {
   id: Id;
   title: string;
   description: string;
@@ -125,7 +129,7 @@ export interface Content {
   updated_tsz: DateTimeString;
 }
 
-export interface Location {
+export interface Location extends Sortable {
   id: Id;
   name: string;
   short_name: string;
@@ -133,7 +137,7 @@ export interface Location {
   hotel: string;
 }
 
-export interface ConferenceMap {
+export interface ConferenceMap extends Sortable {
   id: number;
   name: string;
   name_text: string;
@@ -146,7 +150,7 @@ export interface ConferenceMap {
   sort_order: number;
 }
 
-export interface Conference {
+export interface Conference extends Sortable {
   id: number;
   conference_id: number;
   code: string;
@@ -202,7 +206,7 @@ export interface ConferenceMenuItem {
   prohibitTagFilter: boolean;
 }
 
-export interface Organization {
+export interface Organization extends Sortable {
   id: number;
   name: string;
   description: string;
@@ -223,14 +227,14 @@ export interface ConferenceDocument {
   updatedAt: DateTimeString | TimestampParts | null;
 }
 
-export interface ConferenceArticle {
+export interface ConferenceArticle extends Sortable {
   id: number;
   name: string;
   text: string;
   updatedAt: DateTimeString | TimestampParts | null;
 }
 
-export interface ProcessedTag {
+export interface ProcessedTag extends Sortable {
   id: number;
   label: string;
   color_background: string | null;
@@ -252,8 +256,7 @@ export interface ScheduledContent {
   color: string | null;
   tags: ProcessedTag[];
   speakers: string | null;
-  links: Array<{ label: string; url: string }>;
-  locationId: number | null;
+  sortOrder: number | null;
 }
 
 export type GroupedSchedule = Record<string, ScheduledContent[]>;
