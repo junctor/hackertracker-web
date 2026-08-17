@@ -10,7 +10,6 @@ import SitePageLayout from "../components/SitePageLayout.vue";
 import { getConferences } from "../firebase/data";
 import { toDate, type DateLike } from "../lib/dates";
 import { friendlyLoadError } from "../lib/errors";
-import { compareBySortOrder } from "../lib/sort";
 
 const conferences = ref<Conference[]>([]);
 const loading = ref(true);
@@ -48,23 +47,17 @@ const updatedDate = (conference: Conference) => {
       value.modified,
   );
 };
+const compareByName = (a: Conference, b: Conference) =>
+  a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
 
 const groups = computed(() => {
   const now = Date.now();
   const upcoming = conferences.value
     .filter((conference) => (end(conference) || start(conference)) >= now)
-    .sort(
-      (a, b) =>
-        compareBySortOrder(a, b) ||
-        a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
-    );
+    .sort((a, b) => start(a) - start(b) || compareByName(a, b));
   const past = conferences.value
     .filter((conference) => (end(conference) || start(conference)) < now)
-    .sort(
-      (a, b) =>
-        compareBySortOrder(a, b) ||
-        a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
-    );
+    .sort((a, b) => start(b) - start(a) || compareByName(a, b));
   const updated = conferences.value
     .filter((conference) => {
       const timestamp = updatedDate(conference)?.getTime() ?? start(conference);
@@ -72,8 +65,7 @@ const groups = computed(() => {
     })
     .sort(
       (a, b) =>
-        compareBySortOrder(a, b) ||
-        a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+        (updatedDate(b)?.getTime() ?? 0) - (updatedDate(a)?.getTime() ?? 0) || compareByName(a, b),
     );
   return [
     { id: "upcoming", title: "Upcoming Conferences", items: upcoming },
