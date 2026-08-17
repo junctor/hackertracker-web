@@ -252,6 +252,7 @@ export interface ScheduledContent {
   end: string | null;
   beginTimestampSeconds: number | null;
   endTimestampSeconds: number | null;
+  locationId: number | null;
   location: string | null;
   color: string | null;
   tags: ProcessedTag[];

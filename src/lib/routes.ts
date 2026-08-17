@@ -21,3 +21,20 @@ export const documentPath = (code: string, id: number) => `${conferencePath(code
 export const nestedMenuPath = (code: string, id: number) => `${conferencePath(code)}/menu/${id}`;
 export const conferenceSectionPath = (code: string, section: string) =>
   `${conferencePath(code)}/${encodeURIComponent(section)}`;
+
+export function filteredScheduleRoute(
+  code: string,
+  filters: { tagIds?: readonly number[]; locationId?: number },
+) {
+  const tagIds = [...new Set(filters.tagIds ?? [])].filter(Number.isFinite);
+  const locationId = filters.locationId;
+  return {
+    path: schedulePath(code),
+    query: {
+      ...(tagIds.length ? { tag_group: tagIds.join(",") } : {}),
+      ...(locationId !== undefined && Number.isFinite(locationId)
+        ? { location: String(locationId) }
+        : {}),
+    },
+  };
+}

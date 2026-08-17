@@ -169,6 +169,7 @@ export function processScheduleData(
           color,
           tags,
           speakers: speakerNames.length ? speakerNames.join(", ") : null,
+          locationId: session.location_id ?? null,
           location: locationsById.get(session.location_id)?.name ?? null,
           sortOrder: sortOrderOf(session) ?? sortOrderOf(content),
         }));
