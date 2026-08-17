@@ -1,13 +1,6 @@
 # Hacker Tracker Web
 
-The browser companion to the Hacker Tracker Android and iOS apps. It provides conference schedules, session details, speakers, and local bookmarks backed by Firebase.
-
-## Stack
-
-- Vue 3 with TypeScript and Vue Router
-- Firebase Firestore
-- Vite+ / Vite
-- Plain CSS
+Web client for Hacker Tracker, built with Vue, TypeScript, Vite+, and Firebase.
 
 ## Development
 
@@ -16,7 +9,7 @@ vp install
 vp dev
 ```
 
-Validate changes with:
+## Validate
 
 ```sh
 vp check
@@ -24,4 +17,4 @@ vp test
 vp run build
 ```
 
-The production build copies `index.html` to `404.html` so client-side routes continue to work when hosted on GitHub Pages.
+The build copies `index.html` to `404.html` for GitHub Pages routing.
