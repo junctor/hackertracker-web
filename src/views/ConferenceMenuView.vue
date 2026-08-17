@@ -63,17 +63,17 @@ watchEffect(() => {
     <PageState
       v-if="menuLoading && !activeMenu"
       kind="loading"
-      message="Getting the Conference Menu…"
+      message="Getting the conference menu…"
     />
     <PageState
       v-else-if="menuError"
       kind="error"
-      title="Conference Menu unavailable"
+      title="Conference menu unavailable"
       :message="menuError"
     />
     <template v-else>
       <header class="menu-hero">
-        <p class="kicker">{{ isHome ? "Conference Menu" : activeMenu?.titleText }}</p>
+        <p class="kicker">{{ isHome ? "Conference menu" : activeMenu?.titleText }}</p>
         <h1 tabindex="-1">{{ isHome ? conference.name : activeMenu?.titleText }}</h1>
         <p v-if="isHome" class="description">
           {{

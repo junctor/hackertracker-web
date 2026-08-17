@@ -4,29 +4,36 @@ import { useRoute } from "vue-router";
 
 import type { Organization } from "../types/hackertracker";
 
+import ExternalLinkList from "../components/ExternalLinkList.vue";
 import MarkdownContent from "../components/MarkdownContent.vue";
+import PageHeading from "../components/PageHeading.vue";
 import PageState from "../components/PageState.vue";
+import SearchField from "../components/SearchField.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
+import { useRouteTextQuery } from "../composables/useRouteTextQuery";
 import { getOrganizations } from "../firebase/data";
 import { friendlyLoadError } from "../lib/errors";
 import { resolveMenuItems, type MenuRouteKey } from "../lib/menuRoutes";
 import { conferenceSectionPath, parseNumericParam } from "../lib/routes";
+import { compareBySortOrder } from "../lib/sort";
+import { safeExternalLinks, safeWebUrl } from "../lib/urls";
 
 const route = useRoute();
 const { conference, menus } = useConferenceContext();
 const organizations = ref<Organization[]>([]);
 const loading = ref(true);
 const error = ref("");
-const query = ref("");
+const query = useRouteTextQuery();
 const brokenLogos = ref(new Set<number>());
 const section = computed(() =>
   String(route.meta.section ?? route.params.section ?? "organizations"),
 );
 const organizationId = computed(() => parseNumericParam(route.params.organizationId));
 const menuEntry = computed(() => {
-  if (!conference.value) return undefined;
+  const currentConference = conference.value;
+  if (!currentConference) return undefined;
   return menus.value
-    .flatMap((menu) => resolveMenuItems(conference.value!.code, menu.items))
+    .flatMap((menu) => resolveMenuItems(currentConference.code, menu.items))
     .find((item) => item.routeKey === (section.value as MenuRouteKey));
 });
 const title = computed(
@@ -42,17 +49,22 @@ const filtered = computed(() => {
   return organizations.value
     .filter((item) => !tagIds.length || tagIds.some((id) => item.tag_ids?.includes(id)))
     .filter((item) => !needle || `${item.name} ${item.description}`.toLowerCase().includes(needle))
-    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+    .sort(
+      (a, b) =>
+        compareBySortOrder(a, b) ||
+        a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+    );
 });
 const selected = computed(() =>
   organizationId.value
     ? organizations.value.find((item) => item.id === organizationId.value)
     : null,
 );
+const selectedLinks = computed(() => safeExternalLinks(selected.value?.links ?? []));
 const logoUrl = (organization: Organization): string | null => {
   const logo = organization.logo;
   if (!logo || typeof logo !== "object" || !("url" in logo)) return null;
-  return typeof logo.url === "string" && /^https?:\/\//.test(logo.url) ? logo.url : null;
+  return safeWebUrl(logo.url);
 };
 const initials = (name: string) =>
   name
@@ -86,7 +98,7 @@ watchEffect(() => {
 </script>
 
 <template>
-  <section v-if="conference" class="container page-content directory-page">
+  <section v-if="conference" class="container page-content">
     <PageState v-if="loading" kind="loading" :message="`Getting ${title.toLowerCase()}…`" />
     <PageState v-else-if="error" kind="error" :title="`${title} unavailable`" :message="error" />
     <article v-else-if="organizationId && selected" class="organization-detail">
@@ -111,19 +123,9 @@ watchEffect(() => {
       <div v-if="selected.description" class="detail-body">
         <MarkdownContent :content="selected.description" />
       </div>
-      <section v-if="selected.links?.length" class="links-section">
+      <section v-if="selectedLinks.length" class="links-section">
         <h2>Links</h2>
-        <ul>
-          <li v-for="link in selected.links" :key="link.url">
-            <a
-              class="text-link focus-ring"
-              :href="link.url"
-              target="_blank"
-              rel="noopener noreferrer"
-              >{{ link.label || link.url }} ↗</a
-            >
-          </li>
-        </ul>
+        <ExternalLinkList :items="selectedLinks" compact />
       </section>
     </article>
     <PageState
@@ -133,22 +135,17 @@ watchEffect(() => {
       :message="`No organization exists for ID ${organizationId}.`"
     />
     <template v-else>
-      <header class="page-heading-row">
-        <div>
-          <p class="kicker">Conference groups</p>
-          <h1 tabindex="-1">{{ title }}</h1>
-          <p>Browse conference groups and related resources.</p>
-        </div>
-        <span>{{ filtered.length.toLocaleString() }} results</span>
-      </header>
-      <label class="search-control"
-        ><span class="visually-hidden">Search {{ title }}</span
-        ><input
-          v-model="query"
-          class="input focus-ring"
-          type="search"
-          :placeholder="`Search ${title}...`"
-      /></label>
+      <PageHeading
+        :title="title"
+        intro="Browse groups and resources."
+        :count="`${filtered.length.toLocaleString()} results`"
+      />
+      <SearchField
+        v-model="query"
+        class="page-search"
+        :label="`Search ${title}`"
+        :placeholder="`Search ${title}…`"
+      />
       <PageState
         v-if="!filtered.length"
         kind="empty"
@@ -182,23 +179,6 @@ watchEffect(() => {
 </template>
 
 <style scoped>
-.directory-page {
-  padding-block: var(--section-space);
-}
-.page-heading-row {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--space-4);
-}
-.page-heading-row > div > p:last-child {
-  margin-top: var(--space-2);
-  color: var(--text-muted);
-}
-.page-heading-row > span {
-  color: var(--text-subtle);
-  font-size: 0.85rem;
-}
 .kicker {
   color: var(--accent-success);
   font-size: 0.85rem;
@@ -210,14 +190,6 @@ h1 {
   font-size: clamp(2rem, 5vw, 3.25rem);
   line-height: 1.05;
   text-wrap: balance;
-}
-.search-control {
-  display: block;
-  max-width: 34rem;
-  margin-top: var(--space-6);
-}
-.search-control input {
-  width: 100%;
 }
 .organization-grid {
   display: grid;
@@ -293,17 +265,10 @@ h1 {
 .links-section {
   margin-top: var(--space-8);
 }
-.links-section ul {
-  display: grid;
-  list-style: none;
-  gap: var(--space-2);
+.links-section :deep(.link-list) {
   margin-top: var(--space-3);
 }
 @media (width < 40rem) {
-  .page-heading-row {
-    align-items: flex-start;
-    flex-direction: column;
-  }
   .detail-header {
     align-items: flex-start;
     flex-direction: column;

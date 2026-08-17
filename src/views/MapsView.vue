@@ -1,39 +1,36 @@
 <script setup lang="ts">
 import { ExternalLink } from "@lucide/vue";
 import { computed, ref, watchEffect } from "vue";
+import PageHeading from "../components/PageHeading.vue";
 import PageState from "../components/PageState.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
+import { compareBySortOrder } from "../lib/sort";
+import { safeWebUrl } from "../lib/urls";
 
 const { conference } = useConferenceContext();
 const broken = ref(new Set<number>());
 const maps = computed(() =>
-  [...(conference.value?.maps ?? [])].sort(
-    (a, b) =>
-      a.sort_order - b.sort_order || (a.name_text || a.name).localeCompare(b.name_text || b.name),
-  ),
+  [...(conference.value?.maps ?? [])]
+    .map((map) => ({
+      ...map,
+      displayName: map.name_text?.trim() || map.name?.trim() || "Unnamed map",
+      previewUrl: safeWebUrl(map.svg_url),
+      href: safeWebUrl(map.url),
+    }))
+    .sort(
+      (a, b) =>
+        compareBySortOrder(a, b) ||
+        a.displayName.localeCompare(b.displayName, undefined, { sensitivity: "base" }),
+    ),
 );
-const name = (map: (typeof maps.value)[number]) =>
-  map.name_text?.trim() || map.name?.trim() || "Unnamed map";
-const safeUrl = (value: string) => {
-  try {
-    const url = new URL(value);
-    return ["http:", "https:"].includes(url.protocol) ? value : null;
-  } catch {
-    return null;
-  }
-};
 watchEffect(() => {
   if (conference.value) document.title = `Maps · ${conference.value.name} | Hacker Tracker`;
 });
 </script>
 
 <template>
-  <section v-if="conference" class="container page-content maps-page">
-    <header>
-      <p class="kicker">Venue Guide</p>
-      <h1 tabindex="-1">{{ conference.name }} Maps</h1>
-      <p>Venue maps for {{ conference.name }}.</p>
-    </header>
+  <section v-if="conference" class="container page-content">
+    <PageHeading title="Maps" intro="Venue maps and floor plans." />
     <PageState
       v-if="!maps.length"
       kind="empty"
@@ -43,23 +40,19 @@ watchEffect(() => {
       <li v-for="map in maps" :key="map.id">
         <article>
           <div>
-            <h2>{{ name(map) }}</h2>
+            <h2>{{ map.displayName }}</h2>
             <p v-if="map.description">{{ map.description }}</p>
             <small v-if="map.filename || map.file">{{ map.filename || map.file }}</small>
           </div>
-          <div v-if="safeUrl(map.svg_url) && !broken.has(map.id)" class="map-preview">
+          <div v-if="map.previewUrl && !broken.has(map.id)" class="map-preview">
             <img
-              :src="safeUrl(map.svg_url)!"
-              :alt="`Preview of ${name(map)}`"
+              :src="map.previewUrl"
+              :alt="`Preview of ${map.displayName}`"
               @error="broken = new Set([...broken, map.id])"
             />
           </div>
-          <div v-if="safeUrl(map.url)" class="map-actions">
-            <a
-              class="button focus-ring"
-              :href="safeUrl(map.url)!"
-              target="_blank"
-              rel="noopener noreferrer"
+          <div v-if="map.href" class="map-actions">
+            <a class="button focus-ring" :href="map.href" target="_blank" rel="noopener noreferrer"
               >Open Map <ExternalLink aria-hidden="true"
             /></a>
           </div>
@@ -70,23 +63,6 @@ watchEffect(() => {
 </template>
 
 <style scoped>
-.maps-page {
-  padding-block: var(--section-space);
-}
-.kicker {
-  color: var(--accent-success);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-h1 {
-  margin-top: 0.2rem;
-  font-size: clamp(2rem, 5vw, 3.25rem);
-}
-header > p:last-child {
-  margin-top: var(--space-2);
-  color: var(--text-muted);
-}
 .map-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);

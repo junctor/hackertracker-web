@@ -4,12 +4,13 @@ import { computed, onMounted, ref } from "vue";
 import type { Conference, TimestampParts } from "../types/hackertracker";
 
 import ConferenceCard from "../components/ConferenceCard.vue";
+import PageHeading from "../components/PageHeading.vue";
 import PageState from "../components/PageState.vue";
-import SiteFooter from "../components/SiteFooter.vue";
-import SiteHeader from "../components/SiteHeader.vue";
+import SitePageLayout from "../components/SitePageLayout.vue";
 import { getConferences } from "../firebase/data";
 import { toDate, type DateLike } from "../lib/dates";
 import { friendlyLoadError } from "../lib/errors";
+import { compareBySortOrder } from "../lib/sort";
 
 const conferences = ref<Conference[]>([]);
 const loading = ref(true);
@@ -52,16 +53,28 @@ const groups = computed(() => {
   const now = Date.now();
   const upcoming = conferences.value
     .filter((conference) => (end(conference) || start(conference)) >= now)
-    .sort((a, b) => start(a) - start(b));
+    .sort(
+      (a, b) =>
+        compareBySortOrder(a, b) ||
+        a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+    );
   const past = conferences.value
     .filter((conference) => (end(conference) || start(conference)) < now)
-    .sort((a, b) => start(b) - start(a));
+    .sort(
+      (a, b) =>
+        compareBySortOrder(a, b) ||
+        a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+    );
   const updated = conferences.value
     .filter((conference) => {
       const timestamp = updatedDate(conference)?.getTime() ?? start(conference);
       return timestamp > 0 && now - timestamp <= 30 * 24 * 60 * 60 * 1000;
     })
-    .sort((a, b) => (updatedDate(b)?.getTime() ?? 0) - (updatedDate(a)?.getTime() ?? 0));
+    .sort(
+      (a, b) =>
+        compareBySortOrder(a, b) ||
+        a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+    );
   return [
     { id: "upcoming", title: "Upcoming Conferences", items: upcoming },
     { id: "updated", title: "Recently Updated", items: updated },
@@ -82,71 +95,54 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="page-shell">
-    <SiteHeader />
-    <main id="main" class="container wide page-content">
-      <header class="page-heading">
-        <h1 tabindex="-1">Conferences</h1>
+  <SitePageLayout main-class="container wide page-content">
+    <PageHeading title="Conferences" />
+    <div class="heading-divider" />
+    <div v-if="loading" class="conference-grid" aria-label="Loading conferences" aria-busy="true">
+      <div v-for="index in 8" :key="index" class="card skeleton" />
+    </div>
+    <PageState
+      v-else-if="error"
+      kind="error"
+      title="Conferences are unavailable"
+      :message="error"
+    />
+    <div v-else class="conference-sections">
+      <section
+        v-for="group in groups"
+        :id="group.id"
+        :key="group.id"
+        :aria-labelledby="`${group.id}-title`"
+      >
+        <div class="section-title-row">
+          <h2 :id="`${group.id}-title`">
+            {{ group.title }} <span class="count">{{ group.items.length }}</span>
+          </h2>
+          <a
+            class="anchor-link focus-ring"
+            :href="`#${group.id}`"
+            :aria-label="`Link to section ${group.title}`"
+            >#</a
+          >
+        </div>
         <div class="divider" />
-      </header>
-      <div v-if="loading" class="conference-grid" aria-label="Loading conferences" aria-busy="true">
-        <div v-for="index in 8" :key="index" class="card skeleton" />
-      </div>
-      <PageState
-        v-else-if="error"
-        kind="error"
-        title="Conferences are unavailable"
-        :message="error"
-      />
-      <div v-else class="conference-sections">
-        <section
-          v-for="group in groups"
-          :id="group.id"
-          :key="group.id"
-          :aria-labelledby="`${group.id}-title`"
-        >
-          <div class="section-title-row">
-            <h2 :id="`${group.id}-title`">
-              {{ group.title }} <span class="count">{{ group.items.length }}</span>
-            </h2>
-            <a
-              class="anchor-link focus-ring"
-              :href="`#${group.id}`"
-              :aria-label="`Link to section ${group.title}`"
-              >#</a
-            >
-          </div>
-          <div class="divider" />
-          <div v-if="group.items.length" class="conference-grid">
-            <ConferenceCard
-              v-for="conference in group.items"
-              :key="conference.id"
-              :conference="conference"
-              :updated-at="group.id === 'updated' ? updatedDate(conference) : undefined"
-            />
-          </div>
-          <div v-else class="empty-state">
-            {{
-              group.id === "updated" ? "No recent updates." : `No ${group.id} conferences found.`
-            }}
-          </div>
-        </section>
-      </div>
-    </main>
-    <SiteFooter />
-  </div>
+        <div v-if="group.items.length" class="conference-grid">
+          <ConferenceCard
+            v-for="conference in group.items"
+            :key="conference.id"
+            :conference="conference"
+            :updated-at="group.id === 'updated' ? updatedDate(conference) : undefined"
+          />
+        </div>
+        <div v-else class="empty-state">
+          {{ group.id === "updated" ? "No recent updates." : `No ${group.id} conferences found.` }}
+        </div>
+      </section>
+    </div>
+  </SitePageLayout>
 </template>
 
 <style scoped>
-.page-heading {
-  margin-bottom: 1.75rem;
-}
-
-.page-heading h1 {
-  font-size: clamp(2rem, 5vw, 2.5rem);
-  line-height: 1.15;
-}
-
 .conference-sections {
   display: grid;
   gap: 2.5rem;
@@ -175,6 +171,12 @@ onMounted(async () => {
 .divider {
   height: 1px;
   margin-block: 0.75rem 1rem;
+  background: var(--border);
+}
+
+.heading-divider {
+  height: 1px;
+  margin-block: 0.75rem 1.75rem;
   background: var(--border);
 }
 

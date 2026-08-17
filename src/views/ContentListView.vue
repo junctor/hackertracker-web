@@ -5,10 +5,13 @@ import { useRoute, useRouter } from "vue-router";
 import type { Content, TagGroup } from "../types/hackertracker";
 
 import ContentCard from "../components/ContentCard.vue";
+import PageHeading from "../components/PageHeading.vue";
 import PageState from "../components/PageState.vue";
+import SearchField from "../components/SearchField.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
 import { getAllContent, getTags } from "../firebase/data";
 import { friendlyLoadError } from "../lib/errors";
+import { compareBySortOrder } from "../lib/sort";
 
 const route = useRoute();
 const router = useRouter();
@@ -30,7 +33,7 @@ const availableTags = computed(() =>
     .filter((group) => group.is_browsable)
     .flatMap((group) => group.tags)
     .filter((tag) => contentItems.value.some((item) => item.tag_ids?.includes(tag.id)))
-    .sort((a, b) => a.sort_order - b.sort_order || a.label.localeCompare(b.label)),
+    .sort((a, b) => compareBySortOrder(a, b) || a.label.localeCompare(b.label)),
 );
 const allowTagFilter = computed(() => !contentMenuItem.value?.prohibitTagFilter);
 
@@ -45,7 +48,11 @@ const filtered = computed(() => {
       (item) => typeof selectedTag.value !== "number" || item.tag_ids?.includes(selectedTag.value),
     )
     .filter((item) => !needle || `${item.title} ${item.description}`.toLowerCase().includes(needle))
-    .sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: "base" }));
+    .sort(
+      (a, b) =>
+        compareBySortOrder(a, b) ||
+        a.title.localeCompare(b.title, undefined, { sensitivity: "base" }),
+    );
 });
 
 watch(
@@ -90,27 +97,19 @@ watchEffect(() => {
 </script>
 
 <template>
-  <section v-if="conference" class="container page-content content-page">
-    <header class="page-heading-row">
-      <div>
-        <p class="kicker">Conference library</p>
-        <h1 tabindex="-1">Content</h1>
-        <p>Talks, workshops, activities, and other Hacker Tracker content.</p>
-      </div>
-      <span v-if="!loading" class="result-count"
-        >{{ filtered.length.toLocaleString() }} results</span
-      >
-    </header>
+  <section v-if="conference" class="container page-content">
+    <PageHeading
+      title="Content"
+      intro="Talks, workshops, and activities."
+      :count="loading ? undefined : `${filtered.length.toLocaleString()} results`"
+    />
     <div class="content-controls">
-      <label class="search-control">
-        <span class="visually-hidden">Search content</span>
-        <input
-          v-model="query"
-          class="input focus-ring"
-          type="search"
-          placeholder="Search content..."
-        />
-      </label>
+      <SearchField
+        v-model="query"
+        class="content-search"
+        label="Search content"
+        placeholder="Search content…"
+      />
       <label v-if="allowTagFilter && availableTags.length" class="tag-control">
         <span class="visually-hidden">Filter content by tag</span>
         <select v-model="selectedTag" class="input focus-ring">
@@ -138,41 +137,8 @@ watchEffect(() => {
 </template>
 
 <style scoped>
-.content-page {
-  padding-block: var(--section-space);
-}
-.page-heading-row {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--space-5);
-}
-.kicker {
-  color: var(--accent-success);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-h1 {
-  margin-top: 0.2rem;
-  font-size: clamp(2rem, 5vw, 3.25rem);
-}
-.page-heading-row p:last-child {
-  margin-top: var(--space-2);
-  color: var(--text-muted);
-}
-.result-count {
-  color: var(--text-subtle);
-  font-size: 0.85rem;
-  white-space: nowrap;
-}
-.search-control {
-  display: block;
+.content-search {
   flex: 1 1 22rem;
-  max-width: 34rem;
-}
-.search-control input {
-  width: 100%;
 }
 .content-controls {
   display: flex;
@@ -192,11 +158,5 @@ h1 {
   list-style: none;
   gap: var(--space-3);
   margin-top: var(--space-6);
-}
-@media (width < 40rem) {
-  .page-heading-row {
-    align-items: flex-start;
-    flex-direction: column;
-  }
 }
 </style>

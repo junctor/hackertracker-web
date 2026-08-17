@@ -5,9 +5,9 @@ import type { Conference } from "../types/hackertracker";
 
 import ConferenceCard from "../components/ConferenceCard.vue";
 import PageState from "../components/PageState.vue";
-import SiteFooter from "../components/SiteFooter.vue";
-import SiteHeader from "../components/SiteHeader.vue";
+import SitePageLayout from "../components/SitePageLayout.vue";
 import { getUpcomingConferences } from "../firebase/data";
+import { compareBySortOrder } from "../lib/sort";
 
 const conferences = ref<Conference[]>([]);
 const loading = ref(true);
@@ -16,7 +16,11 @@ const error = ref("");
 onMounted(async () => {
   document.title = "Hacker Tracker — Schedules for hackers, by hackers";
   try {
-    conferences.value = await getUpcomingConferences();
+    conferences.value = (await getUpcomingConferences()).sort(
+      (a, b) =>
+        compareBySortOrder(a, b) ||
+        a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+    );
   } catch {
     error.value = "We couldn’t load upcoming conferences. Check your connection and try again.";
   } finally {
@@ -26,57 +30,51 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="page-shell">
-    <SiteHeader />
-    <main id="main" class="home-main">
-      <header class="hero">
-        <h1 tabindex="-1"><span>Hacker</span><span>Tracker</span></h1>
-      </header>
+  <SitePageLayout main-class="home-main">
+    <header class="hero">
+      <h1 tabindex="-1"><span>Hacker</span><span>Tracker</span></h1>
+    </header>
 
-      <section
-        v-if="loading || error || conferences.length"
-        id="upcoming-mini"
-        class="container wide home-conferences"
-        aria-labelledby="upcoming-title"
+    <section
+      v-if="loading || error || conferences.length"
+      id="upcoming-mini"
+      class="container wide home-conferences"
+      aria-labelledby="upcoming-title"
+    >
+      <div class="section-title-row">
+        <h2 id="upcoming-title">
+          Upcoming Conferences <span v-if="!loading" class="count">{{ conferences.length }}</span>
+        </h2>
+      </div>
+      <div class="divider" />
+      <div
+        v-if="loading"
+        class="conference-grid"
+        aria-busy="true"
+        aria-label="Loading upcoming conferences"
       >
-        <div class="section-title-row">
-          <h2 id="upcoming-title">
-            Upcoming Conferences <span v-if="!loading" class="count">{{ conferences.length }}</span>
-          </h2>
-        </div>
-        <div class="divider" />
-        <div
-          v-if="loading"
-          class="conference-grid"
-          aria-busy="true"
-          aria-label="Loading upcoming conferences"
-        >
-          <div v-for="index in 4" :key="index" class="card skeleton" />
-        </div>
-        <PageState
-          v-else-if="error"
-          kind="error"
-          title="Conferences are unavailable"
-          :message="error"
+        <div v-for="index in 4" :key="index" class="card skeleton" />
+      </div>
+      <PageState
+        v-else-if="error"
+        kind="error"
+        title="Conferences are unavailable"
+        :message="error"
+      />
+      <div v-else class="conference-grid">
+        <ConferenceCard
+          v-for="conference in conferences"
+          :key="conference.id"
+          :conference="conference"
         />
-        <div v-else class="conference-grid">
-          <ConferenceCard
-            v-for="conference in conferences"
-            :key="conference.id"
-            :conference="conference"
-          />
-        </div>
-        <RouterLink class="view-all text-link focus-ring" to="/conferences"
-          >View all conferences</RouterLink
-        >
-      </section>
-    </main>
-    <SiteFooter />
-  </div>
+      </div>
+      <RouterLink class="view-all focus-ring" to="/conferences">View all conferences</RouterLink>
+    </section>
+  </SitePageLayout>
 </template>
 
 <style scoped>
-.home-main {
+:deep(.home-main) {
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -146,6 +144,14 @@ onMounted(async () => {
   display: table;
   margin-top: 1.5rem;
   margin-inline: auto;
+  color: var(--accent-success);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--accent-success), transparent 50%);
+  text-underline-offset: 0.18em;
+}
+
+.view-all:hover {
+  color: white;
 }
 
 .count {

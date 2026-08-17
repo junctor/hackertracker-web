@@ -1,19 +1,21 @@
 <script setup lang="ts">
-import { ArrowLeft, ExternalLink } from "@lucide/vue";
+import { ArrowLeft } from "@lucide/vue";
 import { computed, ref, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
 import type { Person, ScheduledContent } from "../types/hackertracker";
 
+import ExternalLinkList from "../components/ExternalLinkList.vue";
 import MarkdownContent from "../components/MarkdownContent.vue";
 import PageState from "../components/PageState.vue";
-import SessionCard from "../components/SessionCard.vue";
+import PersonAvatar from "../components/PersonAvatar.vue";
+import ScheduleSessionCard from "../components/ScheduleSessionCard.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
-import { getContentByIds, getSpeaker, getTags } from "../firebase/data";
-import { formatScheduleTime } from "../lib/dates";
+import { getContentByIds, getLocations, getSpeakers, getTags } from "../firebase/data";
 import { friendlyLoadError } from "../lib/errors";
-import { contentPath, normalizeConferenceCode, parseNumericParam, peoplePath } from "../lib/routes";
+import { normalizeConferenceCode, parseNumericParam, peoplePath } from "../lib/routes";
 import { processScheduleData } from "../lib/schedule";
+import { safeExternalLinks } from "../lib/urls";
 
 const route = useRoute();
 const { conference } = useConferenceContext();
@@ -21,32 +23,13 @@ const person = ref<Person | null>(null);
 const sessions = ref<ScheduledContent[]>([]);
 const loading = ref(true);
 const error = ref("");
-const avatarError = ref(false);
 let request = 0;
 
 const code = computed(() => normalizeConferenceCode(route.params.confCode));
 const id = computed(() => parseNumericParam(route.params.personId));
 const text = (value?: string | null) => (typeof value === "string" ? value.trim() : "");
 const name = computed(() => text(person.value?.name).replace(/\s+/g, " ") || "Unknown person");
-const initials = computed(() =>
-  name.value
-    .split(/\s+/)
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase(),
-);
-const links = computed(() =>
-  [...(person.value?.links ?? [])]
-    .filter((link) => {
-      try {
-        return ["http:", "https:"].includes(new URL(link.url).protocol);
-      } catch {
-        return false;
-      }
-    })
-    .sort((a, b) => a.sort_order - b.sort_order),
-);
+const links = computed(() => safeExternalLinks(person.value?.links ?? []));
 const affiliations = computed(() =>
   (person.value?.affiliations ?? []).filter((item) => text(item.title) || text(item.organization)),
 );
@@ -58,7 +41,6 @@ const accent = computed(() => {
     sessions.value.find((item) => item.color)?.color ?? palette[hash % palette.length] ?? palette[0]
   );
 });
-const avatar = computed(() => text(person.value?.avatar?.url) || null);
 
 watchEffect(() => {
   document.title = error.value
@@ -78,17 +60,24 @@ watch(
     }
     loading.value = true;
     error.value = "";
-    avatarError.value = false;
     try {
-      const loadedPerson = await getSpeaker(conferenceCode, personId);
+      const loadedPeople = await getSpeakers(conferenceCode);
+      const loadedPerson = loadedPeople.find((item) => item.id === personId);
       if (!loadedPerson) throw new Error("Person not found.");
       let scheduled: ScheduledContent[] = [];
       if (loadedPerson.content_ids?.length) {
-        const [content, tags] = await Promise.all([
+        const [content, tags, locations] = await Promise.all([
           getContentByIds(conferenceCode, loadedPerson.content_ids),
           getTags(conferenceCode),
+          getLocations(conferenceCode),
         ]);
-        scheduled = processScheduleData(content, tags, [loadedPerson]);
+        scheduled = processScheduleData(
+          content,
+          tags,
+          loadedPeople,
+          locations,
+          conference.value?.timezone || "UTC",
+        );
       }
       if (current !== request) return;
       person.value = loadedPerson;
@@ -113,18 +102,7 @@ watch(
           ><ArrowLeft aria-hidden="true" /><span>People</span></RouterLink
         >
         <div class="person-hero-content">
-          <span
-            class="avatar avatar--large"
-            :style="{
-              backgroundImage: `linear-gradient(135deg, ${accent}22, rgba(15, 23, 42, .92))`,
-            }"
-            ><img
-              v-if="avatar && !avatarError"
-              :src="avatar"
-              alt=""
-              @error="avatarError = true"
-            /><span v-else>{{ initials }}</span></span
-          >
+          <PersonAvatar :name="name" :url="person.avatar?.url" :accent="accent" large />
           <div class="person-identity">
             <div class="person-name">
               <h1 tabindex="-1">{{ name }}</h1>
@@ -137,17 +115,7 @@ watch(
                 >{{ text(item.organization) }}
               </li>
             </ul>
-            <ul v-if="links.length" class="resource-list">
-              <li v-for="link in links" :key="`${link.url}-${link.title}`">
-                <a
-                  class="plain-link focus-ring"
-                  :href="link.url"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  >{{ link.title || link.url }}<ExternalLink aria-hidden="true"
-                /></a>
-              </li>
-            </ul>
+            <ExternalLinkList v-if="links.length" :items="links" compact />
           </div>
         </div>
       </header>
@@ -163,21 +131,53 @@ watch(
         <h2 id="person-sessions">Sessions</h2>
         <ul class="stack-list">
           <li v-for="item in sessions" :key="`${item.contentId}-${item.sessionId}`">
-            <SessionCard
-              accent="none"
-              :title="item.title"
-              :to="contentPath(conference.code, item.contentId)"
-              :begin="formatScheduleTime(item.begin, item.timeZone, true)"
-              :end="item.end ? formatScheduleTime(item.end, item.timeZone) : undefined"
-              :begin-date-time="new Date(item.begin).toISOString()"
-              :end-date-time="item.end ? new Date(item.end).toISOString() : undefined"
-              :people="item.speakers"
-              :location="item.location"
-              :tags="item.tags"
-            />
+            <ScheduleSessionCard :conference="conference" :session="item" />
           </li>
         </ul>
       </section>
     </div>
   </div>
 </template>
+
+<style scoped src="../styles/content.css"></style>
+
+<style scoped>
+.person-hero-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.person-identity {
+  display: grid;
+  min-width: 0;
+  gap: 0.8rem;
+}
+
+.person-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.pronouns {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.affiliations {
+  display: grid;
+  gap: 0.25rem;
+  color: #cbd5e1;
+  font-size: 0.875rem;
+}
+
+@media (width < 40rem) {
+  .person-hero-content {
+    flex-direction: column;
+  }
+}
+</style>

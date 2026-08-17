@@ -8,7 +8,7 @@ import MarkdownContent from "../components/MarkdownContent.vue";
 import PageState from "../components/PageState.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
 import { getDocument } from "../firebase/data";
-import { toDate } from "../lib/dates";
+import { formatDateTime, toIsoDateTime } from "../lib/dates";
 import { friendlyLoadError } from "../lib/errors";
 import { conferenceMenuPath, parseNumericParam } from "../lib/routes";
 
@@ -18,6 +18,13 @@ const documentId = computed(() => parseNumericParam(route.params.documentId));
 const currentDocument = ref<ConferenceDocument | null>(null);
 const loading = ref(true);
 const error = ref("");
+const updated = computed(() => {
+  const value = currentDocument.value?.updatedAt;
+  if (!value) return null;
+  const dateTime = toIsoDateTime(value);
+  const label = formatDateTime(value, conference.value?.timezone, { dateStyle: "medium" });
+  return dateTime && label ? { dateTime, label } : null;
+});
 watch(
   [conference, documentId],
   async ([current, id]) => {
@@ -56,21 +63,11 @@ watchEffect(() => {
     />
     <template v-else>
       <RouterLink class="back-link focus-ring" :to="conferenceMenuPath(conference.code)"
-        >← Conference Menu</RouterLink
+        >← Conference menu</RouterLink
       >
       <header>
-        <p class="kicker">Conference document</p>
         <h1 tabindex="-1">{{ currentDocument.titleText }}</h1>
-        <time
-          v-if="toDate(currentDocument.updatedAt)"
-          :datetime="toDate(currentDocument.updatedAt)!.toISOString()"
-          >Updated
-          {{
-            toDate(currentDocument.updatedAt)!.toLocaleDateString(undefined, {
-              dateStyle: "medium",
-            })
-          }}</time
-        >
+        <time v-if="updated" :datetime="updated.dateTime">Updated {{ updated.label }}</time>
       </header>
       <div class="document-body"><MarkdownContent :content="currentDocument.bodyText" /></div>
     </template>
@@ -90,14 +87,7 @@ watchEffect(() => {
 header {
   margin-top: var(--space-6);
 }
-.kicker {
-  color: var(--accent-success);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
 h1 {
-  margin-top: var(--space-2);
   font-size: clamp(2rem, 6vw, 3.5rem);
   line-height: 1.05;
   text-wrap: balance;

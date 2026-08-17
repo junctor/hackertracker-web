@@ -18,21 +18,22 @@ watchEffect(() => {
 
 <template>
   <div>
+    <PageState v-if="loading && !grouped" kind="loading" message="Loading saved events…" />
     <PageState
-      v-if="loading && !conference && !grouped"
-      kind="loading"
-      message="Loading saved events…"
+      v-else-if="error && !grouped"
+      kind="error"
+      title="Bookmarks unavailable"
+      :message="error"
     />
-    <PageState v-else-if="error" kind="error" title="Bookmarks unavailable" :message="error" />
     <ScheduleList
       v-else-if="conference && grouped && Object.keys(grouped).length"
       :conference="conference"
       :date-group="grouped"
       page-title="Bookmarks"
     />
-    <PageState v-else kind="empty" message="No bookmarks found.">
+    <PageState v-else kind="empty" message="No bookmarked sessions yet.">
       <RouterLink v-if="code" class="button focus-ring" :to="schedulePath(code)"
-        >Browse Schedule</RouterLink
+        >Browse schedule</RouterLink
       >
     </PageState>
   </div>

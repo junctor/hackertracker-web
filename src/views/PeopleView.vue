@@ -1,23 +1,26 @@
 <script setup lang="ts">
-import { Search } from "@lucide/vue";
 import { computed, ref, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
 import type { Person } from "../types/hackertracker";
 
+import PageHeading from "../components/PageHeading.vue";
 import PageState from "../components/PageState.vue";
+import PersonAvatar from "../components/PersonAvatar.vue";
+import SearchField from "../components/SearchField.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
+import { useRouteTextQuery } from "../composables/useRouteTextQuery";
 import { getSpeakers } from "../firebase/data";
 import { friendlyLoadError } from "../lib/errors";
 import { normalizeConferenceCode, personPath } from "../lib/routes";
+import { compareBySortOrder } from "../lib/sort";
 
 const route = useRoute();
 const { conference } = useConferenceContext();
 const people = ref<Person[]>([]);
 const loading = ref(true);
 const error = ref("");
-const query = ref("");
-const brokenAvatars = ref(new Set<number>());
+const query = useRouteTextQuery();
 const collator = new Intl.Collator(undefined, { sensitivity: "base" });
 let request = 0;
 
@@ -37,13 +40,13 @@ const filtered = computed(() => {
           .includes(needle),
       )
     : [...people.value];
-  return result.sort((a, b) => collator.compare(a.name, b.name));
+  return result.sort((a, b) => compareBySortOrder(a, b) || collator.compare(a.name, b.name));
 });
 
 watchEffect(() => {
   document.title = conference.value
     ? `People · ${conference.value.name} | Hacker Tracker`
-    : "Loading people | Hacker Tracker";
+    : "Loading people… | Hacker Tracker";
 });
 watch(
   code,
@@ -71,22 +74,11 @@ watch(
 
 const text = (value?: string | null) => (typeof value === "string" ? value.trim() : "");
 const displayName = (person: Person) => text(person.name).replace(/\s+/g, " ") || "Unknown person";
-const initials = (person: Person) =>
-  displayName(person)
-    .split(/\s+/)
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-const avatarUrl = (person: Person) => text(person.avatar?.url) || null;
 const affiliation = (person: Person) => {
   const first = person.affiliations?.find((item) => text(item.title) || text(item.organization));
   if (!first) return null;
   return [text(first.title), text(first.organization)].filter(Boolean).join(" @ ");
 };
-function markBroken(id: number): void {
-  brokenAvatars.value = new Set([...brokenAvatars.value, id]);
-}
 function highlightedName(person: Person): { before: string; match: string; after: string } {
   const name = displayName(person);
   const needle = query.value.trim();
@@ -106,25 +98,14 @@ function highlightedName(person: Person): { before: string; match: string; after
     <PageState v-if="loading" kind="loading" message="Getting the speaker list…" />
     <PageState v-else-if="error" kind="error" title="People unavailable" :message="error" />
     <section v-else-if="conference && code" class="container wide page-content">
-      <div class="people-heading">
-        <div class="title-with-count">
-          <h1 tabindex="-1">People</h1>
-          <span class="count" aria-live="polite"
-            >{{ filtered.length.toLocaleString() }}
-            {{ filtered.length === 1 ? "result" : "results" }}</span
-          >
-        </div>
+      <PageHeading
+        title="People"
+        :count="`${filtered.length.toLocaleString()} ${filtered.length === 1 ? 'result' : 'results'}`"
+      >
         <form class="people-controls" role="search" @submit.prevent>
-          <label class="search-field"
-            ><Search aria-hidden="true" /><input
-              v-model="query"
-              class="input focus-ring"
-              type="search"
-              placeholder="Search people..."
-              aria-label="Search people"
-          /></label>
+          <SearchField v-model="query" label="Search people" placeholder="Search people…" />
         </form>
-      </div>
+      </PageHeading>
       <div v-if="!filtered.length" class="empty-state people-empty">
         <h2>No people found</h2>
         <p v-if="query.trim()">No people found for “{{ query.trim() }}”.</p>
@@ -137,16 +118,7 @@ function highlightedName(person: Person): { before: string; match: string; after
         <li v-for="person in filtered" :key="person.id">
           <article class="card interactive person-card">
             <RouterLink class="person-card-link focus-ring" :to="personPath(code, person.id)">
-              <span class="avatar">
-                <img
-                  v-if="avatarUrl(person) && !brokenAvatars.has(person.id)"
-                  :src="avatarUrl(person)!"
-                  alt=""
-                  loading="lazy"
-                  @error="markBroken(person.id)"
-                />
-                <span v-else>{{ initials(person) }}</span>
-              </span>
+              <PersonAvatar :name="displayName(person)" :url="person.avatar?.url" lazy />
               <span class="person-card-copy"
                 ><strong
                   ><template v-for="part in [highlightedName(person)]" :key="part.before"
@@ -164,3 +136,91 @@ function highlightedName(person: Person): { before: string; match: string; after
     </section>
   </div>
 </template>
+
+<style scoped>
+.people-controls {
+  width: min(20rem, 100%);
+}
+
+.people-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  list-style: none;
+  gap: 1rem;
+  margin-top: var(--space-6);
+}
+
+.person-card,
+.person-card-link {
+  height: 100%;
+}
+
+.person-card-link {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  border-radius: inherit;
+  padding: 1rem;
+}
+
+.person-card-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.person-card-copy strong,
+.person-card-copy > span {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.person-card-copy strong {
+  color: #f1f5f9;
+  line-height: 1.35;
+}
+
+.person-card-copy > span {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+mark {
+  border-radius: 0.2rem;
+  background: rgb(254 240 138 / 18%);
+  color: #fef08a;
+}
+
+.people-empty {
+  max-width: 28rem;
+  margin: 4rem auto;
+}
+
+.people-empty p {
+  margin-top: 0.35rem;
+  color: var(--text-muted);
+}
+
+.people-empty .button {
+  margin-top: 1rem;
+}
+
+@media (width < 56.25rem) {
+  .people-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (width < 40rem) {
+  .people-controls {
+    width: 100%;
+  }
+
+  .people-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

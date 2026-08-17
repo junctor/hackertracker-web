@@ -1,19 +1,20 @@
 <script setup lang="ts">
 import { computed, ref, watch, watchEffect } from "vue";
-import { useRoute, useRouter } from "vue-router";
 
 import type { Content, Organization, Person } from "../types/hackertracker";
 
+import PageHeading from "../components/PageHeading.vue";
 import PageState from "../components/PageState.vue";
+import SearchField from "../components/SearchField.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
+import { useRouteTextQuery } from "../composables/useRouteTextQuery";
 import { getAllContent, getOrganizations, getSpeakers } from "../firebase/data";
 import { friendlyLoadError } from "../lib/errors";
 import { conferenceSectionPath, contentPath, personPath } from "../lib/routes";
+import { compareBySortOrder } from "../lib/sort";
 
-const route = useRoute();
-const router = useRouter();
 const { conference } = useConferenceContext();
-const query = ref(typeof route.query.q === "string" ? route.query.q : "");
+const query = useRouteTextQuery();
 const contentItems = ref<Content[]>([]);
 const people = ref<Person[]>([]);
 const organizations = ref<Organization[]>([]);
@@ -25,6 +26,11 @@ const contentResults = computed(() =>
     ? []
     : contentItems.value
         .filter((item) => `${item.title} ${item.description}`.toLowerCase().includes(needle.value))
+        .sort(
+          (a, b) =>
+            compareBySortOrder(a, b) ||
+            a.title.localeCompare(b.title, undefined, { sensitivity: "base" }),
+        )
         .slice(0, 30),
 );
 const peopleResults = computed(() =>
@@ -34,6 +40,11 @@ const peopleResults = computed(() =>
         .filter((item) =>
           `${item.name} ${item.title} ${item.description}`.toLowerCase().includes(needle.value),
         )
+        .sort(
+          (a, b) =>
+            compareBySortOrder(a, b) ||
+            a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+        )
         .slice(0, 20),
 );
 const organizationResults = computed(() =>
@@ -41,6 +52,11 @@ const organizationResults = computed(() =>
     ? []
     : organizations.value
         .filter((item) => `${item.name} ${item.description}`.toLowerCase().includes(needle.value))
+        .sort(
+          (a, b) =>
+            compareBySortOrder(a, b) ||
+            a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+        )
         .slice(0, 20),
 );
 const total = computed(
@@ -65,19 +81,6 @@ watch(
   },
   { immediate: true },
 );
-watch(query, (value) => {
-  const next = { ...route.query };
-  if (value.trim()) next.q = value;
-  else delete next.q;
-  void router.replace({ query: next });
-});
-watch(
-  () => route.query.q,
-  (value) => {
-    const next = typeof value === "string" ? value : "";
-    if (query.value !== next) query.value = next;
-  },
-);
 watchEffect(() => {
   if (conference.value) document.title = `Search · ${conference.value.name} | Hacker Tracker`;
 });
@@ -85,20 +88,17 @@ watchEffect(() => {
 
 <template>
   <section v-if="conference" class="container page-content search-page">
-    <header>
-      <p class="kicker">Global Search</p>
-      <h1 tabindex="-1">Search {{ conference.name }}</h1>
-      <p>Search content, people, and organizations.</p>
-    </header>
-    <label class="search-control"
-      ><span class="visually-hidden">Search conference</span
-      ><input
-        v-model="query"
-        class="input focus-ring"
-        type="search"
-        placeholder="Search the conference..."
-        autofocus
-    /></label>
+    <PageHeading
+      :title="`Search ${conference.name}`"
+      intro="Find content, people, and organizations."
+    />
+    <SearchField
+      v-model="query"
+      class="page-search"
+      label="Search conference"
+      placeholder="Search the conference…"
+      large
+    />
     <PageState v-if="loading" kind="loading" message="Indexing conference content…" />
     <PageState v-else-if="error" kind="error" title="Search unavailable" :message="error" />
     <PageState
@@ -163,30 +163,6 @@ watchEffect(() => {
 <style scoped>
 .search-page {
   max-width: 60rem;
-  padding-block: var(--section-space);
-}
-.kicker {
-  color: var(--accent-success);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-h1 {
-  margin-top: 0.2rem;
-  font-size: clamp(2rem, 5vw, 3.25rem);
-}
-header > p:last-child {
-  margin-top: var(--space-2);
-  color: var(--text-muted);
-}
-.search-control {
-  display: block;
-  margin-top: var(--space-6);
-}
-.search-control input {
-  width: 100%;
-  min-height: 3.25rem;
-  font-size: 1.05rem;
 }
 .result-groups {
   display: grid;

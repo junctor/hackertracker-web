@@ -1,19 +1,28 @@
 <script setup lang="ts">
-import { ref, watch, watchEffect } from "vue";
+import { computed, ref, watch, watchEffect } from "vue";
 
 import type { ConferenceArticle } from "../types/hackertracker";
 
 import MarkdownContent from "../components/MarkdownContent.vue";
+import PageHeading from "../components/PageHeading.vue";
 import PageState from "../components/PageState.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
 import { getArticles } from "../firebase/data";
-import { toDate } from "../lib/dates";
+import { formatDateTime, toIsoDateTime } from "../lib/dates";
 import { friendlyLoadError } from "../lib/errors";
+import { compareBySortOrder } from "../lib/sort";
 
 const { conference } = useConferenceContext();
 const articles = ref<ConferenceArticle[]>([]);
 const loading = ref(true);
 const error = ref("");
+const displayedArticles = computed(() =>
+  articles.value.map((article) => {
+    const dateTime = toIsoDateTime(article.updatedAt);
+    const dateLabel = formatDateTime(article.updatedAt, conference.value?.timezone);
+    return { ...article, updated: dateTime && dateLabel ? { dateTime, dateLabel } : null };
+  }),
+);
 watch(
   conference,
   async (current) => {
@@ -21,7 +30,9 @@ watch(
     loading.value = true;
     try {
       articles.value = (await getArticles(current.code)).sort(
-        (a, b) => (toDate(b.updatedAt)?.getTime() ?? 0) - (toDate(a.updatedAt)?.getTime() ?? 0),
+        (a, b) =>
+          compareBySortOrder(a, b) ||
+          a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
       );
     } catch (reason) {
       error.value = friendlyLoadError(reason, "announcements");
@@ -38,32 +49,20 @@ watchEffect(() => {
 </script>
 
 <template>
-  <section v-if="conference" class="container page-content announcements-page">
-    <header>
-      <p class="kicker">Latest Updates</p>
-      <h1 tabindex="-1">Announcements</h1>
-      <p>Conference announcements and updates.</p>
-    </header>
+  <section v-if="conference" class="container page-content">
+    <PageHeading title="Announcements" intro="Conference updates." />
     <PageState v-if="loading" kind="loading" message="Checking for announcements…" />
     <PageState v-else-if="error" kind="error" title="Announcements unavailable" :message="error" />
-    <PageState v-else-if="!articles.length" kind="empty" message="No announcements at this time." />
+    <PageState v-else-if="!articles.length" kind="empty" message="No announcements yet." />
     <ul v-else class="announcement-list">
-      <li v-for="(article, index) in articles" :key="article.id">
+      <li v-for="(article, index) in displayedArticles" :key="article.id">
         <details class="announcement-card" :open="index === 0">
           <summary class="focus-ring">
             <span
               ><strong>{{ article.name }}</strong
-              ><time
-                v-if="toDate(article.updatedAt)"
-                :datetime="toDate(article.updatedAt)!.toISOString()"
-                >{{
-                  toDate(article.updatedAt)!.toLocaleString(undefined, {
-                    dateStyle: "medium",
-                    timeStyle: "short",
-                    timeZone: conference.timezone,
-                  })
-                }}</time
-              ></span
+              ><time v-if="article.updated" :datetime="article.updated.dateTime">{{
+                article.updated.dateLabel
+              }}</time></span
             >
           </summary>
           <div v-if="article.text" class="announcement-body">
@@ -76,23 +75,6 @@ watchEffect(() => {
 </template>
 
 <style scoped>
-.announcements-page {
-  padding-block: var(--section-space);
-}
-.kicker {
-  color: var(--accent-success);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-h1 {
-  margin-top: 0.2rem;
-  font-size: clamp(2rem, 5vw, 3.25rem);
-}
-header > p:last-child {
-  margin-top: var(--space-2);
-  color: var(--text-muted);
-}
 .announcement-list {
   display: grid;
   list-style: none;

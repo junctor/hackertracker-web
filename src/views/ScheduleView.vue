@@ -28,15 +28,16 @@ watchEffect(() => {
 
 <template>
   <div>
+    <PageState v-if="loading && !grouped" kind="loading" message="Getting the latest schedule…" />
     <PageState
-      v-if="loading && !conference && !grouped"
-      kind="loading"
-      message="Getting the latest schedule…"
-    />
-    <PageState v-else-if="error" kind="error" title="Schedule unavailable" :message="error">
+      v-else-if="error && !grouped"
+      kind="error"
+      title="Schedule unavailable"
+      :message="error"
+    >
       <div class="state-actions">
         <RouterLink class="button focus-ring" to="/">Return Home</RouterLink
-        ><RouterLink class="button focus-ring" to="/support">Contact Support</RouterLink>
+        ><RouterLink class="button focus-ring" to="/support">Contact support</RouterLink>
       </div>
     </PageState>
     <ScheduleList

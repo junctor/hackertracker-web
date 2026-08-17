@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import { computed, ref, watch, watchEffect } from "vue";
-import { useRoute, useRouter } from "vue-router";
 import type { Location } from "../types/hackertracker";
+import PageHeading from "../components/PageHeading.vue";
 import PageState from "../components/PageState.vue";
+import SearchField from "../components/SearchField.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
+import { useRouteTextQuery } from "../composables/useRouteTextQuery";
 import { getLocations } from "../firebase/data";
 import { friendlyLoadError } from "../lib/errors";
+import { compareBySortOrder } from "../lib/sort";
 
 const { conference } = useConferenceContext();
-const route = useRoute();
-const router = useRouter();
 const locations = ref<Location[]>([]);
-const query = ref(typeof route.query.q === "string" ? route.query.q : "");
+const query = useRouteTextQuery();
 const loading = ref(true);
 const error = ref("");
 const filtered = computed(() => {
@@ -21,8 +22,10 @@ const filtered = computed(() => {
       (item) =>
         !needle || `${item.name} ${item.short_name} ${item.hotel}`.toLowerCase().includes(needle),
     )
-    .sort((a, b) =>
-      a.name.localeCompare(b.name, undefined, { sensitivity: "base", numeric: true }),
+    .sort(
+      (a, b) =>
+        compareBySortOrder(a, b) ||
+        a.name.localeCompare(b.name, undefined, { sensitivity: "base", numeric: true }),
     );
 });
 const parentName = (id: number) => locations.value.find((item) => item.id === id)?.name;
@@ -41,39 +44,20 @@ watch(
   },
   { immediate: true },
 );
-watch(query, (value) => {
-  const next = { ...route.query };
-  if (value.trim()) next.q = value;
-  else delete next.q;
-  void router.replace({ query: next });
-});
-watch(
-  () => route.query.q,
-  (value) => {
-    const next = typeof value === "string" ? value : "";
-    if (query.value !== next) query.value = next;
-  },
-);
 watchEffect(() => {
   if (conference.value) document.title = `Locations · ${conference.value.name} | Hacker Tracker`;
 });
 </script>
 
 <template>
-  <section v-if="conference" class="container page-content locations-page">
-    <header>
-      <p class="kicker">Venue guide</p>
-      <h1 tabindex="-1">Locations</h1>
-      <p>Rooms, villages, and venue references used across the schedule.</p>
-    </header>
-    <label class="search-control"
-      ><span class="visually-hidden">Search locations</span
-      ><input
-        v-model="query"
-        class="input focus-ring"
-        type="search"
-        placeholder="Search locations..."
-    /></label>
+  <section v-if="conference" class="container page-content">
+    <PageHeading title="Locations" intro="Rooms and venues from the schedule." />
+    <SearchField
+      v-model="query"
+      class="page-search"
+      label="Search locations"
+      placeholder="Search locations…"
+    />
     <PageState v-if="loading" kind="loading" message="Getting conference locations…" />
     <PageState v-else-if="error" kind="error" title="Locations unavailable" :message="error" />
     <PageState
@@ -97,31 +81,6 @@ watchEffect(() => {
 </template>
 
 <style scoped>
-.locations-page {
-  padding-block: var(--section-space);
-}
-.kicker {
-  color: var(--accent-success);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-h1 {
-  margin-top: 0.2rem;
-  font-size: clamp(2rem, 5vw, 3.25rem);
-}
-header > p:last-child {
-  margin-top: var(--space-2);
-  color: var(--text-muted);
-}
-.search-control {
-  display: block;
-  max-width: 34rem;
-  margin-top: var(--space-6);
-}
-.search-control input {
-  width: 100%;
-}
 .location-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
