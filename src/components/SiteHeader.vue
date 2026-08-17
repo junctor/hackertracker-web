@@ -10,12 +10,7 @@ const menu = ref<HTMLElement | null>(null);
 
 const items = [
   { label: "Conferences", to: "/conferences", icon: Calendar },
-  {
-    label: "Apps",
-    to: `${import.meta.env.BASE_URL}apps/index.html`,
-    icon: AppWindow,
-    static: true,
-  },
+  { label: "Apps", to: "/apps", icon: AppWindow },
   { label: "About", to: "/about", icon: Info },
   { label: "Support", to: "/support", icon: CircleHelp },
   {
@@ -73,10 +68,6 @@ onBeforeUnmount(() => {
             <component :is="item.icon" aria-hidden="true" />
             <span>{{ item.label }}</span>
           </a>
-          <a v-else-if="item.static" class="nav-button focus-ring" :href="item.to">
-            <component :is="item.icon" aria-hidden="true" />
-            <span>{{ item.label }}</span>
-          </a>
           <RouterLink
             v-else
             class="nav-button focus-ring"
@@ -117,9 +108,6 @@ onBeforeUnmount(() => {
               rel="noopener noreferrer"
               class="mobile-menu-link focus-ring"
             >
-              <component :is="item.icon" aria-hidden="true" />{{ item.label }}
-            </a>
-            <a v-else-if="item.static" :href="item.to" class="mobile-menu-link focus-ring">
               <component :is="item.icon" aria-hidden="true" />{{ item.label }}
             </a>
             <RouterLink v-else :to="item.to" class="mobile-menu-link focus-ring">

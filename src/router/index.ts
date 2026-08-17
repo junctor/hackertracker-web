@@ -34,7 +34,8 @@ const router = createRouter({
   },
   routes: [
     { path: "/", name: "home", component: () => import("../views/HomeView.vue") },
-    { path: "/apps", name: "apps", component: () => import("../views/AppsRedirectView.vue") },
+    { path: "/apps/index.html", redirect: "/apps" },
+    { path: "/apps", name: "apps", component: () => import("../views/AppsView.vue") },
     {
       path: "/conferences",
       name: "conferences",
