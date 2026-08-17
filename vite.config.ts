@@ -1,36 +1,16 @@
-import tailwindcss from "@tailwindcss/vite";
-import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite-plus";
+import { defineConfig, lazyPlugins } from "vite-plus";
+import vue from "@vitejs/plugin-vue";
 
+// https://vite.dev/config/
 export default defineConfig({
   staged: {
-    "*.{css,html,js,json,jsx,md,ts,tsx}": "vp check --fix",
+    "*": "vp check --fix",
   },
-  fmt: {
-    sortImports: {
-      groups: [
-        "type-import",
-        ["value-builtin", "value-external"],
-        "type-internal",
-        "value-internal",
-        ["type-parent", "type-sibling", "type-index"],
-        ["value-parent", "value-sibling", "value-index"],
-        "unknown",
-      ],
-    },
-    sortTailwindcss: {
-      functions: ["clsx", "cn"],
-    },
-  },
+  fmt: {},
   lint: {
-    ignorePatterns: ["coverage/**", "dist/**", "node_modules/**"],
-    options: {
-      typeAware: true,
-      typeCheck: true,
-    },
+    jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
+    rules: { "vite-plus/prefer-vite-plus-imports": "error" },
+    options: { typeAware: true, typeCheck: true },
   },
-  plugins: [react(), tailwindcss()],
-  resolve: {
-    tsconfigPaths: true,
-  },
+  plugins: lazyPlugins(() => [vue()]),
 });

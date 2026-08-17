@@ -1,0 +1,50 @@
+.detail-page {
+  display: grid;
+  max-width: min(64rem, calc(100% - var(--page-padding) * 2));
+  gap: 2rem;
+}
+
+.detail-hero {
+  padding: 0;
+}
+
+.detail-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.detail-actions > div {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.detail-hero h1 {
+  font-size: clamp(2rem, 6vw, 2.6rem);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.stack-list {
+  display: grid;
+  list-style: none;
+  gap: var(--space-4);
+}
+
+.detail-section {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.detail-section > h2 {
+  color: #e2e8f0;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+}
+
+.detail-copy {
+  max-width: 52rem;
+}

@@ -1,0 +1,60 @@
+:root {
+  color-scheme: dark;
+
+  --brand-cyan: #00e5e5;
+  --brand-red: #ff3030;
+  --brand-yellow: #ffd166;
+  --brand-black: #090b0d;
+
+  --color-bg: var(--brand-black);
+  --color-surface: #11161a;
+  --color-surface-elevated: #182126;
+  --color-fg: #f5f7f7;
+  --color-muted: color-mix(in oklab, var(--color-fg), var(--color-bg) 42%);
+  --color-border: color-mix(in oklab, var(--brand-cyan), var(--brand-red) 34%);
+
+  --surface: var(--color-surface);
+  --surface-muted: color-mix(in oklab, var(--color-surface), transparent 18%);
+  --surface-elevated: var(--color-surface-elevated);
+  --surface-interactive: color-mix(in oklab, var(--color-surface-elevated), transparent 4%);
+  --border: rgb(148 163 184 / 18%);
+  --border-strong: color-mix(in oklab, var(--color-border), white 8%);
+  --border-chrome: color-mix(in oklab, var(--border), white 14%);
+  --text-primary: var(--color-fg);
+  --text-muted: var(--color-muted);
+  --text-subtle: color-mix(in oklab, var(--color-muted), var(--color-bg) 24%);
+  --accent: var(--brand-cyan);
+  --accent-soft: color-mix(in oklab, var(--accent), transparent 82%);
+  --accent-success: var(--brand-cyan);
+  --warning: var(--brand-yellow);
+  --critical: var(--brand-red);
+  --focus: var(--brand-red);
+
+  --layout-max: 76rem;
+  --layout-wide: 88rem;
+  --layout-gutter: clamp(0.875rem, 3vw, 1.5rem);
+  --page-padding: var(--layout-gutter);
+  --section-space: clamp(1.5rem, 4vw, 3rem);
+  --radius-1: 0.375rem;
+  --radius-2: 0.625rem;
+  --radius-3: 0.875rem;
+  --radius-4: 1.125rem;
+  --radius-pill: 9999px;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --shadow-sm: 0 8px 20px rgb(0 0 0 / 20%);
+  --shadow-md: 0 14px 32px rgb(0 0 0 / 28%);
+  --shadow-lg: 0 20px 48px rgb(0 0 0 / 36%);
+  --control-min: 44px;
+}
+
+body {
+  background: var(--color-bg);
+}
