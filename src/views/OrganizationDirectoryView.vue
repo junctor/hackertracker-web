@@ -141,11 +141,12 @@ watchEffect(() => {
       </header>
       <RouterLink
         v-if="scheduleTagIds.length"
-        class="button focus-ring schedule-link detail-schedule-link"
+        class="icon-button focus-ring schedule-link detail-schedule-link"
         :to="filteredScheduleRoute(conference.code, { tagIds: scheduleTagIds })"
+        title="View events on schedule"
+        aria-label="View events on schedule"
       >
         <Calendar aria-hidden="true" />
-        View events on schedule
       </RouterLink>
       <div v-if="selected.description" class="detail-body">
         <MarkdownContent :content="selected.description" />
@@ -169,11 +170,12 @@ watchEffect(() => {
       >
         <RouterLink
           v-if="scheduleTagIds.length"
-          class="button focus-ring schedule-link"
+          class="icon-button focus-ring schedule-link"
           :to="filteredScheduleRoute(conference.code, { tagIds: scheduleTagIds })"
+          title="View on schedule"
+          aria-label="View on schedule"
         >
           <Calendar aria-hidden="true" />
-          View on schedule
         </RouterLink>
       </PageHeading>
       <SearchField
@@ -239,14 +241,12 @@ h1 {
   height: 100%;
   align-items: center;
   gap: var(--space-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-3);
-  background: var(--surface-muted);
-  padding: var(--space-4);
+  border-bottom: 1px solid var(--border);
+  padding: var(--space-4) var(--space-2);
 }
 .organization-card:hover {
   border-color: color-mix(in oklab, var(--accent), transparent 50%);
-  background: var(--surface-interactive);
+  color: white;
 }
 .organization-card strong {
   min-width: 0;

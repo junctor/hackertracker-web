@@ -52,8 +52,14 @@ watchEffect(() => {
             />
           </div>
           <div v-if="map.href" class="map-actions">
-            <a class="button focus-ring" :href="map.href" target="_blank" rel="noopener noreferrer"
-              >Open Map <ExternalLink aria-hidden="true"
+            <a
+              class="icon-button focus-ring"
+              :href="map.href"
+              target="_blank"
+              rel="noopener noreferrer"
+              :title="`Open ${map.displayName}`"
+              :aria-label="`Open ${map.displayName} in a new tab`"
+              ><ExternalLink aria-hidden="true"
             /></a>
           </div>
         </article>
@@ -101,11 +107,9 @@ img {
 }
 
 .map-actions {
+  display: flex;
+  justify-content: flex-end;
   padding-top: var(--space-4);
-}
-
-.map-actions .button {
-  gap: var(--space-2);
 }
 
 .map-actions svg {

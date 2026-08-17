@@ -88,11 +88,12 @@ watchEffect(() => {
           ><small v-else-if="location.hotel">{{ location.hotel }}</small>
           <RouterLink
             v-if="scheduledLocationIds.has(location.id)"
-            class="button button-small focus-ring schedule-link"
+            class="icon-button focus-ring schedule-link"
             :to="filteredScheduleRoute(conference.code, { locationId: location.id })"
+            :title="`View ${location.name} on the schedule`"
+            :aria-label="`View ${location.name} on the schedule`"
           >
             <Calendar aria-hidden="true" />
-            View schedule
           </RouterLink>
         </article>
       </li>
@@ -113,10 +114,8 @@ article {
   height: 100%;
   flex-direction: column;
   gap: var(--space-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-3);
-  background: var(--surface-muted);
-  padding: var(--space-5);
+  border-bottom: 1px solid var(--border);
+  padding: var(--space-5) var(--space-2);
 }
 h2 {
   font-size: 1rem;

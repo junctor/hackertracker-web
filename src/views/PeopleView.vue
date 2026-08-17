@@ -155,6 +155,19 @@ function highlightedName(person: Person): { before: string; match: string; after
   height: 100%;
 }
 
+.person-card {
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+}
+
+.person-card:hover,
+.person-card:focus-within {
+  border-color: color-mix(in oklab, var(--accent), transparent 50%);
+  background: transparent;
+}
+
 .person-card-link {
   display: flex;
   align-items: center;

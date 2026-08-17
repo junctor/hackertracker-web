@@ -234,18 +234,20 @@ onBeforeUnmount(() => tabResizeObserver?.disconnect());
           />
           <RouterLink
             v-if="pageTitle === 'Schedule'"
-            class="tool-button focus-ring"
+            class="icon-button focus-ring"
             :to="bookmarksPath(conference.code)"
+            title="Bookmarks"
             aria-label="View bookmarked events"
-            ><Bookmark aria-hidden="true" /><span>Bookmarks</span></RouterLink
-          >
+            ><Bookmark aria-hidden="true"
+          /></RouterLink>
           <RouterLink
             v-else
-            class="tool-button focus-ring"
+            class="icon-button focus-ring"
             :to="schedulePath(conference.code)"
+            title="Schedule"
             aria-label="Schedule"
-            ><Calendar aria-hidden="true" /><span>Schedule</span></RouterLink
-          >
+            ><Calendar aria-hidden="true"
+          /></RouterLink>
         </div>
       </div>
     </div>
@@ -449,11 +451,10 @@ onBeforeUnmount(() => tabResizeObserver?.disconnect());
   display: grid;
   width: var(--control-min);
   place-items: center;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-2);
-  background: var(--surface-elevated);
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--color-bg), white 6%);
   color: var(--text-muted);
-  box-shadow: var(--shadow-sm);
 }
 
 .tab-scroll-button:hover {
@@ -478,8 +479,9 @@ onBeforeUnmount(() => tabResizeObserver?.disconnect());
   min-height: 2.75rem;
   align-items: center;
   gap: var(--space-2);
-  border: 1px solid transparent;
-  border-radius: var(--radius-2);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
   padding: 0.45rem 0.85rem;
   color: var(--text-muted);
   font-size: 0.875rem;
@@ -488,14 +490,14 @@ onBeforeUnmount(() => tabResizeObserver?.disconnect());
 }
 
 .day-tab:hover {
-  border-color: var(--border);
-  background: var(--surface-muted);
+  border-bottom-color: var(--border-strong);
+  background: transparent;
   color: var(--text-primary);
 }
 
 .day-tab.active {
-  border-color: color-mix(in oklab, var(--accent), transparent 55%);
-  background: var(--surface);
+  border-bottom-color: var(--accent-success);
+  background: transparent;
   color: white;
 }
 

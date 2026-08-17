@@ -124,7 +124,7 @@ watch(
         aria-labelledby="about-person"
       >
         <h2 id="about-person">About</h2>
-        <div class="card detail-copy"><MarkdownContent :content="person.description" /></div>
+        <div class="detail-copy"><MarkdownContent :content="person.description" /></div>
       </section>
       <section v-if="sessions.length" class="detail-section" aria-labelledby="person-sessions">
         <h2 id="person-sessions">Sessions</h2>

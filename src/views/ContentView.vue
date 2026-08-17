@@ -208,7 +208,7 @@ async function handleShare(): Promise<void> {
         aria-labelledby="description-title"
       >
         <h2 id="description-title">Description</h2>
-        <div class="card detail-copy"><MarkdownContent :content="content.description" /></div>
+        <div class="detail-copy"><MarkdownContent :content="content.description" /></div>
       </section>
       <section v-if="links.length" class="detail-section" aria-labelledby="links-title">
         <h2 id="links-title">Links</h2>
