@@ -24,6 +24,7 @@ export type MenuRouteKey =
   | "maps"
   | "menu"
   | "people"
+  | "readme"
   | "schedule"
   | "search"
   | "vendors"
@@ -107,11 +108,11 @@ export function resolveMenuItem(code: string, item: ConferenceMenuItem): Support
       break;
     case "menu":
       if (normalizedItem.menuId !== null) {
-        routeKey = "menu";
-        href =
-          slugify(normalizedItem.titleText) === "readme-nfo"
-            ? conferenceSectionPath(code, "readme.nfo")
-            : nestedMenuPath(code, normalizedItem.menuId);
+        const isReadme = slugify(normalizedItem.titleText) === "readme-nfo";
+        routeKey = isReadme ? "readme" : "menu";
+        href = isReadme
+          ? conferenceSectionPath(code, "readme.nfo")
+          : nestedMenuPath(code, normalizedItem.menuId);
       }
       break;
   }

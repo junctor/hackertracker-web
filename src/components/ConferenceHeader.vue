@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { Bookmark, Calendar, Info, MapPin, Menu, Search, Users } from "@lucide/vue";
+import { Calendar, Menu, Search } from "@lucide/vue";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
 import type { Conference } from "../types/hackertracker";
-import type { MenuRouteKey, SupportedMenuItem } from "../lib/menuRoutes";
+import type { SupportedMenuItem } from "../lib/menuRoutes";
 
+import { menuIcon } from "../lib/menuIcons";
 import { conferenceMenuPath } from "../lib/routes";
 
 const props = defineProps<{ conference: Conference; items: SupportedMenuItem[] }>();
@@ -13,14 +14,6 @@ const route = useRoute();
 const open = ref(false);
 const menu = ref<HTMLElement | null>(null);
 
-const iconFor = (key: MenuRouteKey) => {
-  if (key === "schedule") return Calendar;
-  if (key === "bookmarks") return Bookmark;
-  if (key === "people") return Users;
-  if (key === "search") return Search;
-  if (key === "locations" || key === "maps") return MapPin;
-  return Info;
-};
 const schedule = computed(() => props.items.find((item) => item.routeKey === "schedule"));
 const search = computed(() => props.items.find((item) => item.routeKey === "search"));
 const isActive = (href: string) => {
@@ -109,7 +102,7 @@ onBeforeUnmount(() => {
                   :aria-current="isActive(item.href) ? 'page' : undefined"
                 >
                   <span class="menu-icon"
-                    ><component :is="iconFor(item.routeKey)" aria-hidden="true"
+                    ><component :is="menuIcon(item.routeKey)" aria-hidden="true"
                   /></span>
                   <span>{{ item.titleText }}</span>
                 </RouterLink>

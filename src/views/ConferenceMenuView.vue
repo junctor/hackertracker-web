@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { Bookmark, Calendar, Info, MapPin, Search, Users } from "@lucide/vue";
 import { computed, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
 import PageState from "../components/PageState.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
 import { formatDateRange, toDate } from "../lib/dates";
+import { menuIcon } from "../lib/menuIcons";
 import { resolveMenuItems } from "../lib/menuRoutes";
-import type { MenuRouteKey } from "../lib/menuRoutes";
 import { parseNumericParam } from "../lib/routes";
 
 const route = useRoute();
@@ -43,15 +42,6 @@ const dateLabel = computed(() =>
       )
     : undefined,
 );
-const iconFor = (key: MenuRouteKey) => {
-  if (key === "schedule") return Calendar;
-  if (key === "bookmarks") return Bookmark;
-  if (key === "people") return Users;
-  if (key === "search") return Search;
-  if (key === "locations" || key === "maps") return MapPin;
-  return Info;
-};
-
 watchEffect(() => {
   if (conference.value)
     document.title = `${activeMenu.value?.titleText || conference.value.name} · ${conference.value.name} | Hacker Tracker`;
@@ -90,7 +80,7 @@ watchEffect(() => {
         <ul class="menu-grid">
           <li v-for="item in items" :key="item.id">
             <RouterLink class="menu-button-link focus-ring" :to="item.href">
-              <component :is="iconFor(item.routeKey)" aria-hidden="true" />
+              <component :is="menuIcon(item.routeKey)" aria-hidden="true" />
               <strong>{{ item.titleText }}</strong>
             </RouterLink>
           </li>
