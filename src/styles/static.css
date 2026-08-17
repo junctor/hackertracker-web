@@ -20,9 +20,9 @@
 }
 
 .about-title img {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 0.75rem;
+  width: 3.5rem;
+  height: 3.5rem;
+  image-rendering: pixelated;
 }
 
 .about-title p {
@@ -49,7 +49,7 @@
 .team-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: 0 var(--space-6);
   margin-top: 1rem;
 }
 
@@ -62,13 +62,13 @@
   display: flex;
   align-items: flex-start;
   gap: 0.55rem;
-  padding: 0.75rem;
+  border-top: 1px solid var(--border);
+  padding: 0.75rem 0;
   color: #cbd5e1;
 }
 
 .info-card {
   display: block;
-  padding: 1rem;
 }
 .info-card p {
   margin-top: 0.3rem;
@@ -97,11 +97,12 @@
 
 .team-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 0 var(--space-6);
 }
 
 .team-grid li {
-  padding: 1rem;
+  border-top: 1px solid var(--border);
+  padding: var(--space-3) 0;
 }
 .team-grid a {
   display: flex;
@@ -112,7 +113,7 @@
 .team-grid img {
   width: 2.5rem;
   height: 2.5rem;
-  border-radius: 0.55rem;
+  border-radius: var(--radius-1);
 }
 .team-grid span {
   display: grid;
@@ -141,7 +142,6 @@
 }
 
 @media (max-width: 900px) {
-  .conference-grid,
   .people-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -161,43 +161,11 @@
 }
 
 @media (max-width: 640px) {
-  .desktop-nav {
-    display: none;
-  }
-  .mobile-nav {
-    display: flex;
-  }
-  .footer-inner {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-  .conference-grid,
   .people-grid,
   .team-grid,
   .info-grid,
   .three-columns {
     grid-template-columns: 1fr;
-  }
-  .schedule-card-link {
-    grid-template-columns: 1fr;
-    gap: 0.85rem;
-  }
-  .schedule-time {
-    display: grid;
-    grid-template-columns: auto auto;
-    align-items: center;
-    column-gap: 0.65rem;
-  }
-  .schedule-time .status-pill {
-    grid-column: 1 / -1;
-    justify-self: start;
-  }
-  .schedule-day-heading {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-  .day-tabs-scroll > div {
-    justify-content: flex-start;
   }
   .people-controls {
     align-items: stretch;

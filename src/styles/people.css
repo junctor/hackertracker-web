@@ -45,6 +45,7 @@
 .people-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  list-style: none;
   gap: 1rem;
 }
 
