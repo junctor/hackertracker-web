@@ -60,9 +60,11 @@ function organizationRoute(item: ConferenceMenuItem): MenuRouteKey | null {
  */
 export function resolveMenuItem(code: string, item: ConferenceMenuItem): SupportedMenuItem | null {
   const normalizedItem =
-    item.function === "locations" && /tree/i.test(item.titleText)
-      ? { ...item, titleText: "Locations" }
-      : item;
+    item.function === "people"
+      ? { ...item, titleText: "People" }
+      : item.function === "locations" && /tree/i.test(item.titleText)
+        ? { ...item, titleText: "Locations" }
+        : item;
   let routeKey: MenuRouteKey | null = null;
   let href = "";
   switch (normalizedItem.function) {

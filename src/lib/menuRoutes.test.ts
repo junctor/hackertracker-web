@@ -54,6 +54,12 @@ describe("Hacker Tracker menu routing", () => {
     ).toMatchObject({ href: "/dcsg2026/villages", routeKey: "villages" });
   });
 
+  it("uses People for the people menu regardless of the API label", () => {
+    expect(
+      resolveMenuItem("DEFCON34", item({ function: "people", titleText: "Speakers" })),
+    ).toMatchObject({ href: "/defcon34/people", routeKey: "people", titleText: "People" });
+  });
+
   it("omits unknown future functions", () => {
     const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     expect(resolveMenuItem("DEFCON34", item({ function: "future_feature" }))).toBeNull();

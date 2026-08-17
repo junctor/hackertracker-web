@@ -3,6 +3,7 @@ import { computed, ref, toValue, watch, type MaybeRefOrGetter } from "vue";
 import type { Conference, ConferenceMenu } from "../types/hackertracker";
 
 import { getConferenceMenus } from "../firebase/data";
+import { friendlyLoadError } from "../lib/errors";
 import { resolveMenuItem, resolveMenuItems } from "../lib/menuRoutes";
 
 export function useConferenceMenu(conference: MaybeRefOrGetter<Conference | null>) {
@@ -23,8 +24,7 @@ export function useConferenceMenu(conference: MaybeRefOrGetter<Conference | null
         const result = await getConferenceMenus(currentConference.code);
         if (current === request) menus.value = result;
       } catch (reason) {
-        if (current === request)
-          error.value = reason instanceof Error ? reason.message : "Failed to load conference menu";
+        if (current === request) error.value = friendlyLoadError(reason, "the Conference Menu");
       } finally {
         if (current === request) isLoading.value = false;
       }

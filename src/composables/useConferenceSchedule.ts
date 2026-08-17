@@ -9,6 +9,7 @@ import {
   getConferenceSchedule,
 } from "../firebase/data";
 import { loadBookmarks } from "../lib/bookmarks";
+import { friendlyLoadError } from "../lib/errors";
 
 export function useConferenceSchedule(bookmarksOnly = false) {
   const { conference } = useConferenceContext();
@@ -26,7 +27,7 @@ export function useConferenceSchedule(bookmarksOnly = false) {
     async (conferenceCode) => {
       const current = ++request;
       if (!conferenceCode) {
-        error.value = "Missing required URL parameters.";
+        error.value = "This link is missing a valid conference.";
         loading.value = false;
         return;
       }
@@ -48,8 +49,7 @@ export function useConferenceSchedule(bookmarksOnly = false) {
         }
         grouped.value = applyFilter(schedule.grouped, conferenceCode);
       } catch (reason) {
-        if (current === request)
-          error.value = reason instanceof Error ? reason.message : "Failed to load schedule.";
+        if (current === request) error.value = friendlyLoadError(reason, "the schedule");
       } finally {
         if (current === request) loading.value = false;
       }
