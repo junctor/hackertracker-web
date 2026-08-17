@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Bookmark, Calendar, ChevronLeft, ChevronRight } from "@lucide/vue";
+import { Bookmark, Calendar, ChevronLeft, ChevronRight, MapPin, X } from "@lucide/vue";
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
@@ -25,14 +25,32 @@ const props = defineProps<{
 const route = useRoute();
 const router = useRouter();
 const allScheduledContent = computed(() => Object.values(props.dateGroup).flat());
+const queryIds = (value: unknown): number[] => {
+  const values = Array.isArray(value) ? value : value ? [value] : [];
+  return Array.from(
+    new Set(
+      values.flatMap((item) =>
+        typeof item === "string"
+          ? item
+              .split(",")
+              .filter((id) => /^\d+$/.test(id))
+              .map(Number)
+          : [],
+      ),
+    ),
+  );
+};
+const selectedTagIds = computed(() => queryIds(route.query.tag_group));
+const selectedLocationId = computed(() => queryIds(route.query.location)[0] ?? null);
 const availableTagGroups = computed(() => {
   const used = new Set(allScheduledContent.value.flatMap((item) => item.tags.map((tag) => tag.id)));
+  const selected = new Set(selectedTagIds.value);
   return (props.tagGroups ?? [])
-    .filter((group) => group.is_browsable)
+    .filter((group) => group.is_browsable || group.tags.some((tag) => selected.has(tag.id)))
     .map((group) => ({
       ...group,
       tags: group.tags
-        .filter((tag) => used.has(tag.id))
+        .filter((tag) => used.has(tag.id) || selected.has(tag.id))
         .sort(
           (a, b) =>
             compareBySortOrder(a, b) ||
@@ -46,37 +64,33 @@ const availableTagGroups = computed(() => {
         a.label.localeCompare(b.label, undefined, { sensitivity: "base" }),
     );
 });
-const selectedTagIds = computed(() => {
-  const values = route.query.tag_group;
-  const groups = Array.isArray(values) ? values : values ? [values] : [];
-  return Array.from(
-    new Set(
-      groups.flatMap((group) =>
-        typeof group === "string"
-          ? group
-              .split(",")
-              .filter((value) => /^\d+$/.test(value))
-              .map(Number)
-          : [],
-      ),
-    ),
-  );
-});
 const selectedGroups = computed(() => {
   const selected = new Set(selectedTagIds.value);
-  return availableTagGroups.value
+  return (props.tagGroups ?? [])
     .map((group) => group.tags.filter((tag) => selected.has(tag.id)).map((tag) => tag.id))
     .filter((group) => group.length);
 });
+const selectedLocationName = computed(
+  () =>
+    allScheduledContent.value.find((item) => item.locationId === selectedLocationId.value)
+      ?.location ?? null,
+);
+const hasActiveFilters = computed(
+  () => selectedTagIds.value.length > 0 || selectedLocationId.value !== null,
+);
 const filteredDateGroup = computed<GroupedSchedule>(() => {
-  if (!selectedGroups.value.length) return props.dateGroup;
+  const locationId = selectedLocationId.value;
+  if (!selectedGroups.value.length && locationId === null) return props.dateGroup;
   return Object.fromEntries(
     Object.entries(props.dateGroup)
       .map(([day, items]) => [
         day,
         items.filter((item) => {
           const tags = new Set(item.tags.map((tag) => tag.id));
-          return selectedGroups.value.every((group) => group.some((tagId) => tags.has(tagId)));
+          return (
+            (locationId === null || item.locationId === locationId) &&
+            selectedGroups.value.every((group) => group.some((tagId) => tags.has(tagId)))
+          );
         }),
       ])
       .filter(([, items]) => items.length),
@@ -119,6 +133,19 @@ function updateFilters(ids: number[]): void {
   const query = { ...route.query };
   if (groups.length) query.tag_group = groups;
   else delete query.tag_group;
+  void router.replace({ query });
+}
+
+function clearLocationFilter(): void {
+  const query = { ...route.query };
+  delete query.location;
+  void router.replace({ query });
+}
+
+function clearAllFilters(): void {
+  const query = { ...route.query };
+  delete query.tag_group;
+  delete query.location;
   void router.replace({ query });
 }
 
@@ -188,6 +215,17 @@ onBeforeUnmount(() => tabResizeObserver?.disconnect());
       <div class="container wide schedule-tools-inner">
         <h1 tabindex="-1">{{ pageTitle }}</h1>
         <div class="schedule-actions">
+          <button
+            v-if="pageTitle === 'Schedule' && selectedLocationId !== null"
+            type="button"
+            class="tool-button focus-ring location-filter"
+            :aria-label="`Clear location filter: ${selectedLocationName || selectedLocationId}`"
+            @click="clearLocationFilter"
+          >
+            <MapPin aria-hidden="true" />
+            <span>{{ selectedLocationName || `Location ${selectedLocationId}` }}</span>
+            <X class="clear-filter-icon" aria-hidden="true" />
+          </button>
           <ScheduleFilters
             v-if="pageTitle === 'Schedule' && availableTagGroups.length"
             :groups="availableTagGroups"
@@ -271,16 +309,16 @@ onBeforeUnmount(() => tabResizeObserver?.disconnect());
       <div class="empty-state">
         <p>
           {{
-            selectedTagIds.length
+            hasActiveFilters
               ? "No sessions match the selected filters."
               : "No events are available."
           }}
         </p>
         <button
-          v-if="selectedTagIds.length"
+          v-if="hasActiveFilters"
           type="button"
           class="button focus-ring"
-          @click="updateFilters([])"
+          @click="clearAllFilters"
         >
           Clear filters
         </button>
@@ -345,6 +383,20 @@ onBeforeUnmount(() => tabResizeObserver?.disconnect());
   display: flex;
   align-items: center;
   gap: var(--space-2);
+}
+
+.location-filter {
+  max-width: min(18rem, 40vw);
+}
+
+.location-filter span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.location-filter .clear-filter-icon {
+  color: var(--text-subtle);
 }
 
 .day-tabs {
