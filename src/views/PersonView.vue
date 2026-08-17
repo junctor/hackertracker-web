@@ -170,6 +170,7 @@ watch(
 
 .affiliations {
   display: grid;
+  list-style: none;
   gap: 0.25rem;
   color: #cbd5e1;
   font-size: 0.875rem;

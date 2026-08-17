@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Calendar } from "@lucide/vue";
 import { computed, ref, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
@@ -14,7 +15,7 @@ import { useRouteTextQuery } from "../composables/useRouteTextQuery";
 import { getOrganizations } from "../firebase/data";
 import { friendlyLoadError } from "../lib/errors";
 import { resolveMenuItems, type MenuRouteKey } from "../lib/menuRoutes";
-import { conferenceSectionPath, parseNumericParam } from "../lib/routes";
+import { conferenceSectionPath, filteredScheduleRoute, parseNumericParam } from "../lib/routes";
 import { compareBySortOrder } from "../lib/sort";
 import { safeExternalLinks, safeWebUrl } from "../lib/urls";
 
@@ -43,23 +44,41 @@ const title = computed(
       ? "Organizations"
       : section.value.replace(/^./, (letter) => letter.toUpperCase())),
 );
-const filtered = computed(() => {
+const sectionOrganizations = computed(() => {
   const tagIds = menuEntry.value?.appliedTagIds ?? [];
-  const needle = query.value.trim().toLowerCase();
   return organizations.value
     .filter((item) => !tagIds.length || tagIds.some((id) => item.tag_ids?.includes(id)))
-    .filter((item) => !needle || `${item.name} ${item.description}`.toLowerCase().includes(needle))
     .sort(
       (a, b) =>
         compareBySortOrder(a, b) ||
         a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
     );
 });
+const filtered = computed(() => {
+  const needle = query.value.trim().toLowerCase();
+  return sectionOrganizations.value.filter(
+    (item) => !needle || `${item.name} ${item.description}`.toLowerCase().includes(needle),
+  );
+});
 const selected = computed(() =>
   organizationId.value
     ? organizations.value.find((item) => item.id === organizationId.value)
     : null,
 );
+const scheduleTagIds = computed(() => {
+  const organization = selected.value;
+  if (!organization)
+    return Array.from(
+      new Set(
+        sectionOrganizations.value.flatMap((item) =>
+          typeof item.tag_id_as_organizer === "number" ? [item.tag_id_as_organizer] : [],
+        ),
+      ),
+    );
+  return typeof organization.tag_id_as_organizer === "number"
+    ? [organization.tag_id_as_organizer]
+    : [];
+});
 const selectedLinks = computed(() => safeExternalLinks(selected.value?.links ?? []));
 const logoUrl = (organization: Organization): string | null => {
   const logo = organization.logo;
@@ -120,6 +139,14 @@ watchEffect(() => {
           <h1 tabindex="-1">{{ selected.name }}</h1>
         </div>
       </header>
+      <RouterLink
+        v-if="scheduleTagIds.length"
+        class="button focus-ring schedule-link detail-schedule-link"
+        :to="filteredScheduleRoute(conference.code, { tagIds: scheduleTagIds })"
+      >
+        <Calendar aria-hidden="true" />
+        View events on schedule
+      </RouterLink>
       <div v-if="selected.description" class="detail-body">
         <MarkdownContent :content="selected.description" />
       </div>
@@ -139,7 +166,16 @@ watchEffect(() => {
         :title="title"
         intro="Browse groups and resources."
         :count="`${filtered.length.toLocaleString()} results`"
-      />
+      >
+        <RouterLink
+          v-if="scheduleTagIds.length"
+          class="button focus-ring schedule-link"
+          :to="filteredScheduleRoute(conference.code, { tagIds: scheduleTagIds })"
+        >
+          <Calendar aria-hidden="true" />
+          View on schedule
+        </RouterLink>
+      </PageHeading>
       <SearchField
         v-model="query"
         class="page-search"
@@ -261,6 +297,13 @@ h1 {
 .detail-body {
   max-width: 52rem;
   margin-top: var(--space-8);
+}
+.detail-schedule-link {
+  margin-top: var(--space-6);
+}
+.schedule-link svg {
+  width: 1.15rem;
+  height: 1.15rem;
 }
 .links-section {
   margin-top: var(--space-8);

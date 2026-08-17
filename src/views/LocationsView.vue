@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Calendar } from "@lucide/vue";
 import { computed, ref, watch, watchEffect } from "vue";
 import type { Location } from "../types/hackertracker";
 import PageHeading from "../components/PageHeading.vue";
@@ -6,12 +7,14 @@ import PageState from "../components/PageState.vue";
 import SearchField from "../components/SearchField.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
 import { useRouteTextQuery } from "../composables/useRouteTextQuery";
-import { getLocations } from "../firebase/data";
+import { getAllContent, getLocations } from "../firebase/data";
 import { friendlyLoadError } from "../lib/errors";
+import { filteredScheduleRoute } from "../lib/routes";
 import { compareBySortOrder } from "../lib/sort";
 
 const { conference } = useConferenceContext();
 const locations = ref<Location[]>([]);
+const scheduledLocationIds = ref(new Set<number>());
 const query = useRouteTextQuery();
 const loading = ref(true);
 const error = ref("");
@@ -34,8 +37,17 @@ watch(
   async (current) => {
     if (!current) return;
     loading.value = true;
+    error.value = "";
+    scheduledLocationIds.value = new Set();
     try {
-      locations.value = await getLocations(current.code);
+      const [loadedLocations, content] = await Promise.all([
+        getLocations(current.code),
+        getAllContent(current.code).catch(() => []),
+      ]);
+      locations.value = loadedLocations;
+      scheduledLocationIds.value = new Set(
+        content.flatMap((item) => item.sessions ?? []).map((session) => session.location_id),
+      );
     } catch (reason) {
       error.value = friendlyLoadError(reason, "conference locations");
     } finally {
@@ -74,6 +86,14 @@ watchEffect(() => {
           </p>
           <small v-if="parentName(location.parent_id)">{{ parentName(location.parent_id) }}</small
           ><small v-else-if="location.hotel">{{ location.hotel }}</small>
+          <RouterLink
+            v-if="scheduledLocationIds.has(location.id)"
+            class="button button-small focus-ring schedule-link"
+            :to="filteredScheduleRoute(conference.code, { locationId: location.id })"
+          >
+            <Calendar aria-hidden="true" />
+            View schedule
+          </RouterLink>
         </article>
       </li>
     </ul>
@@ -89,7 +109,10 @@ watchEffect(() => {
   margin-top: var(--space-6);
 }
 article {
+  display: flex;
   height: 100%;
+  flex-direction: column;
+  gap: var(--space-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-3);
   background: var(--surface-muted);
@@ -101,7 +124,14 @@ h2 {
 article p,
 article small {
   display: block;
-  margin-top: var(--space-2);
   color: var(--text-muted);
+}
+.schedule-link {
+  align-self: flex-start;
+  margin-top: auto;
+}
+.schedule-link svg {
+  width: 1rem;
+  height: 1rem;
 }
 </style>
