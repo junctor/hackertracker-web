@@ -30,14 +30,6 @@
   --critical: var(--brand-red);
   --focus: var(--brand-red);
 
-  /* Compatibility aliases retained while older Vue components are colocated incrementally. */
-  --bg: var(--color-bg);
-  --surface-raised: var(--surface-elevated);
-  --text: var(--text-primary);
-  --muted: var(--text-muted);
-  --subtle: var(--text-subtle);
-  --accent-light: var(--accent-success);
-
   --layout-max: 76rem;
   --layout-wide: 88rem;
   --layout-gutter: clamp(0.875rem, 3vw, 1.5rem);
@@ -48,7 +40,6 @@
   --radius-3: 0.875rem;
   --radius-4: 1.125rem;
   --radius-pill: 9999px;
-  --radius: var(--radius-3);
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;

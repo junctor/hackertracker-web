@@ -1,5 +1,4 @@
 :root {
-  color-scheme: dark;
   font-family:
     system-ui,
     -apple-system,
@@ -8,9 +7,6 @@
     sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  --page-padding: clamp(1rem, 3vw, 2.5rem);
-  --section-space: clamp(1.5rem, 4vw, 3rem);
-  --radius: 0.875rem;
 }
 
 *,
@@ -26,14 +22,14 @@ body,
 }
 
 html {
-  background: var(--bg);
+  background: var(--color-bg);
   scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
+  background: var(--color-bg);
+  color: var(--text-primary);
   line-height: 1.55;
 }
 
@@ -99,6 +95,19 @@ svg {
   padding-block: var(--section-space);
 }
 
+.input {
+  width: 100%;
+  min-height: 2.75rem;
+  border: 1px solid #334155;
+  border-radius: 0.65rem;
+  background: var(--surface);
+  padding: 0.6rem 0.8rem;
+}
+
+.page-search {
+  margin-top: var(--space-6);
+}
+
 .focus-ring:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 3px;
@@ -114,35 +123,13 @@ svg {
   white-space: nowrap;
 }
 
-.text-link,
-.markdown a,
-.static-page a:not(.button) {
-  color: var(--accent-success);
-  text-decoration: underline;
-  text-decoration-color: color-mix(in oklab, var(--accent-success), transparent 50%);
-  text-underline-offset: 0.18em;
-}
-
-.text-link:hover,
-.markdown a:hover,
-.static-page a:not(.button):hover {
-  color: white;
-}
-
 .empty-state {
   padding: var(--space-6);
   color: var(--text-muted);
   text-align: center;
 }
 
-.title-with-count {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.count,
-.pronouns {
+.count {
   color: var(--text-muted);
   font-size: 0.75rem;
   font-weight: 650;
@@ -156,7 +143,7 @@ svg {
   transform: translateY(-150%);
   border: 1px solid var(--accent);
   border-radius: 0.625rem;
-  background: var(--surface-raised);
+  background: var(--surface-elevated);
   padding: 0.55rem 0.85rem;
   font-size: 0.875rem;
   font-weight: 650;
@@ -168,9 +155,7 @@ svg {
   transform: translateY(0);
 }
 
-.quick-links,
-.state-actions,
-.detail-actions > div {
+.state-actions {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -195,7 +180,7 @@ svg {
 .tool-button svg {
   width: 1.15rem;
   height: 1.15rem;
-  color: var(--accent-light);
+  color: var(--accent-success);
 }
 
 .tool-button:hover {
@@ -205,8 +190,7 @@ svg {
 }
 
 .button,
-.icon-label-button,
-.store-button {
+.icon-label-button {
   display: inline-flex;
   min-height: 2.75rem;
   align-items: center;
@@ -216,7 +200,7 @@ svg {
   border-radius: 0.65rem;
   background: rgba(15, 23, 42, 0.92);
   padding: 0.625rem 1rem;
-  color: var(--text);
+  color: var(--text-primary);
   font-size: 0.9rem;
   font-weight: 650;
   text-decoration: none;
@@ -226,7 +210,7 @@ svg {
 .button:hover,
 .icon-label-button:hover {
   border-color: rgba(1, 127, 164, 0.6);
-  background: var(--surface-raised);
+  background: var(--surface-elevated);
 }
 
 .button-small {
@@ -245,14 +229,12 @@ svg {
   border: 1px solid var(--border);
   border-radius: 0.65rem;
   background: rgba(15, 23, 42, 0.82);
-  color: var(--muted);
+  color: var(--text-muted);
   transition: 180ms ease;
 }
 
 .icon-button svg,
-.icon-label-button svg,
-.icon-text svg,
-.resource-link svg {
+.icon-label-button svg {
   width: 1.2rem;
   height: 1.2rem;
 }
@@ -278,5 +260,34 @@ svg {
 .interactive:hover,
 .interactive:focus-within {
   border-color: rgba(1, 127, 164, 0.48);
-  background: var(--surface-raised);
+  background: var(--surface-elevated);
+}
+
+@media (width < 40rem) {
+  .icon-label-button span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  .tool-button span {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
