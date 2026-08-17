@@ -10,26 +10,28 @@ withDefaults(
     to?: RouteLocationRaw;
     begin?: string;
     end?: string;
+    duration?: string;
     beginDateTime?: string;
     endDateTime?: string;
     people?: string | null;
     location?: string | null;
     tags?: ProcessedTag[];
     status?: "Live" | "Next" | null;
-    accent?: "content" | "schedule" | "none";
+    accent?: "content" | "schedule";
     accentColor?: string | null;
   }>(),
   {
     to: undefined,
     begin: undefined,
     end: undefined,
+    duration: undefined,
     beginDateTime: undefined,
     endDateTime: undefined,
     people: null,
     location: null,
     tags: () => [],
     status: null,
-    accent: "none",
+    accent: "content",
     accentColor: null,
   },
 );
@@ -41,7 +43,7 @@ withDefaults(
     :class="`session-card--${accent}`"
     :style="{ '--session-accent': accentColor || 'var(--brand-cyan)' }"
   >
-    <span v-if="accent !== 'none'" class="session-accent" aria-hidden="true" />
+    <span class="session-accent" aria-hidden="true" />
     <div class="session-row">
       <component
         :is="to ? RouterLink : 'div'"
@@ -58,6 +60,7 @@ withDefaults(
           >
           <time :datetime="beginDateTime">{{ begin }}</time>
           <time v-if="end" :datetime="endDateTime">{{ end }}</time>
+          <span v-if="duration" class="session-duration">{{ duration }}</span>
         </div>
         <div class="session-summary">
           <h3>{{ title }}</h3>
@@ -99,7 +102,7 @@ withDefaults(
 .session-card:hover,
 .session-card:focus-within {
   border-color: color-mix(in oklab, var(--accent), transparent 48%);
-  background: var(--surface-raised);
+  background: var(--surface-elevated);
 }
 
 .session-accent {
@@ -134,10 +137,6 @@ withDefaults(
   padding: 0.9rem 1rem 0.9rem 1.2rem;
 }
 
-.session-card--none .session-row {
-  padding-left: 1rem;
-}
-
 .session-link {
   display: grid;
   min-width: 0;
@@ -163,6 +162,12 @@ withDefaults(
 .session-time time:first-of-type {
   color: var(--text-primary);
   font-size: 1rem;
+  font-weight: 650;
+}
+
+.session-duration {
+  color: var(--text-subtle);
+  font-size: 0.75rem;
   font-weight: 650;
 }
 
@@ -236,7 +241,19 @@ withDefaults(
 }
 
 .session-actions {
+  display: flex;
   flex: 0 0 auto;
+  gap: var(--space-2);
+}
+
+@media (width < 30rem) {
+  .session-row {
+    flex-direction: column;
+  }
+
+  .session-actions {
+    align-self: flex-end;
+  }
 }
 
 @media (width < 40rem) {
@@ -253,6 +270,10 @@ withDefaults(
   }
 
   .session-time .session-status {
+    grid-column: 1 / -1;
+  }
+
+  .session-duration {
     grid-column: 1 / -1;
   }
 }

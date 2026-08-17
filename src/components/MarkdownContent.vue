@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
+import { safeMarkdownUrl } from "../lib/urls";
+
 const props = defineProps<{ content: string }>();
 
 function escapeHtml(value: string): string {
@@ -13,13 +15,8 @@ function escapeHtml(value: string): string {
 }
 
 function safeUrl(rawUrl: string): string | null {
-  try {
-    const decoded = rawUrl.replace(/&amp;/g, "&");
-    const url = new URL(decoded, window.location.origin);
-    return ["http:", "https:", "mailto:"].includes(url.protocol) ? escapeHtml(decoded) : null;
-  } catch {
-    return null;
-  }
+  const href = safeMarkdownUrl(rawUrl.replace(/&amp;/g, "&"));
+  return href ? escapeHtml(href) : null;
 }
 
 function inlineMarkdown(value: string): string {
@@ -118,3 +115,68 @@ const rendered = computed(() => renderMarkdown(props.content));
   <!-- Input HTML is always escaped before supported Markdown syntax is added. -->
   <div class="markdown" v-html="rendered" />
 </template>
+
+<style scoped>
+.markdown {
+  color: #cbd5e1;
+  overflow-wrap: anywhere;
+}
+
+.markdown :deep(* + *) {
+  margin-top: 1rem;
+}
+
+.markdown :deep(:is(h1, h2, h3, h4)) {
+  color: #f1f5f9;
+  line-height: 1.25;
+}
+
+.markdown :deep(ul) {
+  padding-left: 1.25rem;
+}
+
+.markdown :deep(li + li) {
+  margin-top: 0.35rem;
+}
+
+.markdown :deep(a) {
+  color: var(--accent-success);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--accent-success), transparent 50%);
+  text-underline-offset: 0.18em;
+}
+
+.markdown :deep(a:hover) {
+  color: white;
+}
+
+.markdown :deep(code) {
+  border-radius: 0.25rem;
+  background: #334155;
+  padding: 0.1rem 0.25rem;
+  color: #f1f5f9;
+}
+
+.markdown :deep(pre) {
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  background: #0f172a;
+  padding: 1rem;
+}
+
+.markdown :deep(pre code) {
+  padding: 0;
+  background: transparent;
+}
+
+.markdown :deep(blockquote) {
+  border-left: 4px solid var(--brand-cyan);
+  padding-left: 1rem;
+  font-style: italic;
+}
+
+.markdown :deep(hr) {
+  border: 0;
+  border-top: 1px solid #334155;
+}
+</style>

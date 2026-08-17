@@ -4,6 +4,8 @@ import { computed, ref } from "vue";
 
 import type { TagGroup } from "../types/hackertracker";
 
+import SearchField from "./SearchField.vue";
+
 const props = defineProps<{ groups: TagGroup[]; selectedIds: number[] }>();
 const emit = defineEmits<{ change: [ids: number[]] }>();
 const query = ref("");
@@ -57,15 +59,12 @@ function toggle(id: number, checked: boolean): void {
           Clear
         </button>
       </header>
-      <label class="filter-search">
-        <span class="visually-hidden">Search schedule filters</span>
-        <input
-          v-model="query"
-          class="input focus-ring"
-          type="search"
-          placeholder="Find a filter..."
-        />
-      </label>
+      <SearchField
+        v-model="query"
+        class="filter-search"
+        label="Search schedule filters"
+        placeholder="Find a filter…"
+      />
       <div class="filter-groups">
         <fieldset v-for="group in visibleGroups" :key="group.id">
           <legend>{{ group.label }}</legend>
@@ -138,11 +137,7 @@ summary::-webkit-details-marker {
   font-weight: 700;
 }
 .filter-search {
-  display: block;
   margin-top: var(--space-4);
-}
-.filter-search input {
-  width: 100%;
 }
 .filter-groups {
   display: grid;

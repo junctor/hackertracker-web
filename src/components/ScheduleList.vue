@@ -10,12 +10,11 @@ import type {
   TagGroup,
 } from "../types/hackertracker";
 
-import { loadBookmarks, toggleBookmark } from "../lib/bookmarks";
-import { formatScheduleTime } from "../lib/dates";
-import { bookmarksPath, contentPath, schedulePath } from "../lib/routes";
+import { bookmarksPath, schedulePath } from "../lib/routes";
 import { formatDayHeading, formatDayTab } from "../lib/schedule";
+import { compareBySortOrder } from "../lib/sort";
 import ScheduleFilters from "./ScheduleFilters.vue";
-import SessionCard from "./SessionCard.vue";
+import ScheduleSessionCard from "./ScheduleSessionCard.vue";
 
 const props = defineProps<{
   dateGroup: GroupedSchedule;
@@ -30,8 +29,22 @@ const availableTagGroups = computed(() => {
   const used = new Set(allScheduledContent.value.flatMap((item) => item.tags.map((tag) => tag.id)));
   return (props.tagGroups ?? [])
     .filter((group) => group.is_browsable)
-    .map((group) => ({ ...group, tags: group.tags.filter((tag) => used.has(tag.id)) }))
-    .filter((group) => group.tags.length);
+    .map((group) => ({
+      ...group,
+      tags: group.tags
+        .filter((tag) => used.has(tag.id))
+        .sort(
+          (a, b) =>
+            compareBySortOrder(a, b) ||
+            a.label.localeCompare(b.label, undefined, { sensitivity: "base" }),
+        ),
+    }))
+    .filter((group) => group.tags.length)
+    .sort(
+      (a, b) =>
+        compareBySortOrder(a, b) ||
+        a.label.localeCompare(b.label, undefined, { sensitivity: "base" }),
+    );
 });
 const selectedTagIds = computed(() => {
   const values = route.query.tag_group;
@@ -76,7 +89,6 @@ const days = computed(() =>
   })),
 );
 const selectedDay = ref("");
-const bookmarks = ref(new Set<number>());
 const nowSeconds = Math.floor(Date.now() / 1000);
 const tabButtons = ref<HTMLButtonElement[]>([]);
 const tabScroll = ref<HTMLElement | null>(null);
@@ -97,16 +109,6 @@ watch(
   },
   { immediate: true },
 );
-
-watch(
-  () => props.conference.code,
-  (code) => (bookmarks.value = loadBookmarks(code)),
-  { immediate: true },
-);
-
-function bookmark(id: number): void {
-  bookmarks.value = toggleBookmark(props.conference.code, id);
-}
 
 function updateFilters(ids: number[]): void {
   const selected = new Set(ids);
@@ -173,7 +175,6 @@ async function handleTabKey(event: KeyboardEvent, index: number): Promise<void> 
 }
 
 onMounted(() => {
-  bookmarks.value = loadBookmarks(props.conference.code);
   tabResizeObserver = new ResizeObserver(updateTabScrollState);
   if (tabScroll.value) tabResizeObserver.observe(tabScroll.value);
   void nextTick(updateTabScrollState);
@@ -305,35 +306,11 @@ onBeforeUnmount(() => tabResizeObserver?.disconnect());
           v-for="content in activeDay.scheduledContents"
           :key="`${content.contentId}:${content.sessionId}`"
         >
-          <SessionCard
-            accent="schedule"
-            :accent-color="content.color"
-            :title="content.title"
-            :to="contentPath(conference.code, content.contentId)"
-            :begin="formatScheduleTime(content.begin, content.timeZone, true)"
-            :end="content.end ? formatScheduleTime(content.end, content.timeZone) : undefined"
-            :begin-date-time="new Date(content.begin).toISOString()"
-            :end-date-time="content.end ? new Date(content.end).toISOString() : undefined"
+          <ScheduleSessionCard
+            :conference="conference"
+            :session="content"
             :status="status(content)"
-            :people="content.speakers"
-            :location="content.location"
-            :tags="content.tags"
-          >
-            <template #actions>
-              <button
-                type="button"
-                class="icon-button bookmark-button focus-ring"
-                :aria-label="`${bookmarks.has(content.contentId) ? 'Remove' : 'Add'} bookmark for ${content.title}`"
-                :aria-pressed="bookmarks.has(content.contentId)"
-                @click="bookmark(content.contentId)"
-              >
-                <Bookmark
-                  aria-hidden="true"
-                  :fill="bookmarks.has(content.contentId) ? 'currentColor' : 'none'"
-                />
-              </button>
-            </template>
-          </SessionCard>
+          />
         </li>
       </ul>
     </section>
