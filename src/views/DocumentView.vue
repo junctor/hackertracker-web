@@ -79,11 +79,6 @@ watchEffect(() => {
   max-width: 54rem;
   padding-block: var(--section-space);
 }
-.back-link {
-  display: inline-flex;
-  color: var(--accent-success);
-  font-weight: 700;
-}
 header {
   margin-top: var(--space-6);
 }

@@ -276,11 +276,6 @@ h1 {
   width: 5rem;
   height: 5rem;
 }
-.back-link {
-  display: inline-flex;
-  color: var(--accent-success);
-  font-weight: 700;
-}
 .detail-header {
   display: flex;
   align-items: center;

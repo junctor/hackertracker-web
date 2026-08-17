@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ArrowLeft } from "@lucide/vue";
 import { computed, ref, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
@@ -98,8 +97,8 @@ watch(
     <PageState v-else-if="error" kind="error" title="Person unavailable" :message="error" />
     <div v-else-if="person && conference" class="container detail-page person-detail">
       <header class="detail-hero">
-        <RouterLink class="button icon-label-button focus-ring" :to="peoplePath(conference.code)"
-          ><ArrowLeft aria-hidden="true" /><span>People</span></RouterLink
+        <RouterLink class="back-link focus-ring" :to="peoplePath(conference.code)"
+          >← People</RouterLink
         >
         <div class="person-hero-content">
           <PersonAvatar :name="name" :url="person.avatar?.url" :accent="accent" large />

@@ -161,6 +161,16 @@ svg {
   gap: 0.5rem;
 }
 
+.back-link {
+  display: inline-flex;
+  color: var(--accent-success);
+  font-weight: 700;
+}
+
+.back-link:hover {
+  color: white;
+}
+
 .tool-button {
   display: inline-flex;
   min-height: 2.5rem;

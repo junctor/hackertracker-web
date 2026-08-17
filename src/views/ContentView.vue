@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowLeft, Share2, Users } from "@lucide/vue";
+import { Share2, Users } from "@lucide/vue";
 import { computed, ref, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
@@ -159,12 +159,9 @@ async function handleShare(): Promise<void> {
     >
       <header class="detail-hero">
         <div class="detail-actions">
-          <RouterLink
-            class="button icon-label-button focus-ring"
-            :to="schedulePath(conference.code)"
+          <RouterLink class="back-link focus-ring" :to="schedulePath(conference.code)"
+            >← Schedule</RouterLink
           >
-            <ArrowLeft aria-hidden="true" /><span>Schedule</span>
-          </RouterLink>
           <div>
             <button
               type="button"
