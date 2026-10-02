@@ -66,6 +66,12 @@
   color: white;
 }
 
+.footer-nav a {
+  display: inline-flex;
+  min-height: var(--control-min);
+  align-items: center;
+}
+
 @media (width < 40rem) {
   .footer-inner {
     align-items: flex-start;

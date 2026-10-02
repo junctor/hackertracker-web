@@ -608,11 +608,8 @@ onBeforeUnmount(() => {
 }
 
 .stack-list {
-  list-style: none;
-}
-
-.stack-list {
   display: grid;
+  list-style: none;
   gap: var(--space-3);
 }
 

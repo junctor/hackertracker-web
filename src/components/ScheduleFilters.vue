@@ -132,6 +132,8 @@ summary::-webkit-details-marker {
   width: min(30rem, calc(100vw - (var(--layout-gutter) * 2)));
   max-height: min(40rem, calc(100dvh - 9rem));
   overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-3);
   background: var(--color-bg);
@@ -150,6 +152,7 @@ summary::-webkit-details-marker {
   font-size: 0.8rem;
 }
 .clear-button {
+  min-height: var(--control-min);
   border-radius: var(--radius-1);
   padding: 0.3rem 0.45rem;
   color: var(--accent-success);
@@ -177,7 +180,7 @@ legend {
 }
 .filter-option {
   display: flex;
-  min-height: 2.25rem;
+  min-height: var(--control-min);
   align-items: center;
   gap: var(--space-3);
   border-top: 1px solid var(--border);

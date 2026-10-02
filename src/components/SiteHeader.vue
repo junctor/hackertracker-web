@@ -190,7 +190,7 @@ onBeforeUnmount(() => {
 }
 
 .nav-button {
-  min-height: 2.5rem;
+  min-height: var(--control-min);
   gap: var(--space-2);
   padding: 0.45rem 0.65rem;
   color: var(--text-muted);
@@ -226,6 +226,7 @@ onBeforeUnmount(() => {
 }
 
 .mobile-menu-link {
+  min-height: var(--control-min);
   gap: var(--space-3);
   padding: 0.65rem 0.75rem;
   color: var(--text-muted);
