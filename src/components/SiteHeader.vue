@@ -32,6 +32,12 @@ function closeOnOutsideClick(event: MouseEvent): void {
     menuOpen.value = false;
 }
 
+function closeOnEscape(event: KeyboardEvent): void {
+  if (event.key !== "Escape" || !menuOpen.value) return;
+  menuOpen.value = false;
+  menu.value?.querySelector<HTMLButtonElement>("button")?.focus();
+}
+
 watch(
   () => route.fullPath,
   () => (menuOpen.value = false),
@@ -41,10 +47,12 @@ onMounted(() => {
   updateScroll();
   window.addEventListener("scroll", updateScroll, { passive: true });
   document.addEventListener("click", closeOnOutsideClick);
+  document.addEventListener("keydown", closeOnEscape);
 });
 onBeforeUnmount(() => {
   window.removeEventListener("scroll", updateScroll);
   document.removeEventListener("click", closeOnOutsideClick);
+  document.removeEventListener("keydown", closeOnEscape);
 });
 </script>
 
@@ -110,7 +118,12 @@ onBeforeUnmount(() => {
             >
               <component :is="item.icon" aria-hidden="true" />{{ item.label }}
             </a>
-            <RouterLink v-else :to="item.to" class="mobile-menu-link focus-ring">
+            <RouterLink
+              v-else
+              :to="item.to"
+              class="mobile-menu-link focus-ring"
+              :aria-current="route.path === item.to ? 'page' : undefined"
+            >
               <component :is="item.icon" aria-hidden="true" />{{ item.label }}
             </RouterLink>
           </template>

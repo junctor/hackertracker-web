@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { CircleAlert, Inbox, LoaderCircle } from "@lucide/vue";
 
-defineProps<{ kind?: "loading" | "error" | "empty"; title?: string; message?: string }>();
+defineProps<{
+  kind?: "loading" | "error" | "empty";
+  title?: string;
+  message?: string;
+  retry?: boolean;
+}>();
+
+const reload = () => window.location.reload();
 </script>
 
 <template>
@@ -28,6 +35,14 @@ defineProps<{ kind?: "loading" | "error" | "empty"; title?: string; message?: st
     <p v-if="message || kind === 'loading'">
       {{ message ?? "Getting the latest information…" }}
     </p>
+    <button
+      v-if="kind === 'error' && retry"
+      type="button"
+      class="button focus-ring"
+      @click="reload"
+    >
+      Retry
+    </button>
     <slot />
   </section>
 </template>
@@ -72,6 +87,10 @@ h1 {
 p {
   max-width: 36rem;
   text-wrap: pretty;
+}
+
+.button {
+  margin-top: var(--space-2);
 }
 
 :slotted(.state-actions) {

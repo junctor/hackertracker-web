@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { SlidersHorizontal } from "@lucide/vue";
-import { computed, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 
 import type { TagGroup } from "../types/hackertracker";
 
@@ -9,6 +9,7 @@ import SearchField from "./SearchField.vue";
 const props = defineProps<{ groups: TagGroup[]; selectedIds: number[] }>();
 const emit = defineEmits<{ change: [ids: number[]] }>();
 const query = ref("");
+const filter = ref<HTMLDetailsElement | null>(null);
 const selected = computed(() => new Set(props.selectedIds));
 const visibleGroups = computed(() => {
   const needle = query.value.trim().toLowerCase();
@@ -35,11 +36,30 @@ function toggle(id: number, checked: boolean): void {
     [...next].sort((a, b) => a - b),
   );
 }
+
+function closeOutside(event: PointerEvent): void {
+  if (filter.value?.open && !filter.value.contains(event.target as Node)) filter.value.open = false;
+}
+
+function closeOnEscape(event: KeyboardEvent): void {
+  if (event.key !== "Escape" || !filter.value?.open) return;
+  filter.value.open = false;
+  filter.value.querySelector("summary")?.focus();
+}
+
+onMounted(() => {
+  document.addEventListener("pointerdown", closeOutside);
+  document.addEventListener("keydown", closeOnEscape);
+});
+onBeforeUnmount(() => {
+  document.removeEventListener("pointerdown", closeOutside);
+  document.removeEventListener("keydown", closeOnEscape);
+});
 </script>
 
 <template>
-  <details class="schedule-filter">
-    <summary class="tool-button focus-ring">
+  <details ref="filter" class="schedule-filter">
+    <summary class="tool-button focus-ring" aria-label="Schedule filters">
       <SlidersHorizontal aria-hidden="true" />
       <span>Filters</span>
       <span v-if="selectedIds.length" class="filter-count">{{ selectedIds.length }}</span>

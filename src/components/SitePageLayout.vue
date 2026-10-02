@@ -12,7 +12,12 @@ defineProps<{
 <template>
   <div class="page-shell">
     <SiteHeader />
-    <main id="main" class="main-grow" :class="[mainClass, { centered, 'static-page': staticPage }]">
+    <main
+      id="main"
+      tabindex="-1"
+      class="main-grow"
+      :class="[mainClass, { centered, 'static-page': staticPage }]"
+    >
       <slot />
     </main>
     <SiteFooter />

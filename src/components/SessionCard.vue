@@ -71,8 +71,7 @@ withDefaults(
               v-for="tag in tags.slice(0, 3)"
               :key="tag.id"
               :style="{
-                backgroundColor: tag.color_background ?? undefined,
-                color: tag.color_foreground ?? undefined,
+                '--tag-color': tag.color_background || 'var(--brand-cyan)',
               }"
             >
               {{ tag.label }}
@@ -224,9 +223,11 @@ withDefaults(
 .session-tags li {
   overflow: hidden;
   max-width: 14rem;
-  border: 1px solid rgb(255 255 255 / 14%);
+  border: 1px solid color-mix(in oklab, var(--tag-color), white 8%);
   border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--tag-color) 24%, var(--surface-elevated));
   padding: 0.15rem 0.5rem;
+  color: var(--text-primary);
   font-size: 0.68rem;
   font-weight: 600;
   line-height: 1.25;

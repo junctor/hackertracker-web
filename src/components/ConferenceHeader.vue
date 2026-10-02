@@ -69,6 +69,7 @@ onBeforeUnmount(() => {
           :class="{ active: isActive(schedule.href) }"
           :to="schedule.href"
           :aria-current="isActive(schedule.href) ? 'page' : undefined"
+          :aria-label="`Schedule for ${conference.name}`"
         >
           <Calendar aria-hidden="true" /><span>Schedule</span>
         </RouterLink>
@@ -88,6 +89,7 @@ onBeforeUnmount(() => {
             type="button"
             :aria-expanded="open"
             aria-controls="conference-menu"
+            :aria-label="`${open ? 'Close' : 'Open'} conference menu`"
             @click.stop="open = !open"
           >
             <Menu aria-hidden="true" /><span>Menu</span>
@@ -188,7 +190,9 @@ onBeforeUnmount(() => {
   color: var(--text-primary);
 }
 .conference-brand {
+  display: flex;
   min-width: 0;
+  min-height: var(--control-min);
   overflow: hidden;
   border-radius: 0.75rem;
   padding: 0.4rem var(--space-2);
@@ -199,6 +203,7 @@ onBeforeUnmount(() => {
   line-height: 1.1;
   text-overflow: ellipsis;
   white-space: nowrap;
+  align-items: center;
 }
 .conference-brand:hover {
   background: rgb(255 255 255 / 0.04);
