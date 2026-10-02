@@ -38,19 +38,23 @@ export function formatDateTime(
 
 export function formatDateRange(start?: Date, end?: Date, timeZone?: string): string | undefined {
   if (!start && !end) return undefined;
-  const options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", timeZone };
-  const withYear: Intl.DateTimeFormatOptions = { ...options, year: "numeric" };
-  if (start && end) {
-    const first = new Intl.DateTimeFormat(
-      undefined,
-      start.getUTCFullYear() === end.getUTCFullYear() ? options : withYear,
-    ).format(start);
-    return `${first}–${new Intl.DateTimeFormat(undefined, withYear).format(end)}`;
+  const options: Intl.DateTimeFormatOptions = {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone,
+  };
+  let formatter: Intl.DateTimeFormat;
+  try {
+    formatter = new Intl.DateTimeFormat(undefined, options);
+  } catch {
+    delete options.timeZone;
+    formatter = new Intl.DateTimeFormat(undefined, options);
   }
-  return new Intl.DateTimeFormat(undefined, withYear).format((start ?? end)!);
+  return start && end ? formatter.formatRange(start, end) : formatter.format((start ?? end)!);
 }
 
-export function timeZoneAbbreviation(timeZone?: string): string | undefined {
+export function timeZoneAbbreviation(timeZone?: string, at?: DateLike): string | undefined {
   if (!timeZone) return undefined;
   try {
     return new Intl.DateTimeFormat(undefined, {
@@ -59,7 +63,7 @@ export function timeZoneAbbreviation(timeZone?: string): string | undefined {
       month: "short",
       day: "numeric",
     })
-      .formatToParts(new Date("2025-01-01T12:00:00Z"))
+      .formatToParts(toDate(at) ?? new Date())
       .find((part) => part.type === "timeZoneName")?.value;
   } catch {
     return undefined;

@@ -13,8 +13,12 @@ export function loadBookmarks(conferenceCode: string): Set<number> {
   }
 }
 
-export function toggleBookmark(conferenceCode: string, contentId: number): Set<number> {
-  const bookmarks = loadBookmarks(conferenceCode);
+export function toggleBookmark(
+  conferenceCode: string,
+  contentId: number,
+  current = loadBookmarks(conferenceCode),
+): Set<number> {
+  const bookmarks = new Set(current);
   if (bookmarks.has(contentId)) bookmarks.delete(contentId);
   else bookmarks.add(contentId);
   try {
