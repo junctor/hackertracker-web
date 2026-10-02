@@ -1,4 +1,7 @@
-const CACHE_PREFIX = "htw:v1";
+const CACHE_PREFIX = "htw:v2";
+const DATABASE_NAME = "hackertracker-web";
+const STORE_NAME = "cache";
+const DATABASE_VERSION = 1;
 
 export const cacheTtl = {
   conference: 6 * 60 * 60 * 1000,
@@ -14,7 +17,9 @@ export const cacheTtl = {
 } as const;
 
 interface CacheEntry<T> {
+  key: string;
   storedAt: number;
+  accessedAt: number;
   value: T;
 }
 
@@ -23,52 +28,39 @@ type Validator<T> = (value: unknown) => value is T;
 const memory = new Map<string, CacheEntry<unknown>>();
 const inFlight = new Map<string, Promise<unknown>>();
 const cacheRetention = 7 * 24 * 60 * 60 * 1000;
-let pruned = false;
+const maximumEntries = 200;
+const maximumMemoryEntries = 100;
+let databasePromise: Promise<IDBDatabase | null> | undefined;
+let prunePromise: Promise<void> | undefined;
+let pruneAgain = false;
+let legacyCacheCleared = false;
 
-function storage(): Storage | null {
-  try {
-    return typeof window === "undefined" ? null : window.localStorage;
-  } catch {
-    return null;
+const cacheKey = (key: string) => `${CACHE_PREFIX}:${key}`;
+
+function remember(entry: CacheEntry<unknown>): void {
+  memory.delete(entry.key);
+  memory.set(entry.key, entry);
+  while (memory.size > maximumMemoryEntries) {
+    const oldest = memory.keys().next().value as string | undefined;
+    if (!oldest) break;
+    memory.delete(oldest);
   }
 }
 
-function isEntry(value: unknown): value is CacheEntry<unknown> {
-  return (
-    value !== null &&
-    typeof value === "object" &&
-    typeof (value as { storedAt?: unknown }).storedAt === "number" &&
-    "value" in value
-  );
+function clearLegacyCache(): void {
+  if (legacyCacheCleared || typeof localStorage === "undefined") return;
+  legacyCacheCleared = true;
+  try {
+    const keys = Array.from({ length: localStorage.length }, (_, index) => localStorage.key(index));
+    for (const key of keys) if (key?.startsWith("htw:v1:")) localStorage.removeItem(key);
+  } catch {
+    // Storage may be unavailable; IndexedDB remains the primary cache.
+  }
 }
 
 function isFresh(entry: CacheEntry<unknown>, ttl: number): boolean {
   const age = Date.now() - entry.storedAt;
   return ttl > 0 && Number.isFinite(entry.storedAt) && age >= 0 && age <= ttl;
-}
-
-function pruneOnce(): void {
-  if (pruned) return;
-  pruned = true;
-  const target = storage();
-  if (!target) return;
-  const prefix = `${CACHE_PREFIX}:`;
-  try {
-    const keys = Array.from({ length: target.length }, (_, index) => target.key(index)).filter(
-      (key): key is string => Boolean(key?.startsWith(prefix)),
-    );
-    for (const key of keys) {
-      try {
-        const raw = target.getItem(key);
-        const parsed: unknown = raw ? JSON.parse(raw) : null;
-        if (!isEntry(parsed) || !isFresh(parsed, cacheRetention)) target.removeItem(key);
-      } catch {
-        target.removeItem(key);
-      }
-    }
-  } catch {
-    // Storage can be disabled or restricted without affecting the app.
-  }
 }
 
 function valid<T>(value: unknown, validate?: Validator<T>): value is T {
@@ -79,76 +71,160 @@ function valid<T>(value: unknown, validate?: Validator<T>): value is T {
   }
 }
 
-export function getCached<T>(key: string, ttl: number, validate?: Validator<T>): T | undefined {
-  pruneOnce();
-  const cacheKey = `${CACHE_PREFIX}:${key}`;
-  const fromMemory = memory.get(cacheKey);
-  if (fromMemory) {
-    if (isFresh(fromMemory, ttl) && valid(fromMemory.value, validate)) return fromMemory.value;
-    if (!isFresh(fromMemory, cacheRetention) || !valid(fromMemory.value, validate))
-      memory.delete(cacheKey);
-    else return undefined;
-  }
-
-  const target = storage();
-  if (!target) return undefined;
-  try {
-    const raw = target.getItem(cacheKey);
-    const parsed: unknown = raw ? JSON.parse(raw) : null;
-    if (!isEntry(parsed) || !isFresh(parsed, cacheRetention) || !valid(parsed.value, validate)) {
-      if (raw) target.removeItem(cacheKey);
-      return undefined;
+function openDatabase(): Promise<IDBDatabase | null> {
+  if (databasePromise) return databasePromise;
+  clearLegacyCache();
+  databasePromise = new Promise((resolve) => {
+    if (typeof indexedDB === "undefined") {
+      resolve(null);
+      return;
     }
-    memory.set(cacheKey, parsed);
-    return isFresh(parsed, ttl) ? parsed.value : undefined;
-  } catch {
+    try {
+      const request = indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
+      request.onupgradeneeded = () => {
+        const database = request.result;
+        if (!database.objectStoreNames.contains(STORE_NAME)) {
+          const store = database.createObjectStore(STORE_NAME, { keyPath: "key" });
+          store.createIndex("accessedAt", "accessedAt");
+        }
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => resolve(null);
+      request.onblocked = () => resolve(null);
+    } catch {
+      resolve(null);
+    }
+  });
+  return databasePromise;
+}
+
+async function readStored(key: string): Promise<CacheEntry<unknown> | undefined> {
+  const database = await openDatabase();
+  if (!database) return undefined;
+  return new Promise((resolve) => {
+    try {
+      const transaction = database.transaction(STORE_NAME, "readonly");
+      const request = transaction.objectStore(STORE_NAME).get(key);
+      request.onsuccess = () => resolve(request.result as CacheEntry<unknown> | undefined);
+      request.onerror = () => resolve(undefined);
+    } catch {
+      resolve(undefined);
+    }
+  });
+}
+
+async function writeStored(entry: CacheEntry<unknown>): Promise<void> {
+  const database = await openDatabase();
+  if (!database) return;
+  await new Promise<void>((resolve) => {
+    try {
+      const transaction = database.transaction(STORE_NAME, "readwrite");
+      transaction.objectStore(STORE_NAME).put(entry);
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => resolve();
+      transaction.onabort = () => resolve();
+    } catch {
+      resolve();
+    }
+  });
+}
+
+async function deleteStored(key: string): Promise<void> {
+  const database = await openDatabase();
+  if (!database) return;
+  await new Promise<void>((resolve) => {
+    try {
+      const transaction = database.transaction(STORE_NAME, "readwrite");
+      transaction.objectStore(STORE_NAME).delete(key);
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => resolve();
+      transaction.onabort = () => resolve();
+    } catch {
+      resolve();
+    }
+  });
+}
+
+async function pruneStored(): Promise<void> {
+  const database = await openDatabase();
+  if (!database) return;
+  const entries = await new Promise<Array<Pick<CacheEntry<unknown>, "key" | "accessedAt">>>(
+    (resolve) => {
+      const result: Array<Pick<CacheEntry<unknown>, "key" | "accessedAt">> = [];
+      try {
+        const transaction = database.transaction(STORE_NAME, "readonly");
+        const request = transaction.objectStore(STORE_NAME).index("accessedAt").openKeyCursor();
+        request.onsuccess = () => {
+          const cursor = request.result;
+          if (!cursor) {
+            resolve(result);
+            return;
+          }
+          if (typeof cursor.primaryKey === "string" && typeof cursor.key === "number") {
+            result.push({ key: cursor.primaryKey, accessedAt: cursor.key });
+          }
+          cursor.continue();
+        };
+        request.onerror = () => resolve(result);
+      } catch {
+        resolve(result);
+      }
+    },
+  );
+  const expired = entries.filter((entry) => Date.now() - entry.accessedAt > cacheRetention);
+  const expiredKeys = new Set(expired.map((entry) => entry.key));
+  const retained = entries
+    .filter((entry) => !expiredKeys.has(entry.key))
+    .sort((a, b) => b.accessedAt - a.accessedAt);
+  const overflow = retained.slice(maximumEntries);
+  await Promise.all([...expired, ...overflow].map((entry) => deleteStored(entry.key)));
+}
+
+function requestPrune(): Promise<void> {
+  if (prunePromise) {
+    pruneAgain = true;
+    return prunePromise;
+  }
+  prunePromise = pruneStored().finally(() => {
+    prunePromise = undefined;
+    if (pruneAgain) {
+      pruneAgain = false;
+      void requestPrune();
+    }
+  });
+  return prunePromise;
+}
+
+export function getCached<T>(key: string, ttl: number, validate?: Validator<T>): T | undefined {
+  const entry = memory.get(cacheKey(key));
+  if (!entry) return undefined;
+  if (!valid(entry.value, validate)) {
+    memory.delete(entry.key);
+    void deleteStored(entry.key);
     return undefined;
   }
+  if (!isFresh(entry, ttl)) return undefined;
+  entry.accessedAt = Date.now();
+  remember(entry);
+  return entry.value;
+}
+
+export function setMemoryCached<T>(key: string, value: T): void {
+  const now = Date.now();
+  const resolvedKey = cacheKey(key);
+  remember({ key: resolvedKey, storedAt: now, accessedAt: now, value });
 }
 
 export function setCached<T>(key: string, value: T): void {
-  pruneOnce();
-  const cacheKey = `${CACHE_PREFIX}:${key}`;
-  const entry: CacheEntry<T> = { storedAt: Date.now(), value };
-  memory.set(cacheKey, entry);
-  const target = storage();
-  if (!target) return;
-  let serialized: string;
-  try {
-    serialized = JSON.stringify(entry);
-  } catch {
-    return;
-  }
-  try {
-    target.setItem(cacheKey, serialized);
-  } catch {
-    // Reclaim only our oldest cache entries if storage quota is tight, then try once more.
-    try {
-      const prefix = `${CACHE_PREFIX}:`;
-      const candidates = Array.from({ length: target.length }, (_, index) => target.key(index))
-        .filter((item): item is string => Boolean(item?.startsWith(prefix) && item !== cacheKey))
-        .map((item) => {
-          try {
-            const parsed: unknown = JSON.parse(target.getItem(item) ?? "null");
-            return { key: item, storedAt: isEntry(parsed) ? parsed.storedAt : 0 };
-          } catch {
-            return { key: item, storedAt: 0 };
-          }
-        })
-        .sort((a, b) => a.storedAt - b.storedAt);
-      for (const candidate of candidates) {
-        target.removeItem(candidate.key);
-        try {
-          target.setItem(cacheKey, serialized);
-          return;
-        } catch {
-          // Keep reclaiming this app's cache until the new entry fits or none remains.
-        }
-      }
-    } catch {
-      // Cache quota and privacy errors are non-fatal.
-    }
-  }
+  const now = Date.now();
+  const entry: CacheEntry<T> = {
+    key: cacheKey(key),
+    storedAt: now,
+    accessedAt: now,
+    value,
+  };
+  remember(entry);
+  void writeStored(entry).then(() => requestPrune());
 }
 
 export async function cachedLoad<T>(
@@ -158,22 +234,46 @@ export async function cachedLoad<T>(
   validate?: Validator<T>,
   onCache?: (value: T) => void,
 ): Promise<T> {
-  const cached = getCached(key, ttl, validate);
-  if (cached !== undefined) return cached;
-  const stale = getCached(key, cacheRetention, validate);
-  const cacheKey = `${CACHE_PREFIX}:${key}`;
-  const current = inFlight.get(cacheKey) as Promise<T> | undefined;
+  const resolvedKey = cacheKey(key);
+  const current = inFlight.get(resolvedKey) as Promise<T> | undefined;
   if (current) return current;
-  const pending = load()
-    .then((value) => {
+
+  const pending = (async () => {
+    void requestPrune();
+    const fromMemory = memory.get(resolvedKey);
+    let stale: T | undefined;
+    if (fromMemory && valid(fromMemory.value, validate) && isFresh(fromMemory, ttl)) {
+      fromMemory.accessedAt = Date.now();
+      remember(fromMemory);
+      return fromMemory.value;
+    }
+    if (fromMemory && valid(fromMemory.value, validate) && isFresh(fromMemory, cacheRetention)) {
+      stale = fromMemory.value;
+    } else if (fromMemory) {
+      memory.delete(resolvedKey);
+    }
+
+    const stored = await readStored(resolvedKey);
+    if (stored && valid(stored.value, validate) && isFresh(stored, cacheRetention)) {
+      stored.accessedAt = Date.now();
+      remember(stored);
+      void writeStored(stored);
+      if (isFresh(stored, ttl)) return stored.value;
+      stale = stored.value;
+    } else if (stored) {
+      void deleteStored(resolvedKey);
+    }
+
+    try {
+      const value = await load();
       if (!validate || validate(value)) (onCache ?? ((result) => setCached(key, result)))(value);
       return value;
-    })
-    .catch((error: unknown) => {
+    } catch (error) {
       if (stale !== undefined) return stale;
       throw error;
-    })
-    .finally(() => inFlight.delete(cacheKey));
-  inFlight.set(cacheKey, pending);
+    }
+  })().finally(() => inFlight.delete(resolvedKey));
+
+  inFlight.set(resolvedKey, pending);
   return pending;
 }
