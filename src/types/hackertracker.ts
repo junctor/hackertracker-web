@@ -91,6 +91,8 @@ export interface Person extends Sortable {
   updated_timestamp: TimestampParts;
 }
 
+export type PersonSummary = Pick<Person, "id" | "name">;
+
 export interface ContentPersonRole extends Sortable {
   person_id: Id;
   sort_order: number;
