@@ -1,4 +1,4 @@
-import { computed, ref, toValue, watch, type MaybeRefOrGetter } from "vue";
+import { computed, ref, shallowRef, toValue, watch, type MaybeRefOrGetter } from "vue";
 
 import type { Conference, ConferenceMenu } from "../types/hackertracker";
 
@@ -7,7 +7,7 @@ import { friendlyLoadError } from "../lib/errors";
 import { resolveMenuItem, resolveMenuItems } from "../lib/menuRoutes";
 
 export function useConferenceMenu(conference: MaybeRefOrGetter<Conference | null>) {
-  const menus = ref<ConferenceMenu[]>([]);
+  const menus = shallowRef<ConferenceMenu[]>([]);
   const isLoading = ref(false);
   const error = ref("");
   let request = 0;

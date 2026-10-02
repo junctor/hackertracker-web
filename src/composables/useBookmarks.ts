@@ -3,6 +3,7 @@ import { computed, ref, toValue, type MaybeRefOrGetter, type Ref } from "vue";
 import { loadBookmarks, toggleBookmark } from "../lib/bookmarks";
 
 const bookmarkSets = new Map<string, Ref<Set<number>>>();
+const emptyBookmarks = new Set<number>();
 let listeningForStorage = false;
 
 function stateFor(conferenceCode: string): Ref<Set<number>> {
@@ -22,11 +23,16 @@ export function useBookmarks(conferenceCode: MaybeRefOrGetter<string>) {
     });
   }
 
-  const bookmarks = computed(() => stateFor(toValue(conferenceCode)).value);
+  const bookmarks = computed(() => {
+    const code = toValue(conferenceCode);
+    return code ? stateFor(code).value : emptyBookmarks;
+  });
 
   const toggle = (contentId: number) => {
     const code = toValue(conferenceCode);
-    stateFor(code).value = toggleBookmark(code, contentId);
+    if (!code) return;
+    const state = stateFor(code);
+    state.value = toggleBookmark(code, contentId, state.value);
   };
 
   return { bookmarks, toggle };
