@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, watchEffect } from "vue";
+import { computed, ref, shallowRef, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
 import type { Person } from "../types/hackertracker";
@@ -17,18 +17,21 @@ import { compareBySortOrder } from "../lib/sort";
 
 const route = useRoute();
 const { conference } = useConferenceContext();
-const people = ref<Person[]>([]);
+const people = shallowRef<Person[]>([]);
 const loading = ref(true);
 const error = ref("");
 const query = useRouteTextQuery();
 const collator = new Intl.Collator(undefined, { sensitivity: "base" });
 let request = 0;
+const BATCH_SIZE = 60;
+const visibleCount = ref(BATCH_SIZE);
 
 const code = computed(() => normalizeConferenceCode(route.params.confCode));
-const filtered = computed(() => {
-  const needle = query.value.toLowerCase().trim();
-  const result = needle
-    ? people.value.filter((person) =>
+const searchText = computed(
+  () =>
+    new Map(
+      people.value.map((person) => [
+        person.id,
         [
           person.name,
           person.title,
@@ -36,12 +39,20 @@ const filtered = computed(() => {
         ]
           .filter(Boolean)
           .join(" ")
-          .toLowerCase()
-          .includes(needle),
-      )
+          .toLocaleLowerCase(),
+      ]),
+    ),
+);
+const filtered = computed(() => {
+  const needle = query.value.toLowerCase().trim();
+  const result = needle
+    ? people.value.filter((person) => searchText.value.get(person.id)?.includes(needle))
     : [...people.value];
   return result.sort((a, b) => compareBySortOrder(a, b) || collator.compare(a.name, b.name));
 });
+const visiblePeople = computed(() => filtered.value.slice(0, visibleCount.value));
+const remaining = computed(() => Math.max(0, filtered.value.length - visiblePeople.value.length));
+watch([query, people], () => (visibleCount.value = BATCH_SIZE));
 
 watchEffect(() => {
   document.title = conference.value
@@ -96,7 +107,7 @@ function highlightedName(person: Person): { before: string; match: string; after
 <template>
   <div>
     <PageState v-if="loading" kind="loading" message="Getting the speaker list…" />
-    <PageState v-else-if="error" kind="error" title="People unavailable" :message="error" />
+    <PageState v-else-if="error" kind="error" title="People unavailable" :message="error" retry />
     <section v-else-if="conference && code" class="container wide page-content">
       <PageHeading
         title="People"
@@ -115,7 +126,7 @@ function highlightedName(person: Person): { before: string; match: string; after
         </button>
       </div>
       <ul v-else class="people-grid">
-        <li v-for="person in filtered" :key="person.id">
+        <li v-for="person in visiblePeople" :key="person.id">
           <article class="card interactive person-card">
             <RouterLink class="person-card-link focus-ring" :to="personPath(code, person.id)">
               <PersonAvatar :name="displayName(person)" :url="person.avatar?.url" lazy />
@@ -133,6 +144,14 @@ function highlightedName(person: Person): { before: string; match: string; after
           </article>
         </li>
       </ul>
+      <button
+        v-if="remaining"
+        type="button"
+        class="button people-load-more focus-ring"
+        @click="visibleCount += BATCH_SIZE"
+      >
+        Show {{ Math.min(BATCH_SIZE, remaining) }} more
+      </button>
     </section>
   </div>
 </template>
@@ -153,6 +172,16 @@ function highlightedName(person: Person): { before: string; match: string; after
 .person-card,
 .person-card-link {
   height: 100%;
+}
+
+.people-grid > li {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 5rem;
+}
+
+.people-load-more {
+  display: flex;
+  margin: var(--space-5) auto 0;
 }
 
 .person-card-link {

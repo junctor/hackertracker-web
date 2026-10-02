@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, watchEffect } from "vue";
+import { computed, onBeforeUnmount, ref, shallowRef, watch, watchEffect } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import type { Content, TagGroup } from "../types/hackertracker";
@@ -16,10 +16,14 @@ import { compareBySortOrder } from "../lib/sort";
 const route = useRoute();
 const router = useRouter();
 const { conference, menuItems } = useConferenceContext();
-const contentItems = ref<Content[]>([]);
-const tags = ref<TagGroup[]>([]);
+const contentItems = shallowRef<Content[]>([]);
+const tags = shallowRef<TagGroup[]>([]);
 const loading = ref(true);
 const error = ref("");
+let request = 0;
+let queryUpdateTimer: number | undefined;
+const BATCH_SIZE = 60;
+const visibleCount = ref(BATCH_SIZE);
 const query = ref(typeof route.query.q === "string" ? route.query.q : "");
 const selectedTag = ref<number | "">(
   typeof route.query.tag === "string" && /^\d+$/.test(route.query.tag)
@@ -28,14 +32,26 @@ const selectedTag = ref<number | "">(
 );
 const contentMenuItem = computed(() => menuItems.value.find((item) => item.routeKey === "content"));
 const fixedTags = computed(() => contentMenuItem.value?.appliedTagIds ?? []);
+const usedTagIds = computed(
+  () => new Set(contentItems.value.flatMap((item) => item.tag_ids ?? [])),
+);
 const availableTags = computed(() =>
   tags.value
     .filter((group) => group.is_browsable)
     .flatMap((group) => group.tags)
-    .filter((tag) => contentItems.value.some((item) => item.tag_ids?.includes(tag.id)))
+    .filter((tag) => usedTagIds.value.has(tag.id))
     .sort((a, b) => compareBySortOrder(a, b) || a.label.localeCompare(b.label)),
 );
 const allowTagFilter = computed(() => !contentMenuItem.value?.prohibitTagFilter);
+const searchText = computed(
+  () =>
+    new Map(
+      contentItems.value.map((item) => [
+        item.id,
+        `${item.title} ${item.description}`.toLocaleLowerCase(),
+      ]),
+    ),
+);
 
 const filtered = computed(() => {
   const needle = query.value.trim().toLowerCase();
@@ -47,44 +63,64 @@ const filtered = computed(() => {
     .filter(
       (item) => typeof selectedTag.value !== "number" || item.tag_ids?.includes(selectedTag.value),
     )
-    .filter((item) => !needle || `${item.title} ${item.description}`.toLowerCase().includes(needle))
+    .filter((item) => !needle || searchText.value.get(item.id)?.includes(needle))
     .sort(
       (a, b) =>
         compareBySortOrder(a, b) ||
         a.title.localeCompare(b.title, undefined, { sensitivity: "base" }),
     );
 });
+const visibleItems = computed(() => filtered.value.slice(0, visibleCount.value));
+const remaining = computed(() => Math.max(0, filtered.value.length - visibleItems.value.length));
 
 watch(
   conference,
   async (current) => {
-    if (!current) return;
+    const currentRequest = ++request;
+    if (!current) {
+      contentItems.value = [];
+      tags.value = [];
+      loading.value = false;
+      return;
+    }
     loading.value = true;
     error.value = "";
     try {
-      [contentItems.value, tags.value] = await Promise.all([
+      const [content, loadedTags] = await Promise.all([
         getAllContent(current.code),
         getTags(current.code),
       ]);
+      if (currentRequest !== request) return;
+      contentItems.value = content;
+      tags.value = loadedTags;
     } catch (reason) {
-      error.value = friendlyLoadError(reason, "conference content");
+      if (currentRequest === request) error.value = friendlyLoadError(reason, "conference content");
     } finally {
-      loading.value = false;
+      if (currentRequest === request) loading.value = false;
     }
   },
   { immediate: true },
 );
 watch([query, selectedTag], ([value, tag]) => {
-  const next = { ...route.query };
-  if (value.trim()) next.q = value;
-  else delete next.q;
-  if (typeof tag === "number") next.tag = String(tag);
-  else delete next.tag;
-  void router.replace({ query: next });
+  if (queryUpdateTimer !== undefined) window.clearTimeout(queryUpdateTimer);
+  queryUpdateTimer = window.setTimeout(() => {
+    queryUpdateTimer = undefined;
+    const next = { ...route.query };
+    if (value.trim()) next.q = value;
+    else delete next.q;
+    if (typeof tag === "number") next.tag = String(tag);
+    else delete next.tag;
+    void router.replace({ query: next });
+  }, 200);
 });
+watch([query, selectedTag, contentItems], () => (visibleCount.value = BATCH_SIZE));
 watch(
   () => [route.query.q, route.query.tag] as const,
   ([nextQuery, nextTag]) => {
+    if (queryUpdateTimer !== undefined) {
+      window.clearTimeout(queryUpdateTimer);
+      queryUpdateTimer = undefined;
+    }
     const queryValue = typeof nextQuery === "string" ? nextQuery : "";
     const tagValue = typeof nextTag === "string" && /^\d+$/.test(nextTag) ? Number(nextTag) : "";
     if (query.value !== queryValue) query.value = queryValue;
@@ -93,6 +129,9 @@ watch(
 );
 watchEffect(() => {
   if (conference.value) document.title = `Content · ${conference.value.name} | Hacker Tracker`;
+});
+onBeforeUnmount(() => {
+  if (queryUpdateTimer !== undefined) window.clearTimeout(queryUpdateTimer);
 });
 </script>
 
@@ -121,7 +160,7 @@ watchEffect(() => {
       </label>
     </div>
     <PageState v-if="loading" kind="loading" message="Getting conference content…" />
-    <PageState v-else-if="error" kind="error" title="Content unavailable" :message="error" />
+    <PageState v-else-if="error" kind="error" title="Content unavailable" :message="error" retry />
     <PageState
       v-else-if="!filtered.length"
       kind="empty"
@@ -129,10 +168,18 @@ watchEffect(() => {
       :message="query ? `No content matches “${query}”.` : 'No content is listed yet.'"
     />
     <ul v-else class="content-grid">
-      <li v-for="item in filtered" :key="item.id">
+      <li v-for="item in visibleItems" :key="item.id">
         <ContentCard :conference="conference" :content="item" :tags="tags" />
       </li>
     </ul>
+    <button
+      v-if="!loading && !error && remaining"
+      type="button"
+      class="button load-more focus-ring"
+      @click="visibleCount += BATCH_SIZE"
+    >
+      Show {{ Math.min(BATCH_SIZE, remaining) }} more
+    </button>
   </section>
 </template>
 
@@ -158,5 +205,13 @@ watchEffect(() => {
   list-style: none;
   gap: var(--space-3);
   margin-top: var(--space-6);
+}
+.content-grid > li {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 7rem;
+}
+.load-more {
+  display: flex;
+  margin: var(--space-5) auto 0;
 }
 </style>

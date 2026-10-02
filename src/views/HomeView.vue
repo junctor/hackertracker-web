@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, shallowRef } from "vue";
 
 import type { Conference } from "../types/hackertracker";
 
@@ -9,7 +9,7 @@ import SitePageLayout from "../components/SitePageLayout.vue";
 import { getUpcomingConferences } from "../firebase/data";
 import { compareBySortOrder } from "../lib/sort";
 
-const conferences = ref<Conference[]>([]);
+const conferences = shallowRef<Conference[]>([]);
 const loading = ref(true);
 const error = ref("");
 
@@ -60,6 +60,7 @@ onMounted(async () => {
         kind="error"
         title="Conferences are unavailable"
         :message="error"
+        retry
       />
       <div v-else class="conference-grid">
         <ConferenceCard

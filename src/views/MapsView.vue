@@ -48,6 +48,8 @@ watchEffect(() => {
             <img
               :src="map.previewUrl"
               :alt="`Preview of ${map.displayName}`"
+              loading="lazy"
+              decoding="async"
               @error="broken = new Set([...broken, map.id])"
             />
           </div>
@@ -96,6 +98,7 @@ article small {
   border: 1px solid var(--border);
   border-radius: var(--radius-2);
   background: white;
+  aspect-ratio: 16 / 10;
 }
 
 img {

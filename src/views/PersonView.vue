@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, watchEffect } from "vue";
+import { computed, ref, shallowRef, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
 import type { Person, ScheduledContent } from "../types/hackertracker";
@@ -19,7 +19,7 @@ import { safeExternalLinks } from "../lib/urls";
 const route = useRoute();
 const { conference } = useConferenceContext();
 const person = ref<Person | null>(null);
-const sessions = ref<ScheduledContent[]>([]);
+const sessions = shallowRef<ScheduledContent[]>([]);
 const loading = ref(true);
 const error = ref("");
 let request = 0;
@@ -94,7 +94,7 @@ watch(
 <template>
   <div>
     <PageState v-if="loading" kind="loading" message="Getting person details…" />
-    <PageState v-else-if="error" kind="error" title="Person unavailable" :message="error" />
+    <PageState v-else-if="error" kind="error" title="Person unavailable" :message="error" retry />
     <div v-else-if="person && conference" class="container detail-page person-detail">
       <header class="detail-hero">
         <RouterLink class="back-link focus-ring" :to="peoplePath(conference.code)"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, watchEffect } from "vue";
+import { computed, ref, shallowRef, watch, watchEffect } from "vue";
 
 import type { Content, Organization, Person } from "../types/hackertracker";
 
@@ -15,17 +15,38 @@ import { compareBySortOrder } from "../lib/sort";
 
 const { conference } = useConferenceContext();
 const query = useRouteTextQuery();
-const contentItems = ref<Content[]>([]);
-const people = ref<Person[]>([]);
-const organizations = ref<Organization[]>([]);
+const contentItems = shallowRef<Content[]>([]);
+const people = shallowRef<Person[]>([]);
+const organizations = shallowRef<Organization[]>([]);
 const loading = ref(true);
 const error = ref("");
+let request = 0;
 const needle = computed(() => query.value.trim().toLowerCase());
+const canSearch = computed(() => needle.value.length >= 2);
+const contentIndex = computed(() =>
+  contentItems.value.map((item) => ({
+    item,
+    text: `${item.title} ${item.description}`.toLocaleLowerCase(),
+  })),
+);
+const peopleIndex = computed(() =>
+  people.value.map((item) => ({
+    item,
+    text: `${item.name} ${item.title} ${item.description}`.toLocaleLowerCase(),
+  })),
+);
+const organizationIndex = computed(() =>
+  organizations.value.map((item) => ({
+    item,
+    text: `${item.name} ${item.description}`.toLocaleLowerCase(),
+  })),
+);
 const contentResults = computed(() =>
-  !needle.value
+  !canSearch.value
     ? []
-    : contentItems.value
-        .filter((item) => `${item.title} ${item.description}`.toLowerCase().includes(needle.value))
+    : contentIndex.value
+        .filter(({ text }) => text.includes(needle.value))
+        .map(({ item }) => item)
         .sort(
           (a, b) =>
             compareBySortOrder(a, b) ||
@@ -34,12 +55,11 @@ const contentResults = computed(() =>
         .slice(0, 30),
 );
 const peopleResults = computed(() =>
-  !needle.value
+  !canSearch.value
     ? []
-    : people.value
-        .filter((item) =>
-          `${item.name} ${item.title} ${item.description}`.toLowerCase().includes(needle.value),
-        )
+    : peopleIndex.value
+        .filter(({ text }) => text.includes(needle.value))
+        .map(({ item }) => item)
         .sort(
           (a, b) =>
             compareBySortOrder(a, b) ||
@@ -48,10 +68,11 @@ const peopleResults = computed(() =>
         .slice(0, 20),
 );
 const organizationResults = computed(() =>
-  !needle.value
+  !canSearch.value
     ? []
-    : organizations.value
-        .filter((item) => `${item.name} ${item.description}`.toLowerCase().includes(needle.value))
+    : organizationIndex.value
+        .filter(({ text }) => text.includes(needle.value))
+        .map(({ item }) => item)
         .sort(
           (a, b) =>
             compareBySortOrder(a, b) ||
@@ -63,20 +84,37 @@ const total = computed(
   () => contentResults.value.length + peopleResults.value.length + organizationResults.value.length,
 );
 watch(
-  conference,
-  async (current) => {
-    if (!current) return;
+  [conference, canSearch],
+  async ([current, shouldLoad]) => {
+    const currentRequest = ++request;
+    if (!current) {
+      contentItems.value = [];
+      people.value = [];
+      organizations.value = [];
+      loading.value = false;
+      return;
+    }
+    if (!shouldLoad) {
+      loading.value = false;
+      error.value = "";
+      return;
+    }
     loading.value = true;
+    error.value = "";
     try {
-      [contentItems.value, people.value, organizations.value] = await Promise.all([
+      const [content, loadedPeople, loadedOrganizations] = await Promise.all([
         getAllContent(current.code),
         getSpeakers(current.code),
         getOrganizations(current.code),
       ]);
+      if (currentRequest !== request) return;
+      contentItems.value = content;
+      people.value = loadedPeople;
+      organizations.value = loadedOrganizations;
     } catch (reason) {
-      error.value = friendlyLoadError(reason, "conference search");
+      if (currentRequest === request) error.value = friendlyLoadError(reason, "conference search");
     } finally {
-      loading.value = false;
+      if (currentRequest === request) loading.value = false;
     }
   },
   { immediate: true },
@@ -100,11 +138,11 @@ watchEffect(() => {
       large
     />
     <PageState v-if="loading" kind="loading" message="Indexing conference content…" />
-    <PageState v-else-if="error" kind="error" title="Search unavailable" :message="error" />
+    <PageState v-else-if="error" kind="error" title="Search unavailable" :message="error" retry />
     <PageState
-      v-else-if="!needle"
+      v-else-if="!canSearch"
       kind="empty"
-      message="Enter a title, person, group, or keyword."
+      message="Enter at least two characters to search titles, people, groups, and keywords."
     />
     <PageState
       v-else-if="!total"

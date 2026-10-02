@@ -24,6 +24,7 @@ watchEffect(() => {
       kind="error"
       title="Bookmarks unavailable"
       :message="error"
+      retry
     />
     <ScheduleList
       v-else-if="conference && grouped && Object.keys(grouped).length"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Share2, Users } from "@lucide/vue";
-import { computed, ref, watch, watchEffect } from "vue";
+import { computed, ref, shallowRef, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
 import type { Content, Location, Person, TagGroup } from "../types/hackertracker";
@@ -33,11 +33,12 @@ import { safeExternalLinks } from "../lib/urls";
 const route = useRoute();
 const { conference } = useConferenceContext();
 const content = ref<Content | null>(null);
-const people = ref<Person[]>([]);
-const tags = ref<TagGroup[]>([]);
-const locations = ref<Location[]>([]);
+const people = shallowRef<Person[]>([]);
+const tags = shallowRef<TagGroup[]>([]);
+const locations = shallowRef<Location[]>([]);
 const loading = ref(true);
 const error = ref("");
+const shareStatus = ref("");
 let request = 0;
 
 const code = computed(() => conference.value?.code);
@@ -133,12 +134,19 @@ async function handleShare(): Promise<void> {
   try {
     if (navigator.share) {
       await navigator.share({ title: content.value.title, url });
+      shareStatus.value = "Event shared.";
       return;
     }
-  } catch {
-    // A dismissed native share sheet falls back to copying the URL.
+  } catch (reason) {
+    if (reason instanceof DOMException && reason.name === "AbortError") return;
   }
-  await navigator.clipboard.writeText(url);
+  try {
+    if (!navigator.clipboard) throw new Error("Clipboard API unavailable");
+    await navigator.clipboard.writeText(url);
+    shareStatus.value = "Event link copied.";
+  } catch {
+    shareStatus.value = "Couldn’t copy the event link.";
+  }
 }
 </script>
 
@@ -150,6 +158,7 @@ async function handleShare(): Promise<void> {
       kind="error"
       title="Session unavailable"
       :message="error"
+      retry
     />
     <article
       v-else-if="conference && content"
@@ -171,6 +180,7 @@ async function handleShare(): Promise<void> {
             >
               <Share2 aria-hidden="true" />
             </button>
+            <p class="share-status" role="status" aria-live="polite">{{ shareStatus }}</p>
           </div>
         </div>
         <h1 id="content-title" tabindex="-1">{{ content.title }}</h1>
@@ -180,8 +190,7 @@ async function handleShare(): Promise<void> {
             :key="tag.id"
             class="tag"
             :style="{
-              backgroundColor: tag.color_background ?? undefined,
-              color: tag.color_foreground ?? undefined,
+              '--tag-color': tag.color_background || 'var(--brand-cyan)',
             }"
           >
             {{ tag.label }}
@@ -252,6 +261,14 @@ async function handleShare(): Promise<void> {
   margin-top: 0.9rem;
 }
 
+.share-status {
+  min-height: 1.2em;
+  margin-top: var(--space-1);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-align: right;
+}
+
 .tag-list {
   display: flex;
   flex-wrap: wrap;
@@ -262,10 +279,11 @@ async function handleShare(): Promise<void> {
 .tag {
   max-width: 100%;
   overflow: hidden;
-  border: 1px solid rgb(255 255 255 / 14%);
+  border: 1px solid color-mix(in oklab, var(--tag-color), white 8%);
   border-radius: var(--radius-pill);
-  background: rgb(255 255 255 / 4%);
+  background: color-mix(in oklab, var(--tag-color) 24%, var(--surface-elevated));
   padding: 0.15rem 0.5rem;
+  color: var(--text-primary);
   font-size: 0.72rem;
   font-weight: 600;
   text-overflow: ellipsis;
