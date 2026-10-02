@@ -1,0 +1,16 @@
+{
+  "name": "Hacker Tracker",
+  "short_name": "HackerTracker",
+  "description": "Conference schedules, talks, parties, and people from Hacker Tracker.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090b0d",
+  "theme_color": "#090b0d",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
