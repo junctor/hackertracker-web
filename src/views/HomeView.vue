@@ -142,9 +142,12 @@ onMounted(async () => {
 }
 
 .view-all {
-  display: table;
+  display: flex;
+  min-height: var(--control-min);
   margin-top: 1.5rem;
   margin-inline: auto;
+  align-items: center;
+  justify-content: center;
   color: var(--accent-success);
   text-decoration: underline;
   text-decoration-color: color-mix(in oklab, var(--accent-success), transparent 50%);

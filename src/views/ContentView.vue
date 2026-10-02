@@ -304,6 +304,7 @@ async function handleShare(): Promise<void> {
 
 .plain-link {
   display: inline-flex;
+  min-height: var(--control-min);
   align-items: center;
   gap: 0.4rem;
   padding-block: 0.4rem;

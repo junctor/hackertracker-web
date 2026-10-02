@@ -112,6 +112,9 @@ summary {
 summary::-webkit-details-marker {
   display: none;
 }
+summary:focus-visible {
+  outline-offset: -3px;
+}
 summary::after {
   content: "›";
   flex: 0 0 auto;

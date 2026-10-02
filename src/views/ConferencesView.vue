@@ -222,6 +222,11 @@ async function loadOlder(): Promise<void> {
 }
 
 .anchor-link {
+  display: grid;
+  width: var(--control-min);
+  height: var(--control-min);
+  place-items: center;
+  border-radius: var(--radius-1);
   color: var(--text-subtle);
 }
 
