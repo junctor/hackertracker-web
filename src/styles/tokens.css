@@ -54,7 +54,3 @@
   --shadow-lg: 0 20px 48px rgb(0 0 0 / 36%);
   --control-min: 44px;
 }
-
-body {
-  background: var(--color-bg);
-}
