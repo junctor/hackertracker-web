@@ -73,7 +73,7 @@ provide(conferenceContextKey, {
 <template>
   <div class="conference-shell">
     <ConferenceHeader v-if="conference" :conference="conference" :items="menuItems" />
-    <main id="main" class="conference-main">
+    <main id="main" tabindex="-1" class="conference-main">
       <PageState v-if="loading" kind="loading" message="Getting conference details…" />
       <PageState
         v-else-if="error || !conference"
