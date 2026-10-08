@@ -126,6 +126,10 @@ svg {
   box-shadow: 0 0 0 2px color-mix(in oklab, var(--focus), transparent 72%);
 }
 
+main[tabindex="-1"]:focus {
+  outline: none;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
