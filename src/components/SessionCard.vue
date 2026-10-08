@@ -179,7 +179,7 @@ withDefaults(
 }
 
 .session-status--live {
-  color: #ffb4c9;
+  color: var(--critical-soft);
 }
 
 .session-status--next {

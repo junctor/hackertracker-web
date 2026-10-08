@@ -63,7 +63,7 @@
 }
 
 .footer-nav a:hover {
-  color: white;
+  color: var(--text-primary);
 }
 
 .footer-nav a {

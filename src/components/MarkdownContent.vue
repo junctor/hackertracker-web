@@ -118,7 +118,7 @@ const rendered = computed(() => renderMarkdown(props.content));
 
 <style scoped>
 .markdown {
-  color: #cbd5e1;
+  color: var(--text-secondary);
   overflow-wrap: anywhere;
 }
 
@@ -127,7 +127,7 @@ const rendered = computed(() => renderMarkdown(props.content));
 }
 
 .markdown :deep(:is(h1, h2, h3, h4)) {
-  color: #f1f5f9;
+  color: var(--text-primary);
   line-height: 1.25;
 }
 
@@ -147,20 +147,20 @@ const rendered = computed(() => renderMarkdown(props.content));
 }
 
 .markdown :deep(a:hover) {
-  color: white;
+  color: var(--text-primary);
 }
 
 .markdown :deep(code) {
   border-radius: 0.25rem;
-  background: #334155;
+  background: var(--surface-elevated);
   padding: 0.1rem 0.25rem;
-  color: #f1f5f9;
+  color: var(--text-primary);
 }
 
 .markdown :deep(pre) {
   overflow-x: auto;
   border-radius: 0.5rem;
-  background: #0f172a;
+  background: var(--surface);
   padding: 1rem;
 }
 
@@ -177,6 +177,6 @@ const rendered = computed(() => renderMarkdown(props.content));
 
 .markdown :deep(hr) {
   border: 0;
-  border-top: 1px solid #334155;
+  border-top: 1px solid var(--border-chrome);
 }
 </style>

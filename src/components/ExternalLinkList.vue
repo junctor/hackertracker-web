@@ -45,7 +45,7 @@ a {
 }
 
 a:hover {
-  color: white;
+  color: var(--text-primary);
 }
 
 a span {

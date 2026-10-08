@@ -207,7 +207,7 @@ onBeforeUnmount(() => {
 
 .nav-button:hover,
 .nav-button.active {
-  color: white;
+  color: var(--text-primary);
 }
 
 .mobile-menu {
@@ -235,7 +235,7 @@ onBeforeUnmount(() => {
 .mobile-menu-link:hover,
 .mobile-menu-link.router-link-active {
   background: var(--surface-muted);
-  color: white;
+  color: var(--text-primary);
 }
 
 @media (width < 48rem) {

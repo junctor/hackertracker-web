@@ -211,8 +211,8 @@ onBeforeUnmount(() => {
   align-items: center;
 }
 .conference-brand:hover {
-  background: rgb(255 255 255 / 0.04);
-  color: white;
+  background: var(--surface-muted);
+  color: var(--text-primary);
 }
 .header-actions {
   flex-shrink: 0;

@@ -105,7 +105,7 @@ const days = computed(() =>
     })),
 );
 const selectedDay = ref("");
-const SESSION_BATCH_SIZE = 40;
+const SESSION_BATCH_SIZE = 20;
 const visibleSessionCount = ref(SESSION_BATCH_SIZE);
 const nowSeconds = ref(Math.floor(Date.now() / 1000));
 const tabButtons = ref<HTMLButtonElement[]>([]);
@@ -574,7 +574,7 @@ onBeforeUnmount(() => {
 .day-tab.active {
   border-bottom-color: var(--accent-success);
   background: transparent;
-  color: white;
+  color: var(--text-primary);
 }
 
 .day-tab .count {
@@ -628,7 +628,7 @@ onBeforeUnmount(() => {
 }
 
 .load-more-button:hover {
-  color: white;
+  color: var(--text-primary);
 }
 
 .empty-state .button {
