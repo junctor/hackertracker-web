@@ -1,5 +1,12 @@
-const CACHE_NAME = "hackertracker-shell-v2";
-const APP_SHELL = ["/", "/manifest.webmanifest", "/favicon.png", "/apple-touch-icon.png"];
+const CACHE_NAME = "hackertracker-shell-v3";
+const APP_SHELL = [
+  "/",
+  "/manifest.webmanifest",
+  "/favicon.png",
+  "/apple-touch-icon.png",
+  "/icon-192.png",
+  "/icon-512.png",
+];
 const MAX_CACHE_ENTRIES = 80;
 
 async function cacheResponse(request, response) {
