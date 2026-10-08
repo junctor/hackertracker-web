@@ -7,7 +7,7 @@ import type { Conference } from "../types/hackertracker";
 import type { SupportedMenuItem } from "../lib/menuRoutes";
 
 import { menuIcon } from "../lib/menuIcons";
-import { conferenceMenuPath } from "../lib/routes";
+import { conferenceMenuPath, searchPath } from "../lib/routes";
 
 const props = defineProps<{ conference: Conference; items: SupportedMenuItem[] }>();
 const route = useRoute();
@@ -15,7 +15,11 @@ const open = ref(false);
 const menu = ref<HTMLElement | null>(null);
 
 const schedule = computed(() => props.items.find((item) => item.routeKey === "schedule"));
-const search = computed(() => props.items.find((item) => item.routeKey === "search"));
+const searchHref = computed(
+  () =>
+    props.items.find((item) => item.routeKey === "search")?.href ??
+    searchPath(props.conference.code),
+);
 const isActive = (href: string) => {
   const current = route.path.replace(/\/$/, "");
   const target = href.replace(/\/$/, "");
@@ -74,10 +78,10 @@ onBeforeUnmount(() => {
           <Calendar aria-hidden="true" /><span>Schedule</span>
         </RouterLink>
         <RouterLink
-          v-if="search"
           class="icon-link focus-ring"
-          :to="search.href"
-          :aria-current="isActive(search.href) ? 'page' : undefined"
+          :class="{ active: isActive(searchHref) }"
+          :to="searchHref"
+          :aria-current="isActive(searchHref) ? 'page' : undefined"
           :aria-label="`Search ${conference.name}`"
         >
           <Search aria-hidden="true" />
@@ -185,7 +189,8 @@ onBeforeUnmount(() => {
   image-rendering: pixelated;
 }
 .home-link:hover,
-.icon-link:hover {
+.icon-link:hover,
+.icon-link.active {
   background: var(--surface-muted);
   color: var(--text-primary);
 }

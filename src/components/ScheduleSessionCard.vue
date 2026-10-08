@@ -14,6 +14,7 @@ const props = defineProps<{
   conference: Conference;
   session: ScheduledContent;
   status?: "Live" | "Next" | null;
+  link?: boolean;
 }>();
 
 const { bookmarks, toggle } = useBookmarks(() => props.conference.code);
@@ -41,7 +42,7 @@ function downloadCalendar(): void {
     accent="schedule"
     :accent-color="session.color"
     :title="session.title"
-    :to="contentPath(conference.code, session.contentId)"
+    :to="link === false ? undefined : contentPath(conference.code, session.contentId)"
     :begin="formatScheduleTime(session.begin, session.timeZone, true)"
     :end="session.end ? formatScheduleTime(session.end, session.timeZone) : undefined"
     :duration="duration"

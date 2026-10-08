@@ -6,6 +6,7 @@ defineProps<{
   title?: string;
   message?: string;
   retry?: boolean;
+  headingLevel?: "h1" | "h2";
 }>();
 
 const reload = () => window.location.reload();
@@ -22,7 +23,7 @@ const reload = () => window.location.reload();
     <LoaderCircle v-if="kind === 'loading'" class="state-icon loading-icon" aria-hidden="true" />
     <CircleAlert v-else-if="kind === 'error'" class="state-icon error-icon" aria-hidden="true" />
     <Inbox v-else class="state-icon" aria-hidden="true" />
-    <h1 v-if="title || kind" tabindex="-1">
+    <component :is="headingLevel ?? 'h1'" v-if="title || kind" tabindex="-1">
       {{
         title ??
         (kind === "loading"
@@ -31,7 +32,7 @@ const reload = () => window.location.reload();
             ? "Something went wrong"
             : "Nothing here yet")
       }}
-    </h1>
+    </component>
     <p v-if="message || kind === 'loading'">
       {{ message ?? "Getting the latest information…" }}
     </p>
@@ -78,7 +79,8 @@ const reload = () => window.location.reload();
   color: var(--critical);
 }
 
-h1 {
+h1,
+h2 {
   color: var(--text-primary);
   font-size: clamp(1.5rem, 4vw, 2rem);
   line-height: 1.2;
