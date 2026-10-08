@@ -28,11 +28,12 @@ type Validator<T> = (value: unknown) => value is T;
 const memory = new Map<string, CacheEntry<unknown>>();
 const inFlight = new Map<string, Promise<unknown>>();
 const cacheRetention = 7 * 24 * 60 * 60 * 1000;
+const pruneInterval = 15 * 60 * 1000;
 const maximumEntries = 200;
 const maximumMemoryEntries = 100;
 let databasePromise: Promise<IDBDatabase | null> | undefined;
 let prunePromise: Promise<void> | undefined;
-let pruneAgain = false;
+let lastPrunedAt = 0;
 let legacyCacheCleared = false;
 
 const cacheKey = (key: string) => `${CACHE_PREFIX}:${key}`;
@@ -181,16 +182,11 @@ async function pruneStored(): Promise<void> {
 }
 
 function requestPrune(): Promise<void> {
-  if (prunePromise) {
-    pruneAgain = true;
-    return prunePromise;
-  }
+  if (prunePromise) return prunePromise;
+  if (Date.now() - lastPrunedAt < pruneInterval) return Promise.resolve();
   prunePromise = pruneStored().finally(() => {
+    lastPrunedAt = Date.now();
     prunePromise = undefined;
-    if (pruneAgain) {
-      pruneAgain = false;
-      void requestPrune();
-    }
   });
   return prunePromise;
 }
