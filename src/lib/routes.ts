@@ -15,6 +15,7 @@ export const schedulePath = (code: string) => `${conferencePath(code)}/schedule`
 export const bookmarksPath = (code: string) => `${conferencePath(code)}/bookmarks`;
 export const contentListPath = (code: string) => `${conferencePath(code)}/content`;
 export const peoplePath = (code: string) => `${conferencePath(code)}/people`;
+export const searchPath = (code: string) => `${conferencePath(code)}/search`;
 export const personPath = (code: string, id: number) => `${peoplePath(code)}/${id}`;
 export const contentPath = (code: string, id: number) => `${conferencePath(code)}/content/${id}`;
 export const documentPath = (code: string, id: number) => `${conferencePath(code)}/documents/${id}`;
