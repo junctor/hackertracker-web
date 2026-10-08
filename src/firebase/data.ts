@@ -416,8 +416,36 @@ export async function getContentByIds(code: string, ids: number[]): Promise<Cont
     const byId = new Map(cached.map((content) => [content.id, content]));
     return ids.map((id) => byId.get(id)).filter((item): item is Content => Boolean(item));
   }
-  const results = await Promise.all(ids.map((id) => getContent(code, id)));
-  return results.filter((item): item is Content => item !== null);
+
+  const byId = new Map<number, Content>();
+  const uniqueIds = [...new Set(ids)];
+  for (const id of uniqueIds) {
+    const item = getCached(contentItemKey(code, id), cacheTtl.events, isContent);
+    if (item) byId.set(id, item);
+  }
+  const missing = uniqueIds.filter((id) => !byId.has(id));
+  const chunks = Array.from({ length: Math.ceil(missing.length / 30) }, (_, index) =>
+    missing.slice(index * 30, index * 30 + 30),
+  );
+  const snapshots = await Promise.all(
+    chunks.map((chunk) =>
+      getDocs(
+        query(
+          collection(db, "conferences", code, "content"),
+          where(documentId(), "in", chunk.map(String)),
+        ),
+      ),
+    ),
+  );
+  for (const snapshot of snapshots) {
+    for (const item of snapshot.docs) {
+      const content = validData(item.data(), isContent);
+      if (!content) continue;
+      byId.set(content.id, content);
+      setCached(contentItemKey(code, content.id), content);
+    }
+  }
+  return ids.map((id) => byId.get(id)).filter((item): item is Content => Boolean(item));
 }
 
 export async function getSpeakers(code: string): Promise<Person[]> {
@@ -536,8 +564,36 @@ export async function getSpeakersByIds(code: string, ids: number[]): Promise<Per
     const byId = new Map(cached.map((person) => [person.id, person]));
     return ids.map((id) => byId.get(id)).filter((item): item is Person => Boolean(item));
   }
-  const results = await Promise.all(ids.map((id) => getSpeaker(code, id)));
-  return results.filter((item): item is Person => item !== null);
+
+  const byId = new Map<number, Person>();
+  const uniqueIds = [...new Set(ids)];
+  for (const id of uniqueIds) {
+    const person = getCached(speakerKey(code, id), cacheTtl.speakers, isPerson);
+    if (person) byId.set(id, person);
+  }
+  const missing = uniqueIds.filter((id) => !byId.has(id));
+  const chunks = Array.from({ length: Math.ceil(missing.length / 30) }, (_, index) =>
+    missing.slice(index * 30, index * 30 + 30),
+  );
+  const snapshots = await Promise.all(
+    chunks.map((chunk) =>
+      getDocs(
+        query(
+          collection(db, "conferences", code, "speakers"),
+          where(documentId(), "in", chunk.map(String)),
+        ),
+      ),
+    ),
+  );
+  for (const snapshot of snapshots) {
+    for (const item of snapshot.docs) {
+      const person = validData(item.data(), isPerson);
+      if (!person) continue;
+      byId.set(person.id, person);
+      setCached(speakerKey(code, person.id), person);
+    }
+  }
+  return ids.map((id) => byId.get(id)).filter((item): item is Person => Boolean(item));
 }
 
 export function getCachedLocations(code: string): Location[] | undefined {
