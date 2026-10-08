@@ -109,7 +109,7 @@ svg {
 .input {
   width: 100%;
   min-height: 2.75rem;
-  border: 1px solid #334155;
+  border: 1px solid var(--border-chrome);
   border-radius: 0.65rem;
   background: var(--surface);
   padding: 0.6rem 0.8rem;
@@ -156,6 +156,9 @@ main[tabindex="-1"]:focus {
   z-index: 1000;
   top: 0.5rem;
   left: 0.5rem;
+  display: inline-flex;
+  min-height: var(--control-min);
+  align-items: center;
   transform: translateY(-150%);
   border: 1px solid var(--accent);
   border-radius: 0.625rem;
@@ -186,7 +189,7 @@ main[tabindex="-1"]:focus {
 }
 
 .back-link:hover {
-  color: white;
+  color: var(--text-primary);
 }
 
 .tool-button {
@@ -198,7 +201,7 @@ main[tabindex="-1"]:focus {
   border-radius: 0.75rem;
   background: transparent;
   padding: 0.45rem 0.75rem;
-  color: #cbd5e1;
+  color: var(--text-secondary);
   font-size: 0.875rem;
   font-weight: 650;
   text-decoration: none;
@@ -216,8 +219,8 @@ main[tabindex="-1"]:focus {
 
 .tool-button:hover {
   border-color: transparent;
-  background: rgba(1, 127, 164, 0.1);
-  color: white;
+  background: var(--accent-soft);
+  color: var(--text-primary);
 }
 
 .button,
@@ -229,7 +232,7 @@ main[tabindex="-1"]:focus {
   gap: 0.5rem;
   border: 1px solid var(--border);
   border-radius: 0.65rem;
-  background: rgba(15, 23, 42, 0.92);
+  background: var(--surface);
   padding: 0.625rem 1rem;
   color: var(--text-primary);
   font-size: 0.9rem;
@@ -243,7 +246,7 @@ main[tabindex="-1"]:focus {
 
 .button:hover,
 .icon-label-button:hover {
-  border-color: rgba(1, 127, 164, 0.6);
+  border-color: color-mix(in oklab, var(--accent), transparent 40%);
   background: var(--surface-elevated);
 }
 
@@ -279,8 +282,8 @@ main[tabindex="-1"]:focus {
 .icon-button:hover,
 .icon-button[aria-pressed="true"] {
   border-color: transparent;
-  background: rgba(1, 127, 164, 0.12);
-  color: #71ddca;
+  background: var(--accent-soft);
+  color: color-mix(in oklab, var(--accent), white 18%);
 }
 
 .card {
@@ -298,7 +301,7 @@ main[tabindex="-1"]:focus {
 
 .interactive:hover,
 .interactive:focus-within {
-  border-color: rgba(1, 127, 164, 0.48);
+  border-color: color-mix(in oklab, var(--accent), transparent 52%);
   background: var(--surface-elevated);
 }
 
@@ -335,6 +338,7 @@ main[tabindex="-1"]:focus {
   :root {
     --border: rgb(203 213 225 / 48%);
     --border-chrome: rgb(203 213 225 / 62%);
+    --text-secondary: #e2e8f0;
     --text-muted: #d5dadd;
     --text-subtle: #bac3c8;
   }
