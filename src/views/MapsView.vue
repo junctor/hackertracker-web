@@ -34,6 +34,7 @@ watchEffect(() => {
     <PageState
       v-if="!maps.length"
       kind="empty"
+      heading-level="h2"
       message="No maps are available for this conference yet."
     />
     <ul v-else class="map-grid">

@@ -159,11 +159,24 @@ onBeforeUnmount(() => {
         </select>
       </label>
     </div>
-    <PageState v-if="loading" kind="loading" message="Getting conference content…" />
-    <PageState v-else-if="error" kind="error" title="Content unavailable" :message="error" retry />
+    <PageState
+      v-if="loading"
+      kind="loading"
+      heading-level="h2"
+      message="Getting conference content…"
+    />
+    <PageState
+      v-else-if="error"
+      kind="error"
+      heading-level="h2"
+      title="Content unavailable"
+      :message="error"
+      retry
+    />
     <PageState
       v-else-if="!filtered.length"
       kind="empty"
+      heading-level="h2"
       title="No content found"
       :message="query ? `No content matches “${query}”.` : 'No content is listed yet.'"
     />

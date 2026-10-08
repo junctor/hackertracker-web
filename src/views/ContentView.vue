@@ -15,6 +15,7 @@ import {
   getCachedLocations,
   getCachedSpeakers,
   getCachedTags,
+  getContentByIds,
   getContent,
   getLocations,
   getSpeakersByIds,
@@ -36,6 +37,7 @@ const content = ref<Content | null>(null);
 const people = shallowRef<Person[]>([]);
 const tags = shallowRef<TagGroup[]>([]);
 const locations = shallowRef<Location[]>([]);
+const relatedContent = shallowRef<Content[]>([]);
 const loading = ref(true);
 const error = ref("");
 const shareStatus = ref("");
@@ -94,22 +96,29 @@ watch(
       people.value = getContentPersonIds(cachedContent, [...byId.values()])
         .map((personId) => byId.get(personId))
         .filter((person): person is Person => Boolean(person));
+      relatedContent.value = (cachedContent.related_content_ids ?? [])
+        .map((relatedId) => getCachedContent(conferenceCode, relatedId))
+        .filter((item): item is Content => Boolean(item));
       loading.value = false;
     } else {
       content.value = null;
       tags.value = [];
       locations.value = [];
       people.value = [];
+      relatedContent.value = [];
       loading.value = true;
     }
     try {
-      const loadedContent = await getContent(conferenceCode, id);
+      const [loadedContent, loadedTags, loadedLocations] = await Promise.all([
+        getContent(conferenceCode, id),
+        getTags(conferenceCode),
+        getLocations(conferenceCode),
+      ]);
       if (!loadedContent) throw new Error("Content not found");
       const personIds = getContentPersonIds(loadedContent);
-      const [loadedTags, loadedPeople, loadedLocations] = await Promise.all([
-        getTags(conferenceCode),
+      const [loadedPeople, loadedRelatedContent] = await Promise.all([
         getSpeakersByIds(conferenceCode, personIds),
-        getLocations(conferenceCode),
+        getContentByIds(conferenceCode, loadedContent.related_content_ids ?? []),
       ]);
       if (current !== request) return;
       content.value = loadedContent;
@@ -119,6 +128,7 @@ watch(
         .map((personId) => peopleById.get(personId))
         .filter((person): person is Person => Boolean(person));
       locations.value = loadedLocations;
+      relatedContent.value = loadedRelatedContent;
     } catch (reason) {
       if (current === request) error.value = friendlyLoadError(reason, "this session");
     } finally {
@@ -205,7 +215,7 @@ async function handleShare(): Promise<void> {
         <h2 id="sessions-title">Sessions</h2>
         <ul class="stack-list">
           <li v-for="session in sessions" :key="session.sessionId">
-            <ScheduleSessionCard :conference="conference" :session="session" />
+            <ScheduleSessionCard :conference="conference" :session="session" :link="false" />
           </li>
         </ul>
       </section>
@@ -226,17 +236,13 @@ async function handleShare(): Promise<void> {
         <h2 id="media-title">Media</h2>
         <ExternalLinkList :items="mediaItems" />
       </section>
-      <section
-        v-if="content.related_content_ids?.length"
-        class="detail-section"
-        aria-labelledby="related-title"
-      >
+      <section v-if="relatedContent.length" class="detail-section" aria-labelledby="related-title">
         <h2 id="related-title">Related</h2>
         <ul class="resource-list">
-          <li v-for="id in content.related_content_ids" :key="id">
-            <RouterLink class="plain-link focus-ring" :to="contentPath(conference.code, id)"
-              >Content {{ id }}</RouterLink
-            >
+          <li v-for="item in relatedContent" :key="item.id">
+            <RouterLink class="plain-link focus-ring" :to="contentPath(conference.code, item.id)">{{
+              item.title
+            }}</RouterLink>
           </li>
         </ul>
       </section>

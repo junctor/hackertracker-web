@@ -79,10 +79,16 @@ watchEffect(() => {
       label="Search locations"
       placeholder="Search locations…"
     />
-    <PageState v-if="loading" kind="loading" message="Getting conference locations…" />
+    <PageState
+      v-if="loading"
+      kind="loading"
+      heading-level="h2"
+      message="Getting conference locations…"
+    />
     <PageState
       v-else-if="error"
       kind="error"
+      heading-level="h2"
       title="Locations unavailable"
       :message="error"
       retry
@@ -90,6 +96,7 @@ watchEffect(() => {
     <PageState
       v-else-if="!filtered.length"
       kind="empty"
+      heading-level="h2"
       message="No locations match your search."
     />
     <ul v-else class="location-grid">

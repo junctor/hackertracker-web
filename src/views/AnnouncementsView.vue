@@ -59,15 +59,26 @@ watchEffect(() => {
 <template>
   <section v-if="conference" class="container page-content">
     <PageHeading title="Announcements" intro="Conference updates." />
-    <PageState v-if="loading" kind="loading" message="Checking for announcements…" />
+    <PageState
+      v-if="loading"
+      kind="loading"
+      heading-level="h2"
+      message="Checking for announcements…"
+    />
     <PageState
       v-else-if="error"
       kind="error"
+      heading-level="h2"
       title="Announcements unavailable"
       :message="error"
       retry
     />
-    <PageState v-else-if="!articles.length" kind="empty" message="No announcements yet." />
+    <PageState
+      v-else-if="!articles.length"
+      kind="empty"
+      heading-level="h2"
+      message="No announcements yet."
+    />
     <ul v-else class="announcement-list">
       <li v-for="(article, index) in displayedArticles" :key="article.id">
         <details class="announcement-card" :open="index === 0">

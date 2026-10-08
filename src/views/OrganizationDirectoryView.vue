@@ -206,6 +206,7 @@ watchEffect(() => {
       <PageState
         v-if="!filtered.length"
         kind="empty"
+        heading-level="h2"
         :title="`No ${title.toLowerCase()} found`"
         :message="
           query ? `No results match “${query}”.` : `No ${title.toLowerCase()} are listed yet.`

@@ -58,6 +58,7 @@ onMounted(async () => {
       <PageState
         v-else-if="error"
         kind="error"
+        heading-level="h2"
         title="Conferences are unavailable"
         :message="error"
         retry

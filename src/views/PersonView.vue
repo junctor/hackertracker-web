@@ -10,7 +10,7 @@ import PageState from "../components/PageState.vue";
 import PersonAvatar from "../components/PersonAvatar.vue";
 import ScheduleSessionCard from "../components/ScheduleSessionCard.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
-import { getContentByIds, getLocations, getSpeakers, getTags } from "../firebase/data";
+import { getContentByIds, getLocations, getSpeaker, getTags } from "../firebase/data";
 import { friendlyLoadError } from "../lib/errors";
 import { normalizeConferenceCode, parseNumericParam, peoplePath } from "../lib/routes";
 import { processScheduleData } from "../lib/schedule";
@@ -60,8 +60,7 @@ watch(
     loading.value = true;
     error.value = "";
     try {
-      const loadedPeople = await getSpeakers(conferenceCode);
-      const loadedPerson = loadedPeople.find((item) => item.id === personId);
+      const loadedPerson = await getSpeaker(conferenceCode, personId);
       if (!loadedPerson) throw new Error("Person not found.");
       let scheduled: ScheduledContent[] = [];
       if (loadedPerson.content_ids?.length) {
@@ -73,7 +72,7 @@ watch(
         scheduled = processScheduleData(
           content,
           tags,
-          loadedPeople,
+          [loadedPerson],
           locations,
           conference.value?.timezone || "UTC",
         );
