@@ -320,7 +320,7 @@ async function handleShare(): Promise<void> {
 }
 
 .plain-link:hover {
-  color: white;
+  color: var(--text-primary);
 }
 
 .plain-link svg {

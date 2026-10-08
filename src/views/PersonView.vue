@@ -170,7 +170,7 @@ watch(
   display: grid;
   list-style: none;
   gap: 0.25rem;
-  color: #cbd5e1;
+  color: var(--text-secondary);
   font-size: 0.875rem;
 }
 

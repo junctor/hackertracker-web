@@ -139,7 +139,7 @@ onMounted(() => (document.title = "Support · Hacker Tracker"));
   gap: 0.55rem;
   border-top: 1px solid var(--border);
   padding: 0.75rem 0;
-  color: #cbd5e1;
+  color: var(--text-secondary);
 }
 
 .info-card {

@@ -165,7 +165,7 @@ onMounted(() => (document.title = "About · Hacker Tracker"));
   gap: var(--space-2);
   margin: 1rem 0 0 1.25rem;
   padding-left: 0.75rem;
-  color: #cbd5e1;
+  color: var(--text-secondary);
 }
 
 .credit-list li {

@@ -156,7 +156,7 @@ onMounted(async () => {
 }
 
 .view-all:hover {
-  color: white;
+  color: var(--text-primary);
 }
 
 .count {

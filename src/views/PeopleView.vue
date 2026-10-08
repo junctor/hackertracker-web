@@ -208,7 +208,7 @@ function highlightedName(person: Person): { before: string; match: string; after
 }
 
 .person-card-copy strong {
-  color: #f1f5f9;
+  color: var(--text-primary);
   line-height: 1.35;
 }
 
