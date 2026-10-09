@@ -19,7 +19,9 @@
   "devDependencies": {
     "@types/node": "^26.6.3",
     "@vitejs/plugin-vue": "^6.0.9",
+    "@vue/test-utils": "^2.5.1",
     "@vue/tsconfig": "^0.9.1",
+    "happy-dom": "^20.14.5",
     "typescript": "~6.0.3",
     "vite": "npm:@voidzero-dev/vite-plus-core@1.0.0",
     "vite-plus": "1.0.0",
