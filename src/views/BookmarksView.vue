@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Bookmark } from "@lucide/vue";
 import { watchEffect } from "vue";
 
 import PageState from "../components/PageState.vue";
@@ -32,7 +33,13 @@ watchEffect(() => {
       :date-group="grouped"
       page-title="Bookmarks"
     />
-    <PageState v-else kind="empty" message="No bookmarked sessions yet.">
+    <PageState
+      v-else
+      kind="empty"
+      title="Bookmarks"
+      message="No bookmarked sessions yet."
+      :icon="Bookmark"
+    >
       <RouterLink v-if="code" class="button focus-ring" :to="schedulePath(code)"
         >Browse schedule</RouterLink
       >

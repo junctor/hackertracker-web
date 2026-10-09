@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Calendar } from "@lucide/vue";
+import { CalendarSearch } from "@lucide/vue";
 import { computed, ref, shallowRef, watch, watchEffect } from "vue";
 import type { Location } from "../types/hackertracker";
 import PageHeading from "../components/PageHeading.vue";
@@ -114,7 +114,7 @@ watchEffect(() => {
             :to="filteredScheduleRoute(conference.code, { locationId: location.id })"
             :aria-label="`View ${location.name} on the schedule`"
           >
-            <Calendar aria-hidden="true" />
+            <CalendarSearch aria-hidden="true" />
           </RouterLink>
         </article>
       </li>

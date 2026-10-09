@@ -84,8 +84,8 @@ watchEffect(() => {
         <details class="announcement-card" :open="index === 0">
           <summary class="focus-ring">
             <span
-              ><strong>{{ article.name }}</strong
-              ><time v-if="article.updated" :datetime="article.updated.dateTime">{{
+              ><h2>{{ article.name }}</h2>
+              <time v-if="article.updated" :datetime="article.updated.dateTime">{{
                 article.updated.dateLabel
               }}</time></span
             >
@@ -145,6 +145,10 @@ summary > span {
   flex: 1 1 auto;
   justify-content: space-between;
   gap: var(--space-4);
+}
+summary h2 {
+  font-size: 1rem;
+  line-height: 1.35;
 }
 time {
   color: var(--text-subtle);

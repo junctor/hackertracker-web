@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Calendar } from "@lucide/vue";
+import { CalendarSearch } from "@lucide/vue";
 import { computed, ref, shallowRef, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
@@ -166,10 +166,10 @@ watchEffect(() => {
         :to="filteredScheduleRoute(conference.code, { tagIds: scheduleTagIds })"
         aria-label="View events on schedule"
       >
-        <Calendar aria-hidden="true" />
+        <CalendarSearch aria-hidden="true" />
       </RouterLink>
       <div v-if="selected.description" class="detail-body">
-        <MarkdownContent :content="selected.description" />
+        <MarkdownContent :content="selected.description" :heading-start="2" />
       </div>
       <section v-if="selectedLinks.length" class="links-section">
         <h2>Links</h2>
@@ -194,7 +194,7 @@ watchEffect(() => {
           :to="filteredScheduleRoute(conference.code, { tagIds: scheduleTagIds })"
           aria-label="View on schedule"
         >
-          <Calendar aria-hidden="true" />
+          <CalendarSearch aria-hidden="true" />
         </RouterLink>
       </PageHeading>
       <SearchField

@@ -74,7 +74,9 @@ watchEffect(() => {
         <h1 tabindex="-1">{{ currentDocument.titleText }}</h1>
         <time v-if="updated" :datetime="updated.dateTime">Updated {{ updated.label }}</time>
       </header>
-      <div class="document-body"><MarkdownContent :content="currentDocument.bodyText" /></div>
+      <div class="document-body">
+        <MarkdownContent :content="currentDocument.bodyText" :heading-start="2" />
+      </div>
     </template>
   </article>
 </template>
