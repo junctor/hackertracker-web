@@ -236,6 +236,66 @@ export interface ConferenceArticle extends Sortable {
   updatedAt: DateTimeString | TimestampParts | null;
 }
 
+export interface ProductMedia extends Sortable {
+  name: string;
+  url: string;
+  filetype: string;
+  filesize: number;
+  asset_id: number | null;
+}
+
+export interface ProductVariant extends Sortable {
+  variantId: number;
+  productId: number;
+  title: string;
+  code: string;
+  price: number | null;
+  stockStatus: string;
+  tagIds: number[];
+}
+
+export interface ConferenceProduct extends Sortable {
+  id: number;
+  code: string;
+  title: string;
+  description: string;
+  priceMin: number | null;
+  priceMax: number | null;
+  productId: number;
+  eligibilityRestricted: boolean;
+  eligibilityRestrictionText: string;
+  visibleAgeMin: number | null;
+  media: ProductMedia[];
+  tagIds: number[];
+  variants: ProductVariant[];
+}
+
+export type FeedbackItemType = "display_only" | "select_one" | "multi_select" | "text";
+
+export interface FeedbackOption extends Sortable {
+  id: number;
+  captionText: string;
+}
+
+export interface FeedbackItem extends Sortable {
+  id: number;
+  captionText: string;
+  type: FeedbackItemType;
+  options: FeedbackOption[];
+  selectMinimum: number;
+  selectMaximum: number;
+  selectOrientation: string;
+  textMaxLength: number | null;
+}
+
+export interface FeedbackForm {
+  id: number;
+  conferenceId: number;
+  nameText: string;
+  submissionUrl: string;
+  items: FeedbackItem[];
+}
+
 export interface ProcessedTag extends Sortable {
   id: number;
   label: string;
