@@ -3,7 +3,7 @@
 [![Deploy HT Web](https://github.com/junctor/hackertracker-web/actions/workflows/pages.yml/badge.svg)](https://github.com/junctor/hackertracker-web/actions/workflows/pages.yml)
 [![Live site](https://img.shields.io/badge/live-hackertracker.app-00e5e5)](https://hackertracker.app)
 
-The fast, installable web client for [Hacker Tracker](https://hackertracker.app). Browse conference schedules, talks, speakers, maps, announcements, and community resources from any modern browser—including previously visited schedules when the network is unavailable.
+The fast, installable web client for [Hacker Tracker](https://hackertracker.app). Browse conference schedules, talks, speakers, maps, announcements, merchandise, feedback forms, and community resources from any modern browser—including previously visited schedules when the network is unavailable.
 
 Built with Vue, TypeScript, Vite+, and Firebase.
 
@@ -12,6 +12,7 @@ Built with Vue, TypeScript, Vite+, and Firebase.
 - Conference schedules organized by day, location, and tag
 - Full-conference search across content, people, and organizations
 - Speaker, session, organization, location, map, and document views
+- Conference merchandise catalogs and general feedback forms when published by organizers
 - Local bookmarks and one-click iCalendar downloads
 - Responsive layouts, keyboard navigation, visible focus states, and reduced-motion support
 - Route-level code splitting and progressive rendering for large schedules and result sets
@@ -73,11 +74,11 @@ The app uses the Firebase Lite SDK and avoids realtime listeners. Collection loa
 
 Freshness windows are deliberately matched to how often each data type changes:
 
-| Data                                            |  Fresh for |
-| ----------------------------------------------- | ---------: |
-| Conferences, menus, and documents               |    6 hours |
-| Organizations                                   | 30 minutes |
-| Events, locations, tags, speakers, and articles | 10 minutes |
+| Data                                                      |  Fresh for |
+| --------------------------------------------------------- | ---------: |
+| Conferences, menus, and documents                         |    6 hours |
+| Organizations and feedback forms                          | 30 minutes |
+| Events, locations, tags, speakers, articles, and products | 10 minutes |
 
 Validated responses are held in a small in-memory LRU cache and persisted to IndexedDB. Persistent entries are capped at 200, retained for up to seven days, and can be used as a stale fallback if a refresh fails. Maintenance pruning is rate-limited so ordinary navigation does not repeatedly scan IndexedDB.
 
@@ -110,7 +111,7 @@ vp run build
 vp preview
 ```
 
-Tests cover cache behavior and core bookmark, calendar, date, and schedule utilities. Add focused tests beside the source using `*.test.ts` when changing these behaviors.
+Tests cover cache behavior, core bookmark, calendar, date, and schedule utilities, menu routing, Markdown heading structure, and mounted component behavior. Add focused tests beside the source using `*.test.ts` when changing these behaviors.
 
 ## Deployment
 
