@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Bookmark } from "@lucide/vue";
 import { watchEffect } from "vue";
 
 import PageState from "../components/PageState.vue";
@@ -9,7 +10,7 @@ import { schedulePath } from "../lib/routes";
 const { code, conference, grouped, loading, error } = useConferenceSchedule(true);
 watchEffect(() => {
   document.title = error.value
-    ? "Error · Bookmarks | Hacker Tracker"
+    ? "Bookmarks unavailable · Hacker Tracker"
     : conference.value
       ? `Bookmarks · ${conference.value.name} | Hacker Tracker`
       : "Loading bookmarks… | Hacker Tracker";
@@ -18,12 +19,13 @@ watchEffect(() => {
 
 <template>
   <div>
-    <PageState v-if="loading && !grouped" kind="loading" message="Loading saved events…" />
+    <PageState v-if="loading && !grouped" kind="loading" message="Loading bookmarks…" />
     <PageState
       v-else-if="error && !grouped"
       kind="error"
       title="Bookmarks unavailable"
       :message="error"
+      retry
     />
     <ScheduleList
       v-else-if="conference && grouped && Object.keys(grouped).length"
@@ -31,7 +33,13 @@ watchEffect(() => {
       :date-group="grouped"
       page-title="Bookmarks"
     />
-    <PageState v-else kind="empty" message="No bookmarked sessions yet.">
+    <PageState
+      v-else
+      kind="empty"
+      title="Bookmarks"
+      message="No bookmarked sessions yet."
+      :icon="Bookmark"
+    >
       <RouterLink v-if="code" class="button focus-ring" :to="schedulePath(code)"
         >Browse schedule</RouterLink
       >

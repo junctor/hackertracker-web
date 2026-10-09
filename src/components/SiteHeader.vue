@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AppWindow, Calendar, CircleHelp, GitFork, Info, Menu, X } from "@lucide/vue";
+import { AppWindow, CalendarDays, CircleHelp, GitFork, Info, Menu, X } from "@lucide/vue";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
@@ -9,7 +9,7 @@ const scrolled = ref(false);
 const menu = ref<HTMLElement | null>(null);
 
 const items = [
-  { label: "Conferences", to: "/conferences", icon: Calendar },
+  { label: "Conferences", to: "/conferences", icon: CalendarDays },
   { label: "Apps", to: "/apps", icon: AppWindow },
   { label: "About", to: "/about", icon: Info },
   { label: "Support", to: "/support", icon: CircleHelp },
@@ -32,6 +32,12 @@ function closeOnOutsideClick(event: MouseEvent): void {
     menuOpen.value = false;
 }
 
+function closeOnEscape(event: KeyboardEvent): void {
+  if (event.key !== "Escape" || !menuOpen.value) return;
+  menuOpen.value = false;
+  menu.value?.querySelector<HTMLButtonElement>("button")?.focus();
+}
+
 watch(
   () => route.fullPath,
   () => (menuOpen.value = false),
@@ -41,10 +47,12 @@ onMounted(() => {
   updateScroll();
   window.addEventListener("scroll", updateScroll, { passive: true });
   document.addEventListener("click", closeOnOutsideClick);
+  document.addEventListener("keydown", closeOnEscape);
 });
 onBeforeUnmount(() => {
   window.removeEventListener("scroll", updateScroll);
   document.removeEventListener("click", closeOnOutsideClick);
+  document.removeEventListener("keydown", closeOnEscape);
 });
 </script>
 
@@ -52,7 +60,7 @@ onBeforeUnmount(() => {
   <header class="site-header" :class="headerClass">
     <a class="skip-link focus-ring" href="#main">Skip to content</a>
     <div class="header-inner">
-      <RouterLink class="brand focus-ring" to="/" aria-label="Hacker Tracker Home">
+      <RouterLink class="brand focus-ring" to="/" aria-label="Hacker Tracker home">
         <img src="/images/logos/ht-logo.png" alt="" />
       </RouterLink>
 
@@ -110,7 +118,12 @@ onBeforeUnmount(() => {
             >
               <component :is="item.icon" aria-hidden="true" />{{ item.label }}
             </a>
-            <RouterLink v-else :to="item.to" class="mobile-menu-link focus-ring">
+            <RouterLink
+              v-else
+              :to="item.to"
+              class="mobile-menu-link focus-ring"
+              :aria-current="route.path === item.to ? 'page' : undefined"
+            >
               <component :is="item.icon" aria-hidden="true" />{{ item.label }}
             </RouterLink>
           </template>
@@ -177,7 +190,7 @@ onBeforeUnmount(() => {
 }
 
 .nav-button {
-  min-height: 2.5rem;
+  min-height: var(--control-min);
   gap: var(--space-2);
   padding: 0.45rem 0.65rem;
   color: var(--text-muted);
@@ -194,7 +207,7 @@ onBeforeUnmount(() => {
 
 .nav-button:hover,
 .nav-button.active {
-  color: white;
+  color: var(--text-primary);
 }
 
 .mobile-menu {
@@ -213,6 +226,7 @@ onBeforeUnmount(() => {
 }
 
 .mobile-menu-link {
+  min-height: var(--control-min);
   gap: var(--space-3);
   padding: 0.65rem 0.75rem;
   color: var(--text-muted);
@@ -221,7 +235,7 @@ onBeforeUnmount(() => {
 .mobile-menu-link:hover,
 .mobile-menu-link.router-link-active {
   background: var(--surface-muted);
-  color: white;
+  color: var(--text-primary);
 }
 
 @media (width < 48rem) {

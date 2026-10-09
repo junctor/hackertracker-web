@@ -11,7 +11,7 @@ import type {
 } from "../types/hackertracker";
 
 import { bookmarksPath, schedulePath } from "../lib/routes";
-import { formatDayHeading, formatDayTab } from "../lib/schedule";
+import { formatDayHeading, formatDayTab, scheduleDayKey } from "../lib/schedule";
 import { compareBySortOrder } from "../lib/sort";
 import ScheduleFilters from "./ScheduleFilters.vue";
 import ScheduleSessionCard from "./ScheduleSessionCard.vue";
@@ -97,15 +97,17 @@ const filteredDateGroup = computed<GroupedSchedule>(() => {
   );
 });
 const days = computed(() =>
-  Object.entries(filteredDateGroup.value).map(([day, scheduledContents]) => ({
-    day,
-    scheduledContents,
-  })),
+  Object.entries(filteredDateGroup.value)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([day, scheduledContents]) => ({
+      day,
+      scheduledContents,
+    })),
 );
 const selectedDay = ref("");
-const SESSION_BATCH_SIZE = 40;
+const SESSION_BATCH_SIZE = 20;
 const visibleSessionCount = ref(SESSION_BATCH_SIZE);
-const nowSeconds = Math.floor(Date.now() / 1000);
+const nowSeconds = ref(Math.floor(Date.now() / 1000));
 const tabButtons = ref<HTMLButtonElement[]>([]);
 const tabScroll = ref<HTMLElement | null>(null);
 const loadMoreTrigger = ref<HTMLButtonElement | null>(null);
@@ -113,6 +115,7 @@ const canScrollEarlier = ref(false);
 const canScrollLater = ref(false);
 let tabResizeObserver: ResizeObserver | undefined;
 let loadMoreObserver: IntersectionObserver | undefined;
+let clockTimer: number | undefined;
 
 const activeDay = computed(
   () => days.value.find(({ day }) => day === selectedDay.value) ?? days.value[0] ?? null,
@@ -127,8 +130,14 @@ const remainingSessionCount = computed(() =>
 watch(
   days,
   (value) => {
-    if (!value.some(({ day }) => day === selectedDay.value))
-      selectedDay.value = value[0]?.day ?? "";
+    if (!value.some(({ day }) => day === selectedDay.value)) {
+      const today = scheduleDayKey(Date.now(), props.conference.timezone || "UTC");
+      selectedDay.value =
+        value.find(({ day }) => day === today)?.day ??
+        value.find(({ day }) => day > today)?.day ??
+        value.at(-1)?.day ??
+        "";
+    }
     void nextTick(updateTabScrollState);
   },
   { immediate: true },
@@ -177,16 +186,19 @@ function clearAllFilters(): void {
 function timestamp(content: ScheduledContent, key: "begin" | "end"): number {
   const stored = key === "begin" ? content.beginTimestampSeconds : content.endTimestampSeconds;
   const value = key === "begin" ? content.begin : content.end;
-  return (
-    stored ?? (value ? Math.floor(new Date(value).getTime() / 1000) : timestamp(content, "begin"))
-  );
+  if (typeof stored === "number" && Number.isFinite(stored)) return stored;
+  if (value) {
+    const parsed = Math.floor(new Date(value).getTime() / 1000);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return key === "end" ? timestamp(content, "begin") : 0;
 }
 
 function status(content: ScheduledContent): "Live" | "Next" | null {
   const begin = timestamp(content, "begin");
   const end = timestamp(content, "end");
-  if (begin <= nowSeconds && nowSeconds < end) return "Live";
-  if (begin > nowSeconds && begin - nowSeconds <= 30 * 60) return "Next";
+  if (begin <= nowSeconds.value && nowSeconds.value < end) return "Live";
+  if (begin > nowSeconds.value && begin - nowSeconds.value <= 30 * 60) return "Next";
   return null;
 }
 
@@ -209,6 +221,14 @@ function showMoreSessions(): void {
     activeDay.value?.scheduledContents.length ?? 0,
     visibleSessionCount.value + SESSION_BATCH_SIZE,
   );
+}
+
+function updateClock(): void {
+  nowSeconds.value = Math.floor(Date.now() / 1000);
+}
+
+function handleVisibility(): void {
+  if (document.visibilityState === "visible") updateClock();
 }
 
 async function selectDay(day: string, index: number): Promise<void> {
@@ -234,6 +254,8 @@ async function handleTabKey(event: KeyboardEvent, index: number): Promise<void> 
 }
 
 onMounted(() => {
+  clockTimer = window.setInterval(updateClock, 30_000);
+  document.addEventListener("visibilitychange", handleVisibility);
   tabResizeObserver = new ResizeObserver(updateTabScrollState);
   if (tabScroll.value) tabResizeObserver.observe(tabScroll.value);
   loadMoreObserver = new IntersectionObserver(
@@ -251,6 +273,8 @@ onMounted(() => {
   void nextTick(updateTabScrollState);
 });
 onBeforeUnmount(() => {
+  if (clockTimer !== undefined) window.clearInterval(clockTimer);
+  document.removeEventListener("visibilitychange", handleVisibility);
   tabResizeObserver?.disconnect();
   loadMoreObserver?.disconnect();
 });
@@ -290,7 +314,7 @@ onBeforeUnmount(() => {
             v-else
             class="icon-button focus-ring"
             :to="schedulePath(conference.code)"
-            aria-label="Schedule"
+            aria-label="Return to schedule"
             ><Calendar aria-hidden="true"
           /></RouterLink>
         </div>
@@ -550,7 +574,7 @@ onBeforeUnmount(() => {
 .day-tab.active {
   border-bottom-color: var(--accent-success);
   background: transparent;
-  color: white;
+  color: var(--text-primary);
 }
 
 .day-tab .count {
@@ -584,11 +608,8 @@ onBeforeUnmount(() => {
 }
 
 .stack-list {
-  list-style: none;
-}
-
-.stack-list {
   display: grid;
+  list-style: none;
   gap: var(--space-3);
 }
 
@@ -599,6 +620,7 @@ onBeforeUnmount(() => {
 
 .load-more-button {
   display: block;
+  min-height: var(--control-min);
   margin: var(--space-5) auto 0;
   padding: var(--space-2);
   color: var(--accent-success);
@@ -606,7 +628,7 @@ onBeforeUnmount(() => {
 }
 
 .load-more-button:hover {
-  color: white;
+  color: var(--text-primary);
 }
 
 .empty-state .button {
@@ -614,8 +636,16 @@ onBeforeUnmount(() => {
 }
 
 @media (width < 40rem) {
+  .schedule-tools {
+    position: static;
+  }
+
   .schedule-tools h1 {
     font-size: 1rem;
+  }
+
+  .day-tabs {
+    top: 4rem;
   }
 
   .day-tabs-scroll > div {

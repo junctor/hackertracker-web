@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { SlidersHorizontal } from "@lucide/vue";
-import { computed, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 
 import type { TagGroup } from "../types/hackertracker";
 
@@ -9,6 +9,7 @@ import SearchField from "./SearchField.vue";
 const props = defineProps<{ groups: TagGroup[]; selectedIds: number[] }>();
 const emit = defineEmits<{ change: [ids: number[]] }>();
 const query = ref("");
+const filter = ref<HTMLDetailsElement | null>(null);
 const selected = computed(() => new Set(props.selectedIds));
 const visibleGroups = computed(() => {
   const needle = query.value.trim().toLowerCase();
@@ -35,11 +36,30 @@ function toggle(id: number, checked: boolean): void {
     [...next].sort((a, b) => a - b),
   );
 }
+
+function closeOutside(event: PointerEvent): void {
+  if (filter.value?.open && !filter.value.contains(event.target as Node)) filter.value.open = false;
+}
+
+function closeOnEscape(event: KeyboardEvent): void {
+  if (event.key !== "Escape" || !filter.value?.open) return;
+  filter.value.open = false;
+  filter.value.querySelector("summary")?.focus();
+}
+
+onMounted(() => {
+  document.addEventListener("pointerdown", closeOutside);
+  document.addEventListener("keydown", closeOnEscape);
+});
+onBeforeUnmount(() => {
+  document.removeEventListener("pointerdown", closeOutside);
+  document.removeEventListener("keydown", closeOnEscape);
+});
 </script>
 
 <template>
-  <details class="schedule-filter">
-    <summary class="tool-button focus-ring">
+  <details ref="filter" class="schedule-filter">
+    <summary class="tool-button focus-ring" aria-label="Schedule filters">
       <SlidersHorizontal aria-hidden="true" />
       <span>Filters</span>
       <span v-if="selectedIds.length" class="filter-count">{{ selectedIds.length }}</span>
@@ -48,7 +68,7 @@ function toggle(id: number, checked: boolean): void {
       <header>
         <div>
           <strong>Schedule filters</strong>
-          <p>Tags in one section are matched together.</p>
+          <p>Match any selected tag within a group and every selected group.</p>
         </div>
         <button
           v-if="selectedIds.length"
@@ -112,6 +132,8 @@ summary::-webkit-details-marker {
   width: min(30rem, calc(100vw - (var(--layout-gutter) * 2)));
   max-height: min(40rem, calc(100dvh - 9rem));
   overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-3);
   background: var(--color-bg);
@@ -130,6 +152,7 @@ summary::-webkit-details-marker {
   font-size: 0.8rem;
 }
 .clear-button {
+  min-height: var(--control-min);
   border-radius: var(--radius-1);
   padding: 0.3rem 0.45rem;
   color: var(--accent-success);
@@ -157,7 +180,7 @@ legend {
 }
 .filter-option {
   display: flex;
-  min-height: 2.25rem;
+  min-height: var(--control-min);
   align-items: center;
   gap: var(--space-3);
   border-top: 1px solid var(--border);

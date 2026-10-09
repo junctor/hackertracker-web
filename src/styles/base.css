@@ -24,6 +24,7 @@ body,
 html {
   background: var(--color-bg);
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -58,6 +59,16 @@ button {
   cursor: pointer;
   border: 0;
   background: transparent;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+::placeholder {
+  color: var(--text-subtle);
+  opacity: 1;
 }
 
 img,
@@ -98,7 +109,7 @@ svg {
 .input {
   width: 100%;
   min-height: 2.75rem;
-  border: 1px solid #334155;
+  border: 1px solid var(--border-chrome);
   border-radius: 0.65rem;
   background: var(--surface);
   padding: 0.6rem 0.8rem;
@@ -108,10 +119,15 @@ svg {
   margin-top: var(--space-6);
 }
 
-.focus-ring:focus-visible {
+.focus-ring:focus-visible,
+:where(a, button, input, select, textarea, summary):focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 3px;
   box-shadow: 0 0 0 2px color-mix(in oklab, var(--focus), transparent 72%);
+}
+
+main[tabindex="-1"]:focus {
+  outline: none;
 }
 
 .visually-hidden {
@@ -140,6 +156,9 @@ svg {
   z-index: 1000;
   top: 0.5rem;
   left: 0.5rem;
+  display: inline-flex;
+  min-height: var(--control-min);
+  align-items: center;
   transform: translateY(-150%);
   border: 1px solid var(--accent);
   border-radius: 0.625rem;
@@ -163,28 +182,33 @@ svg {
 
 .back-link {
   display: inline-flex;
+  min-height: var(--control-min);
+  align-items: center;
   color: var(--accent-success);
   font-weight: 700;
 }
 
 .back-link:hover {
-  color: white;
+  color: var(--text-primary);
 }
 
 .tool-button {
   display: inline-flex;
-  min-height: 2.5rem;
+  min-height: var(--control-min);
   align-items: center;
   gap: 0.5rem;
   border: 1px solid transparent;
   border-radius: 0.75rem;
   background: transparent;
   padding: 0.45rem 0.75rem;
-  color: #cbd5e1;
+  color: var(--text-secondary);
   font-size: 0.875rem;
   font-weight: 650;
   text-decoration: none;
-  transition: 180ms ease;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease;
 }
 
 .tool-button svg {
@@ -195,8 +219,8 @@ svg {
 
 .tool-button:hover {
   border-color: transparent;
-  background: rgba(1, 127, 164, 0.1);
-  color: white;
+  background: var(--accent-soft);
+  color: var(--text-primary);
 }
 
 .button,
@@ -208,39 +232,45 @@ svg {
   gap: 0.5rem;
   border: 1px solid var(--border);
   border-radius: 0.65rem;
-  background: rgba(15, 23, 42, 0.92);
+  background: var(--surface);
   padding: 0.625rem 1rem;
   color: var(--text-primary);
   font-size: 0.9rem;
   font-weight: 650;
   text-decoration: none;
-  transition: 180ms ease;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease;
 }
 
 .button:hover,
 .icon-label-button:hover {
-  border-color: rgba(1, 127, 164, 0.6);
+  border-color: color-mix(in oklab, var(--accent), transparent 40%);
   background: var(--surface-elevated);
 }
 
 .button-small {
-  min-height: 2.5rem;
+  min-height: var(--control-min);
   padding-inline: 0.75rem;
   font-size: 0.78rem;
 }
 
 .icon-button {
   display: inline-flex;
-  width: 2.5rem;
-  height: 2.5rem;
-  flex: 0 0 2.5rem;
+  width: var(--control-min);
+  height: var(--control-min);
+  flex: 0 0 var(--control-min);
   align-items: center;
   justify-content: center;
   border: 1px solid transparent;
   border-radius: 50%;
   background: transparent;
   color: color-mix(in oklab, var(--accent-success), white 8%);
-  transition: 180ms ease;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease;
 }
 
 .icon-button svg,
@@ -252,8 +282,8 @@ svg {
 .icon-button:hover,
 .icon-button[aria-pressed="true"] {
   border-color: transparent;
-  background: rgba(1, 127, 164, 0.12);
-  color: #71ddca;
+  background: var(--accent-soft);
+  color: color-mix(in oklab, var(--accent), white 18%);
 }
 
 .card {
@@ -264,12 +294,14 @@ svg {
 }
 
 .interactive {
-  transition: 180ms ease;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease;
 }
 
 .interactive:hover,
 .interactive:focus-within {
-  border-color: rgba(1, 127, 164, 0.48);
+  border-color: color-mix(in oklab, var(--accent), transparent 52%);
   background: var(--surface-elevated);
 }
 
@@ -299,5 +331,15 @@ svg {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --border: rgb(203 213 225 / 48%);
+    --border-chrome: rgb(203 213 225 / 62%);
+    --text-secondary: #e2e8f0;
+    --text-muted: #d5dadd;
+    --text-subtle: #bac3c8;
   }
 }

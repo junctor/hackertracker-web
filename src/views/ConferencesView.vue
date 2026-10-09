@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, shallowRef } from "vue";
 
 import type { Conference, TimestampParts } from "../types/hackertracker";
 
@@ -11,9 +11,17 @@ import { getConferences } from "../firebase/data";
 import { toDate, type DateLike } from "../lib/dates";
 import { friendlyLoadError } from "../lib/errors";
 
-const conferences = ref<Conference[]>([]);
+const conferences = shallowRef<Conference[]>([]);
 const loading = ref(true);
 const error = ref("");
+const loadingOlder = ref(false);
+const olderError = ref("");
+const loadedAll = ref(false);
+const INITIAL_COUNT = 120;
+const ALL_COUNT = 500;
+const canLoadOlder = computed(
+  () => !loading.value && !loadedAll.value && conferences.value.length >= INITIAL_COUNT,
+);
 
 type FlexibleConference = Conference & {
   updated_timestamp?: TimestampParts;
@@ -77,13 +85,26 @@ const groups = computed(() => {
 onMounted(async () => {
   document.title = "Conferences · Hacker Tracker";
   try {
-    conferences.value = await getConferences(500);
+    conferences.value = await getConferences(INITIAL_COUNT);
   } catch (reason) {
     error.value = friendlyLoadError(reason, "conferences");
   } finally {
     loading.value = false;
   }
 });
+
+async function loadOlder(): Promise<void> {
+  loadingOlder.value = true;
+  olderError.value = "";
+  try {
+    conferences.value = await getConferences(ALL_COUNT);
+    loadedAll.value = true;
+  } catch (reason) {
+    olderError.value = friendlyLoadError(reason, "older conferences");
+  } finally {
+    loadingOlder.value = false;
+  }
+}
 </script>
 
 <template>
@@ -96,8 +117,10 @@ onMounted(async () => {
     <PageState
       v-else-if="error"
       kind="error"
+      heading-level="h2"
       title="Conferences are unavailable"
       :message="error"
+      retry
     />
     <div v-else class="conference-sections">
       <section
@@ -130,6 +153,18 @@ onMounted(async () => {
           {{ group.id === "updated" ? "No recent updates." : `No ${group.id} conferences found.` }}
         </div>
       </section>
+      <div v-if="canLoadOlder || olderError" class="older-conferences">
+        <p v-if="olderError" role="alert">{{ olderError }}</p>
+        <button
+          v-if="canLoadOlder"
+          type="button"
+          class="button focus-ring"
+          :disabled="loadingOlder"
+          @click="loadOlder"
+        >
+          {{ loadingOlder ? "Loading older conferences…" : "Load older conferences" }}
+        </button>
+      </div>
     </div>
   </SitePageLayout>
 </template>
@@ -179,7 +214,20 @@ onMounted(async () => {
   gap: 1rem;
 }
 
+.older-conferences {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  color: var(--text-muted);
+  text-align: center;
+}
+
 .anchor-link {
+  display: grid;
+  width: var(--control-min);
+  height: var(--control-min);
+  place-items: center;
+  border-radius: var(--radius-1);
   color: var(--text-subtle);
 }
 

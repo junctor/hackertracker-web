@@ -21,6 +21,7 @@
   --border-strong: color-mix(in oklab, var(--color-border), white 8%);
   --border-chrome: color-mix(in oklab, var(--border), white 14%);
   --text-primary: var(--color-fg);
+  --text-secondary: color-mix(in oklab, var(--text-primary), var(--color-bg) 18%);
   --text-muted: var(--color-muted);
   --text-subtle: color-mix(in oklab, var(--color-muted), var(--color-bg) 24%);
   --accent: var(--brand-cyan);
@@ -28,6 +29,7 @@
   --accent-success: var(--brand-cyan);
   --warning: var(--brand-yellow);
   --critical: var(--brand-red);
+  --critical-soft: color-mix(in oklab, var(--critical), white 36%);
   --focus: var(--brand-red);
 
   --layout-max: 76rem;
@@ -53,8 +55,4 @@
   --shadow-md: 0 14px 32px rgb(0 0 0 / 28%);
   --shadow-lg: 0 20px 48px rgb(0 0 0 / 36%);
   --control-min: 44px;
-}
-
-body {
-  background: var(--color-bg);
 }

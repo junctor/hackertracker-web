@@ -1,7 +1,17 @@
 <script setup lang="ts">
 import { CircleAlert, Inbox, LoaderCircle } from "@lucide/vue";
+import type { Component } from "vue";
 
-defineProps<{ kind?: "loading" | "error" | "empty"; title?: string; message?: string }>();
+defineProps<{
+  kind?: "loading" | "error" | "empty";
+  title?: string;
+  message?: string;
+  retry?: boolean;
+  headingLevel?: "h1" | "h2";
+  icon?: Component;
+}>();
+
+const reload = () => window.location.reload();
 </script>
 
 <template>
@@ -14,8 +24,8 @@ defineProps<{ kind?: "loading" | "error" | "empty"; title?: string; message?: st
   >
     <LoaderCircle v-if="kind === 'loading'" class="state-icon loading-icon" aria-hidden="true" />
     <CircleAlert v-else-if="kind === 'error'" class="state-icon error-icon" aria-hidden="true" />
-    <Inbox v-else class="state-icon" aria-hidden="true" />
-    <h1 v-if="title || kind" tabindex="-1">
+    <component :is="icon ?? Inbox" v-else class="state-icon" aria-hidden="true" />
+    <component :is="headingLevel ?? 'h1'" v-if="title || kind" tabindex="-1">
       {{
         title ??
         (kind === "loading"
@@ -24,10 +34,18 @@ defineProps<{ kind?: "loading" | "error" | "empty"; title?: string; message?: st
             ? "Something went wrong"
             : "Nothing here yet")
       }}
-    </h1>
+    </component>
     <p v-if="message || kind === 'loading'">
       {{ message ?? "Getting the latest information…" }}
     </p>
+    <button
+      v-if="kind === 'error' && retry"
+      type="button"
+      class="button focus-ring"
+      @click="reload"
+    >
+      Retry
+    </button>
     <slot />
   </section>
 </template>
@@ -63,7 +81,8 @@ defineProps<{ kind?: "loading" | "error" | "empty"; title?: string; message?: st
   color: var(--critical);
 }
 
-h1 {
+h1,
+h2 {
   color: var(--text-primary);
   font-size: clamp(1.5rem, 4vw, 2rem);
   line-height: 1.2;
@@ -72,6 +91,10 @@ h1 {
 p {
   max-width: 36rem;
   text-wrap: pretty;
+}
+
+.button {
+  margin-top: var(--space-2);
 }
 
 :slotted(.state-actions) {

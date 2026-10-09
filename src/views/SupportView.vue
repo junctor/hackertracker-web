@@ -7,7 +7,7 @@ const benefits = [
   "Free for most conferences; large events may reimburse operating costs",
   "We may request one or two event passes",
   "Sponsor recognition where applicable",
-  "No collection or sale of attendee data",
+  "No advertising, user tracking, or sale of attendee data",
   "JSON exports for your website",
   "Pretalx, Sessionize, and Sched integrations",
 ];
@@ -139,7 +139,7 @@ onMounted(() => (document.title = "Support · Hacker Tracker"));
   gap: 0.55rem;
   border-top: 1px solid var(--border);
   padding: 0.75rem 0;
-  color: #cbd5e1;
+  color: var(--text-secondary);
 }
 
 .info-card {

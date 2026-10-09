@@ -79,6 +79,16 @@ const router = createRouter({
           component: () => import("../views/BookmarksView.vue"),
         },
         {
+          path: "feedback",
+          name: "feedback",
+          component: () => import("../views/FeedbackView.vue"),
+        },
+        {
+          path: "merch",
+          name: "merch",
+          component: () => import("../views/MerchView.vue"),
+        },
+        {
           path: "content",
           name: "content-list",
           component: () => import("../views/ContentListView.vue"),

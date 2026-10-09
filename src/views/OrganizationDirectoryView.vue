@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Calendar } from "@lucide/vue";
-import { computed, ref, watch, watchEffect } from "vue";
+import { CalendarSearch } from "@lucide/vue";
+import { computed, ref, shallowRef, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
 import type { Organization } from "../types/hackertracker";
@@ -21,9 +21,12 @@ import { safeExternalLinks, safeWebUrl } from "../lib/urls";
 
 const route = useRoute();
 const { conference, menus } = useConferenceContext();
-const organizations = ref<Organization[]>([]);
+const organizations = shallowRef<Organization[]>([]);
 const loading = ref(true);
 const error = ref("");
+let request = 0;
+const BATCH_SIZE = 60;
+const visibleCount = ref(BATCH_SIZE);
 const query = useRouteTextQuery();
 const brokenLogos = ref(new Set<number>());
 const section = computed(() =>
@@ -60,6 +63,21 @@ const filtered = computed(() => {
     (item) => !needle || `${item.name} ${item.description}`.toLowerCase().includes(needle),
   );
 });
+const visibleOrganizations = computed(() => filtered.value.slice(0, visibleCount.value));
+const remaining = computed(() =>
+  Math.max(0, filtered.value.length - visibleOrganizations.value.length),
+);
+const countLabel = computed(() => {
+  const count = filtered.value.length;
+  const noun = query.value.trim()
+    ? count === 1
+      ? "result"
+      : "results"
+    : count === 1
+      ? "group"
+      : "groups";
+  return `${count.toLocaleString()} ${noun}`;
+});
 const selected = computed(() =>
   organizationId.value
     ? organizations.value.find((item) => item.id === organizationId.value)
@@ -93,19 +111,27 @@ const initials = (name: string) =>
     .slice(0, 2)
     .toUpperCase();
 const markBroken = (id: number) => (brokenLogos.value = new Set([...brokenLogos.value, id]));
+watch([query, organizations, section], () => (visibleCount.value = BATCH_SIZE));
 
 watch(
   conference,
   async (current) => {
-    if (!current) return;
+    const currentRequest = ++request;
+    if (!current) {
+      organizations.value = [];
+      loading.value = false;
+      return;
+    }
     loading.value = true;
     error.value = "";
     try {
-      organizations.value = await getOrganizations(current.code);
+      const loadedOrganizations = await getOrganizations(current.code);
+      if (currentRequest === request) organizations.value = loadedOrganizations;
     } catch (reason) {
-      error.value = friendlyLoadError(reason, title.value.toLowerCase());
+      if (currentRequest === request)
+        error.value = friendlyLoadError(reason, title.value.toLowerCase());
     } finally {
-      loading.value = false;
+      if (currentRequest === request) loading.value = false;
     }
   },
   { immediate: true },
@@ -119,7 +145,13 @@ watchEffect(() => {
 <template>
   <section v-if="conference" class="container page-content">
     <PageState v-if="loading" kind="loading" :message="`Getting ${title.toLowerCase()}…`" />
-    <PageState v-else-if="error" kind="error" :title="`${title} unavailable`" :message="error" />
+    <PageState
+      v-else-if="error"
+      kind="error"
+      :title="`${title} unavailable`"
+      :message="error"
+      retry
+    />
     <article v-else-if="organizationId && selected" class="organization-detail">
       <RouterLink class="back-link focus-ring" :to="conferenceSectionPath(conference.code, section)"
         >← {{ title }}</RouterLink
@@ -145,10 +177,10 @@ watchEffect(() => {
         :to="filteredScheduleRoute(conference.code, { tagIds: scheduleTagIds })"
         aria-label="View events on schedule"
       >
-        <Calendar aria-hidden="true" />
+        <CalendarSearch aria-hidden="true" />
       </RouterLink>
       <div v-if="selected.description" class="detail-body">
-        <MarkdownContent :content="selected.description" />
+        <MarkdownContent :content="selected.description" :heading-start="2" />
       </div>
       <section v-if="selectedLinks.length" class="links-section">
         <h2>Links</h2>
@@ -162,18 +194,14 @@ watchEffect(() => {
       :message="`No organization exists for ID ${organizationId}.`"
     />
     <template v-else>
-      <PageHeading
-        :title="title"
-        intro="Browse groups and resources."
-        :count="`${filtered.length.toLocaleString()} results`"
-      >
+      <PageHeading :title="title" intro="Browse groups and resources." :count="countLabel">
         <RouterLink
           v-if="scheduleTagIds.length"
           class="icon-button focus-ring schedule-link"
           :to="filteredScheduleRoute(conference.code, { tagIds: scheduleTagIds })"
           aria-label="View on schedule"
         >
-          <Calendar aria-hidden="true" />
+          <CalendarSearch aria-hidden="true" />
         </RouterLink>
       </PageHeading>
       <SearchField
@@ -185,13 +213,14 @@ watchEffect(() => {
       <PageState
         v-if="!filtered.length"
         kind="empty"
+        heading-level="h2"
         :title="`No ${title.toLowerCase()} found`"
         :message="
           query ? `No results match “${query}”.` : `No ${title.toLowerCase()} are listed yet.`
         "
       />
       <ul v-else class="organization-grid">
-        <li v-for="organization in filtered" :key="organization.id">
+        <li v-for="organization in visibleOrganizations" :key="organization.id">
           <RouterLink
             class="organization-card focus-ring"
             :to="`${conferenceSectionPath(conference.code, section)}/${organization.id}`"
@@ -210,6 +239,14 @@ watchEffect(() => {
           </RouterLink>
         </li>
       </ul>
+      <button
+        v-if="remaining"
+        type="button"
+        class="button organization-load-more focus-ring"
+        @click="visibleCount += BATCH_SIZE"
+      >
+        Show {{ Math.min(BATCH_SIZE, remaining) }} more
+      </button>
     </template>
   </section>
 </template>
@@ -243,6 +280,14 @@ h1 {
   border-radius: var(--radius-3);
   background: var(--surface-muted);
   padding: var(--space-4);
+}
+.organization-grid > li {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 5rem;
+}
+.organization-load-more {
+  display: flex;
+  margin: var(--space-5) auto 0;
 }
 .organization-card:hover {
   border-color: color-mix(in oklab, var(--accent), transparent 50%);

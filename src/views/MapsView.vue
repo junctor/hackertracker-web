@@ -34,6 +34,7 @@ watchEffect(() => {
     <PageState
       v-if="!maps.length"
       kind="empty"
+      heading-level="h2"
       message="No maps are available for this conference yet."
     />
     <ul v-else class="map-grid">
@@ -48,6 +49,8 @@ watchEffect(() => {
             <img
               :src="map.previewUrl"
               :alt="`Preview of ${map.displayName}`"
+              loading="lazy"
+              decoding="async"
               @error="broken = new Set([...broken, map.id])"
             />
           </div>
@@ -96,6 +99,7 @@ article small {
   border: 1px solid var(--border);
   border-radius: var(--radius-2);
   background: white;
+  aspect-ratio: 16 / 10;
 }
 
 img {

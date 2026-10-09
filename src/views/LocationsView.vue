@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Calendar } from "@lucide/vue";
-import { computed, ref, watch, watchEffect } from "vue";
+import { CalendarSearch } from "@lucide/vue";
+import { computed, ref, shallowRef, watch, watchEffect } from "vue";
 import type { Location } from "../types/hackertracker";
 import PageHeading from "../components/PageHeading.vue";
 import PageState from "../components/PageState.vue";
@@ -13,11 +13,12 @@ import { filteredScheduleRoute } from "../lib/routes";
 import { compareBySortOrder } from "../lib/sort";
 
 const { conference } = useConferenceContext();
-const locations = ref<Location[]>([]);
+const locations = shallowRef<Location[]>([]);
 const scheduledLocationIds = ref(new Set<number>());
 const query = useRouteTextQuery();
 const loading = ref(true);
 const error = ref("");
+let request = 0;
 const filtered = computed(() => {
   const needle = query.value.trim().toLowerCase();
   return locations.value
@@ -35,7 +36,13 @@ const parentName = (id: number) => locations.value.find((item) => item.id === id
 watch(
   conference,
   async (current) => {
-    if (!current) return;
+    const currentRequest = ++request;
+    if (!current) {
+      locations.value = [];
+      scheduledLocationIds.value = new Set();
+      loading.value = false;
+      return;
+    }
     loading.value = true;
     error.value = "";
     scheduledLocationIds.value = new Set();
@@ -44,14 +51,16 @@ watch(
         getLocations(current.code),
         getAllContent(current.code).catch(() => []),
       ]);
+      if (currentRequest !== request) return;
       locations.value = loadedLocations;
       scheduledLocationIds.value = new Set(
         content.flatMap((item) => item.sessions ?? []).map((session) => session.location_id),
       );
     } catch (reason) {
-      error.value = friendlyLoadError(reason, "conference locations");
+      if (currentRequest === request)
+        error.value = friendlyLoadError(reason, "conference locations");
     } finally {
-      loading.value = false;
+      if (currentRequest === request) loading.value = false;
     }
   },
   { immediate: true },
@@ -70,12 +79,26 @@ watchEffect(() => {
       label="Search locations"
       placeholder="Search locations…"
     />
-    <PageState v-if="loading" kind="loading" message="Getting conference locations…" />
-    <PageState v-else-if="error" kind="error" title="Locations unavailable" :message="error" />
+    <PageState
+      v-if="loading"
+      kind="loading"
+      heading-level="h2"
+      message="Getting conference locations…"
+    />
+    <PageState
+      v-else-if="error"
+      kind="error"
+      heading-level="h2"
+      title="Locations unavailable"
+      :message="error"
+      retry
+    />
     <PageState
       v-else-if="!filtered.length"
       kind="empty"
-      message="No locations match your search."
+      heading-level="h2"
+      :title="query ? 'No locations found' : 'No locations listed'"
+      :message="query ? `No locations match “${query}”.` : 'No locations are listed yet.'"
     />
     <ul v-else class="location-grid">
       <li v-for="location in filtered" :key="location.id">
@@ -92,7 +115,7 @@ watchEffect(() => {
             :to="filteredScheduleRoute(conference.code, { locationId: location.id })"
             :aria-label="`View ${location.name} on the schedule`"
           >
-            <Calendar aria-hidden="true" />
+            <CalendarSearch aria-hidden="true" />
           </RouterLink>
         </article>
       </li>

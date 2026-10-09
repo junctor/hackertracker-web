@@ -12,7 +12,12 @@ defineProps<{
 <template>
   <div class="page-shell">
     <SiteHeader />
-    <main id="main" class="main-grow" :class="[mainClass, { centered, 'static-page': staticPage }]">
+    <main
+      id="main"
+      tabindex="-1"
+      class="main-grow"
+      :class="[mainClass, { centered, 'static-page': staticPage }]"
+    >
       <slot />
     </main>
     <SiteFooter />
@@ -21,7 +26,7 @@ defineProps<{
 
 <style scoped>
 .static-page :deep(.static-hero) {
-  border-bottom: 1px solid rgb(255 255 255 / 10%);
+  border-bottom: 1px solid var(--border-chrome);
   padding-block: clamp(3rem, 7vw, 4rem);
 }
 
@@ -32,7 +37,7 @@ defineProps<{
 .static-page :deep(.lead) {
   max-width: 48rem;
   margin-top: 0.75rem;
-  color: #cbd5e1;
+  color: var(--text-secondary);
 }
 
 .static-page :deep(.static-content) {
@@ -54,7 +59,7 @@ defineProps<{
 }
 
 .static-page :deep(a:not(.button):hover) {
-  color: white;
+  color: var(--text-primary);
 }
 
 .centered {

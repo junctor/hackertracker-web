@@ -3,7 +3,13 @@ import { computed } from "vue";
 
 import { safeMarkdownUrl } from "../lib/urls";
 
-const props = defineProps<{ content: string }>();
+const props = withDefaults(
+  defineProps<{
+    content: string;
+    headingStart?: 2 | 3;
+  }>(),
+  { headingStart: 3 },
+);
 
 function escapeHtml(value: string): string {
   return value
@@ -36,7 +42,7 @@ function inlineMarkdown(value: string): string {
   return output;
 }
 
-function renderMarkdown(markdown: string): string {
+function renderMarkdown(markdown: string, headingStart: 2 | 3): string {
   const lines = markdown.replace(/\r\n/g, "\n").split("\n");
   const blocks: string[] = [];
   let paragraph: string[] = [];
@@ -78,7 +84,8 @@ function renderMarkdown(markdown: string): string {
     if (heading) {
       flushParagraph();
       flushList();
-      const level = heading[1]?.length ?? 2;
+      const sourceLevel = heading[1]?.length ?? 1;
+      const level = Math.min(6, headingStart + sourceLevel - 1);
       blocks.push(`<h${level}>${inlineMarkdown(heading[2] ?? "")}</h${level}>`);
       continue;
     }
@@ -108,7 +115,7 @@ function renderMarkdown(markdown: string): string {
   return blocks.join("");
 }
 
-const rendered = computed(() => renderMarkdown(props.content));
+const rendered = computed(() => renderMarkdown(props.content, props.headingStart));
 </script>
 
 <template>
@@ -118,7 +125,7 @@ const rendered = computed(() => renderMarkdown(props.content));
 
 <style scoped>
 .markdown {
-  color: #cbd5e1;
+  color: var(--text-secondary);
   overflow-wrap: anywhere;
 }
 
@@ -126,8 +133,8 @@ const rendered = computed(() => renderMarkdown(props.content));
   margin-top: 1rem;
 }
 
-.markdown :deep(:is(h1, h2, h3, h4)) {
-  color: #f1f5f9;
+.markdown :deep(:is(h2, h3, h4, h5, h6)) {
+  color: var(--text-primary);
   line-height: 1.25;
 }
 
@@ -147,20 +154,20 @@ const rendered = computed(() => renderMarkdown(props.content));
 }
 
 .markdown :deep(a:hover) {
-  color: white;
+  color: var(--text-primary);
 }
 
 .markdown :deep(code) {
   border-radius: 0.25rem;
-  background: #334155;
+  background: var(--surface-elevated);
   padding: 0.1rem 0.25rem;
-  color: #f1f5f9;
+  color: var(--text-primary);
 }
 
 .markdown :deep(pre) {
   overflow-x: auto;
   border-radius: 0.5rem;
-  background: #0f172a;
+  background: var(--surface);
   padding: 1rem;
 }
 
@@ -177,6 +184,6 @@ const rendered = computed(() => renderMarkdown(props.content));
 
 .markdown :deep(hr) {
   border: 0;
-  border-top: 1px solid #334155;
+  border-top: 1px solid var(--border-chrome);
 }
 </style>

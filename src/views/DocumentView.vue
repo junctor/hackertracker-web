@@ -18,6 +18,10 @@ const documentId = computed(() => parseNumericParam(route.params.documentId));
 const currentDocument = ref<ConferenceDocument | null>(null);
 const loading = ref(true);
 const error = ref("");
+let request = 0;
+const errorTitle = computed(() =>
+  /(?:not found|no document)/i.test(error.value) ? "Document not found" : "Document unavailable",
+);
 const updated = computed(() => {
   const value = currentDocument.value?.updatedAt;
   if (!value) return null;
@@ -28,7 +32,9 @@ const updated = computed(() => {
 watch(
   [conference, documentId],
   async ([current, id]) => {
+    const currentRequest = ++request;
     if (!current || !id) {
+      currentDocument.value = null;
       error.value = "Invalid document ID.";
       loading.value = false;
       return;
@@ -36,12 +42,14 @@ watch(
     loading.value = true;
     error.value = "";
     try {
-      currentDocument.value = await getDocument(current.code, id);
-      if (!currentDocument.value) error.value = "Document not found.";
+      const loadedDocument = await getDocument(current.code, id);
+      if (currentRequest !== request) return;
+      currentDocument.value = loadedDocument;
+      if (!loadedDocument) error.value = "Document not found.";
     } catch (reason) {
-      error.value = friendlyLoadError(reason, "this document");
+      if (currentRequest === request) error.value = friendlyLoadError(reason, "this document");
     } finally {
-      loading.value = false;
+      if (currentRequest === request) loading.value = false;
     }
   },
   { immediate: true },
@@ -58,7 +66,7 @@ watchEffect(() => {
     <PageState
       v-else-if="error || !currentDocument"
       kind="error"
-      title="Document not found"
+      :title="errorTitle"
       :message="error"
     />
     <template v-else>
@@ -69,7 +77,9 @@ watchEffect(() => {
         <h1 tabindex="-1">{{ currentDocument.titleText }}</h1>
         <time v-if="updated" :datetime="updated.dateTime">Updated {{ updated.label }}</time>
       </header>
-      <div class="document-body"><MarkdownContent :content="currentDocument.bodyText" /></div>
+      <div class="document-body">
+        <MarkdownContent :content="currentDocument.bodyText" :heading-start="2" />
+      </div>
     </template>
   </article>
 </template>

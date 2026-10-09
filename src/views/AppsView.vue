@@ -3,7 +3,7 @@ import { onMounted } from "vue";
 
 import SitePageLayout from "../components/SitePageLayout.vue";
 
-onMounted(() => (document.title = "Hacker Tracker Apps"));
+onMounted(() => (document.title = "Apps · Hacker Tracker"));
 </script>
 
 <template>
@@ -38,7 +38,7 @@ onMounted(() => (document.title = "Hacker Tracker Apps"));
         </a>
         <RouterLink class="action web focus-ring" to="/conferences">
           <span class="action-text">
-            <span class="action-label">Open Web Schedule</span>
+            <span class="action-label">Open web app</span>
             <span class="action-detail">Browse conferences in your browser</span>
           </span>
           <span aria-hidden="true">→</span>

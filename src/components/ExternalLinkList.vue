@@ -33,6 +33,7 @@ withDefaults(
 a {
   display: flex;
   min-width: 0;
+  min-height: var(--control-min);
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
@@ -44,7 +45,7 @@ a {
 }
 
 a:hover {
-  color: white;
+  color: var(--text-primary);
 }
 
 a span {
@@ -66,6 +67,6 @@ svg {
 .compact a {
   justify-content: flex-start;
   border: 0;
-  padding-block: 0.4rem;
+  padding-block: 0.5rem;
 }
 </style>

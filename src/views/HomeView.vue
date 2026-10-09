@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, shallowRef } from "vue";
 
 import type { Conference } from "../types/hackertracker";
 
@@ -9,7 +9,7 @@ import SitePageLayout from "../components/SitePageLayout.vue";
 import { getUpcomingConferences } from "../firebase/data";
 import { compareBySortOrder } from "../lib/sort";
 
-const conferences = ref<Conference[]>([]);
+const conferences = shallowRef<Conference[]>([]);
 const loading = ref(true);
 const error = ref("");
 
@@ -58,8 +58,10 @@ onMounted(async () => {
       <PageState
         v-else-if="error"
         kind="error"
+        heading-level="h2"
         title="Conferences are unavailable"
         :message="error"
+        retry
       />
       <div v-else class="conference-grid">
         <ConferenceCard
@@ -141,9 +143,12 @@ onMounted(async () => {
 }
 
 .view-all {
-  display: table;
+  display: flex;
+  min-height: var(--control-min);
   margin-top: 1.5rem;
   margin-inline: auto;
+  align-items: center;
+  justify-content: center;
   color: var(--accent-success);
   text-decoration: underline;
   text-decoration-color: color-mix(in oklab, var(--accent-success), transparent 50%);
@@ -151,7 +156,7 @@ onMounted(async () => {
 }
 
 .view-all:hover {
-  color: white;
+  color: var(--text-primary);
 }
 
 .count {

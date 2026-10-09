@@ -14,13 +14,22 @@ const formatDate = (date: Date): string | null =>
         date.getUTCMinutes(),
       ).padStart(2, "0")}${String(date.getUTCSeconds()).padStart(2, "0")}Z`;
 
-const fold = (line: string) =>
-  line.length <= 75
-    ? line
-    : Array.from(
-        { length: Math.ceil(line.length / 75) },
-        (_, index) => `${index ? " " : ""}${line.slice(index * 75, index * 75 + 75)}`,
-      ).join("\r\n");
+const encoder = new TextEncoder();
+
+const fold = (line: string) => {
+  const folded: string[] = [];
+  let current = "";
+  for (const character of line) {
+    if (current && encoder.encode(current + character).length > 75) {
+      folded.push(current);
+      current = ` ${character}`;
+    } else {
+      current += character;
+    }
+  }
+  if (current) folded.push(current);
+  return folded.join("\r\n");
+};
 
 const safeToken = (value: string | number) =>
   String(value)
@@ -53,7 +62,7 @@ export function generateCalendar(session: ScheduledContent, conference: Conferen
     `SUMMARY:${escapeText(session.title)}`,
     `URL:https://hackertracker.app${contentPath(conference.code, session.contentId)}`,
     `LOCATION:${escapeText(session.location ?? "")}`,
-    `DESCRIPTION:${escapeText([session.description, session.speakers ?? ""].filter(Boolean).join("\\n"))}`,
+    `DESCRIPTION:${escapeText([session.description, session.speakers ?? ""].filter(Boolean).join("\n"))}`,
     "END:VEVENT",
     "END:VCALENDAR",
   ]

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, watchEffect } from "vue";
+import { computed, ref, shallowRef, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
 import type { Person, ScheduledContent } from "../types/hackertracker";
@@ -10,7 +10,7 @@ import PageState from "../components/PageState.vue";
 import PersonAvatar from "../components/PersonAvatar.vue";
 import ScheduleSessionCard from "../components/ScheduleSessionCard.vue";
 import { useConferenceContext } from "../composables/useConferenceContext";
-import { getContentByIds, getLocations, getSpeakers, getTags } from "../firebase/data";
+import { getContentByIds, getLocations, getSpeaker, getTags } from "../firebase/data";
 import { friendlyLoadError } from "../lib/errors";
 import { normalizeConferenceCode, parseNumericParam, peoplePath } from "../lib/routes";
 import { processScheduleData } from "../lib/schedule";
@@ -19,7 +19,7 @@ import { safeExternalLinks } from "../lib/urls";
 const route = useRoute();
 const { conference } = useConferenceContext();
 const person = ref<Person | null>(null);
-const sessions = ref<ScheduledContent[]>([]);
+const sessions = shallowRef<ScheduledContent[]>([]);
 const loading = ref(true);
 const error = ref("");
 let request = 0;
@@ -43,7 +43,7 @@ const accent = computed(() => {
 
 watchEffect(() => {
   document.title = error.value
-    ? "Error · Person | Hacker Tracker"
+    ? "Person unavailable · Hacker Tracker"
     : conference.value && person.value
       ? `${person.value.name} · ${conference.value.name} | Hacker Tracker`
       : "Loading person… | Hacker Tracker";
@@ -60,8 +60,7 @@ watch(
     loading.value = true;
     error.value = "";
     try {
-      const loadedPeople = await getSpeakers(conferenceCode);
-      const loadedPerson = loadedPeople.find((item) => item.id === personId);
+      const loadedPerson = await getSpeaker(conferenceCode, personId);
       if (!loadedPerson) throw new Error("Person not found.");
       let scheduled: ScheduledContent[] = [];
       if (loadedPerson.content_ids?.length) {
@@ -73,7 +72,7 @@ watch(
         scheduled = processScheduleData(
           content,
           tags,
-          loadedPeople,
+          [loadedPerson],
           locations,
           conference.value?.timezone || "UTC",
         );
@@ -94,7 +93,7 @@ watch(
 <template>
   <div>
     <PageState v-if="loading" kind="loading" message="Getting person details…" />
-    <PageState v-else-if="error" kind="error" title="Person unavailable" :message="error" />
+    <PageState v-else-if="error" kind="error" title="Person unavailable" :message="error" retry />
     <div v-else-if="person && conference" class="container detail-page person-detail">
       <header class="detail-hero">
         <RouterLink class="back-link focus-ring" :to="peoplePath(conference.code)"
@@ -171,7 +170,7 @@ watch(
   display: grid;
   list-style: none;
   gap: 0.25rem;
-  color: #cbd5e1;
+  color: var(--text-secondary);
   font-size: 0.875rem;
 }
 

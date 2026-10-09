@@ -24,7 +24,9 @@ const initials = computed(() =>
 );
 const background = computed(() =>
   props.accent
-    ? { backgroundImage: `linear-gradient(135deg, ${props.accent}22, rgba(15, 23, 42, .92))` }
+    ? {
+        backgroundImage: `linear-gradient(135deg, color-mix(in oklab, ${props.accent}, transparent 87%), var(--surface-elevated))`,
+      }
     : undefined,
 );
 
@@ -53,10 +55,10 @@ watch(imageUrl, () => (failed.value = false));
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border: 1px solid rgb(255 255 255 / 10%);
+  border: 1px solid var(--border-chrome);
   border-radius: 1rem;
-  background-color: rgb(255 255 255 / 4%);
-  color: #f1f5f9;
+  background-color: var(--surface-interactive);
+  color: var(--text-primary);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;

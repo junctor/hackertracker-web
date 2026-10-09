@@ -2,7 +2,7 @@ import type {
   Content,
   GroupedSchedule,
   Location,
-  Person,
+  PersonSummary,
   ProcessedTag,
   ScheduledContent,
   Tag,
@@ -34,7 +34,7 @@ function formatter(options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
   return created;
 }
 
-function dayKey(value: string | number | Date, timeZone: string): string {
+export function scheduleDayKey(value: string | number | Date, timeZone: string): string {
   const date =
     typeof value === "number"
       ? new Date(value)
@@ -55,13 +55,13 @@ function dateFromDayKey(key: string): Date {
   return new Date(Date.UTC(year, month - 1, day, 12));
 }
 
-export const formatDayTab = (key: string, timeZone?: string) =>
-  formatter({ timeZone, weekday: "short", month: "short", day: "numeric" }).format(
+export const formatDayTab = (key: string, _timeZone?: string) =>
+  formatter({ timeZone: "UTC", weekday: "short", month: "short", day: "numeric" }).format(
     dateFromDayKey(key),
   );
 
-export const formatDayHeading = (key: string, timeZone?: string) =>
-  formatter({ timeZone, weekday: "long", month: "long", day: "numeric" }).format(
+export const formatDayHeading = (key: string, _timeZone?: string) =>
+  formatter({ timeZone: "UTC", weekday: "long", month: "long", day: "numeric" }).format(
     dateFromDayKey(key),
   );
 
@@ -111,7 +111,10 @@ export function getAccentColor(content: Content, groups: readonly TagGroup[]): s
   );
 }
 
-export function getContentPersonIds(content: Content, people: readonly Person[] = []): number[] {
+export function getContentPersonIds(
+  content: Content,
+  people: readonly PersonSummary[] = [],
+): number[] {
   const names = new Map(people.map((person) => [person.id, person.name]));
   return [...(content.people ?? [])]
     .sort(
@@ -128,7 +131,7 @@ export function getContentPersonIds(content: Content, people: readonly Person[] 
 export function processScheduleData(
   contents: readonly Content[],
   groups: readonly TagGroup[],
-  people: readonly Person[] = [],
+  people: readonly PersonSummary[] = [],
   locations: readonly Location[] = [],
   defaultTimeZone = "UTC",
 ): ScheduledContent[] {
@@ -174,7 +177,7 @@ export function processScheduleData(
           sortOrder: sortOrderOf(session) ?? sortOrderOf(content),
         }));
     })
-    .sort((a, b) => compareBySortOrder(a, b) || eventEpoch(a) - eventEpoch(b));
+    .sort((a, b) => eventEpoch(a) - eventEpoch(b) || compareBySortOrder(a, b));
 }
 
 function eventEpoch(content: ScheduledContent): number {
@@ -186,13 +189,13 @@ function eventEpoch(content: ScheduledContent): number {
 export function buildScheduleBucketsByDay(
   contents: readonly Content[],
   tags: readonly TagGroup[],
-  people: readonly Person[] = [],
+  people: readonly PersonSummary[] = [],
   locations: readonly Location[] = [],
   timeZone = "UTC",
 ): GroupedSchedule {
   const grouped: GroupedSchedule = {};
   for (const content of processScheduleData(contents, tags, people, locations, timeZone)) {
-    const key = dayKey(
+    const key = scheduleDayKey(
       content.beginTimestampSeconds === null ? content.begin : content.beginTimestampSeconds * 1000,
       timeZone,
     );

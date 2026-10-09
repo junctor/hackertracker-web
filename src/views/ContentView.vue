@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Share2, Users } from "@lucide/vue";
-import { computed, ref, watch, watchEffect } from "vue";
+import { computed, ref, shallowRef, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
 import type { Content, Location, Person, TagGroup } from "../types/hackertracker";
@@ -15,6 +15,7 @@ import {
   getCachedLocations,
   getCachedSpeakers,
   getCachedTags,
+  getContentByIds,
   getContent,
   getLocations,
   getSpeakersByIds,
@@ -33,11 +34,13 @@ import { safeExternalLinks } from "../lib/urls";
 const route = useRoute();
 const { conference } = useConferenceContext();
 const content = ref<Content | null>(null);
-const people = ref<Person[]>([]);
-const tags = ref<TagGroup[]>([]);
-const locations = ref<Location[]>([]);
+const people = shallowRef<Person[]>([]);
+const tags = shallowRef<TagGroup[]>([]);
+const locations = shallowRef<Location[]>([]);
+const relatedContent = shallowRef<Content[]>([]);
 const loading = ref(true);
 const error = ref("");
+const shareStatus = ref("");
 let request = 0;
 
 const code = computed(() => conference.value?.code);
@@ -93,22 +96,29 @@ watch(
       people.value = getContentPersonIds(cachedContent, [...byId.values()])
         .map((personId) => byId.get(personId))
         .filter((person): person is Person => Boolean(person));
+      relatedContent.value = (cachedContent.related_content_ids ?? [])
+        .map((relatedId) => getCachedContent(conferenceCode, relatedId))
+        .filter((item): item is Content => Boolean(item));
       loading.value = false;
     } else {
       content.value = null;
       tags.value = [];
       locations.value = [];
       people.value = [];
+      relatedContent.value = [];
       loading.value = true;
     }
     try {
-      const loadedContent = await getContent(conferenceCode, id);
+      const [loadedContent, loadedTags, loadedLocations] = await Promise.all([
+        getContent(conferenceCode, id),
+        getTags(conferenceCode),
+        getLocations(conferenceCode),
+      ]);
       if (!loadedContent) throw new Error("Content not found");
       const personIds = getContentPersonIds(loadedContent);
-      const [loadedTags, loadedPeople, loadedLocations] = await Promise.all([
-        getTags(conferenceCode),
+      const [loadedPeople, loadedRelatedContent] = await Promise.all([
         getSpeakersByIds(conferenceCode, personIds),
-        getLocations(conferenceCode),
+        getContentByIds(conferenceCode, loadedContent.related_content_ids ?? []),
       ]);
       if (current !== request) return;
       content.value = loadedContent;
@@ -118,6 +128,7 @@ watch(
         .map((personId) => peopleById.get(personId))
         .filter((person): person is Person => Boolean(person));
       locations.value = loadedLocations;
+      relatedContent.value = loadedRelatedContent;
     } catch (reason) {
       if (current === request) error.value = friendlyLoadError(reason, "this session");
     } finally {
@@ -133,12 +144,19 @@ async function handleShare(): Promise<void> {
   try {
     if (navigator.share) {
       await navigator.share({ title: content.value.title, url });
+      shareStatus.value = "Event shared.";
       return;
     }
-  } catch {
-    // A dismissed native share sheet falls back to copying the URL.
+  } catch (reason) {
+    if (reason instanceof DOMException && reason.name === "AbortError") return;
   }
-  await navigator.clipboard.writeText(url);
+  try {
+    if (!navigator.clipboard) throw new Error("Clipboard API unavailable");
+    await navigator.clipboard.writeText(url);
+    shareStatus.value = "Event link copied.";
+  } catch {
+    shareStatus.value = "Couldn’t copy the event link.";
+  }
 }
 </script>
 
@@ -150,6 +168,7 @@ async function handleShare(): Promise<void> {
       kind="error"
       title="Session unavailable"
       :message="error"
+      retry
     />
     <article
       v-else-if="conference && content"
@@ -171,6 +190,7 @@ async function handleShare(): Promise<void> {
             >
               <Share2 aria-hidden="true" />
             </button>
+            <p class="share-status" role="status" aria-live="polite">{{ shareStatus }}</p>
           </div>
         </div>
         <h1 id="content-title" tabindex="-1">{{ content.title }}</h1>
@@ -180,8 +200,7 @@ async function handleShare(): Promise<void> {
             :key="tag.id"
             class="tag"
             :style="{
-              backgroundColor: tag.color_background ?? undefined,
-              color: tag.color_foreground ?? undefined,
+              '--tag-color': tag.color_background || 'var(--brand-cyan)',
             }"
           >
             {{ tag.label }}
@@ -196,7 +215,7 @@ async function handleShare(): Promise<void> {
         <h2 id="sessions-title">Sessions</h2>
         <ul class="stack-list">
           <li v-for="session in sessions" :key="session.sessionId">
-            <ScheduleSessionCard :conference="conference" :session="session" />
+            <ScheduleSessionCard :conference="conference" :session="session" :link="false" />
           </li>
         </ul>
       </section>
@@ -217,17 +236,13 @@ async function handleShare(): Promise<void> {
         <h2 id="media-title">Media</h2>
         <ExternalLinkList :items="mediaItems" />
       </section>
-      <section
-        v-if="content.related_content_ids?.length"
-        class="detail-section"
-        aria-labelledby="related-title"
-      >
+      <section v-if="relatedContent.length" class="detail-section" aria-labelledby="related-title">
         <h2 id="related-title">Related</h2>
         <ul class="resource-list">
-          <li v-for="id in content.related_content_ids" :key="id">
-            <RouterLink class="plain-link focus-ring" :to="contentPath(conference.code, id)"
-              >Content {{ id }}</RouterLink
-            >
+          <li v-for="item in relatedContent" :key="item.id">
+            <RouterLink class="plain-link focus-ring" :to="contentPath(conference.code, item.id)">{{
+              item.title
+            }}</RouterLink>
           </li>
         </ul>
       </section>
@@ -252,6 +267,14 @@ async function handleShare(): Promise<void> {
   margin-top: 0.9rem;
 }
 
+.share-status {
+  min-height: 1.2em;
+  margin-top: var(--space-1);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-align: right;
+}
+
 .tag-list {
   display: flex;
   flex-wrap: wrap;
@@ -262,10 +285,11 @@ async function handleShare(): Promise<void> {
 .tag {
   max-width: 100%;
   overflow: hidden;
-  border: 1px solid rgb(255 255 255 / 14%);
+  border: 1px solid color-mix(in oklab, var(--tag-color), white 8%);
   border-radius: var(--radius-pill);
-  background: rgb(255 255 255 / 4%);
+  background: color-mix(in oklab, var(--tag-color) 24%, var(--surface-elevated));
   padding: 0.15rem 0.5rem;
+  color: var(--text-primary);
   font-size: 0.72rem;
   font-weight: 600;
   text-overflow: ellipsis;
@@ -286,6 +310,7 @@ async function handleShare(): Promise<void> {
 
 .plain-link {
   display: inline-flex;
+  min-height: var(--control-min);
   align-items: center;
   gap: 0.4rem;
   padding-block: 0.4rem;
@@ -295,7 +320,7 @@ async function handleShare(): Promise<void> {
 }
 
 .plain-link:hover {
-  color: white;
+  color: var(--text-primary);
 }
 
 .plain-link svg {

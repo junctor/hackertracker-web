@@ -7,14 +7,14 @@ import { formatDateRange, timeZoneAbbreviation, toDate } from "../lib/dates";
 import { conferencePath } from "../lib/routes";
 
 const props = defineProps<{ conference: Conference; updatedAt?: Date }>();
-const range = computed(() =>
-  formatDateRange(
-    toDate(props.conference.start_timestamp) ?? toDate(props.conference.start_date),
-    toDate(props.conference.end_timestamp) ?? toDate(props.conference.end_date),
-    props.conference.timezone,
-  ),
+const start = computed(
+  () => toDate(props.conference.start_timestamp) ?? toDate(props.conference.start_date),
 );
-const zone = computed(() => timeZoneAbbreviation(props.conference.timezone));
+const end = computed(
+  () => toDate(props.conference.end_timestamp) ?? toDate(props.conference.end_date),
+);
+const range = computed(() => formatDateRange(start.value, end.value, props.conference.timezone));
+const zone = computed(() => timeZoneAbbreviation(props.conference.timezone, start.value));
 const updatedLabel = computed(() =>
   props.updatedAt
     ? new Intl.DateTimeFormat(undefined, {

@@ -19,6 +19,7 @@ withDefaults(
     status?: "Live" | "Next" | null;
     accent?: "content" | "schedule";
     accentColor?: string | null;
+    headingLevel?: "h2" | "h3";
   }>(),
   {
     to: undefined,
@@ -33,6 +34,7 @@ withDefaults(
     status: null,
     accent: "content",
     accentColor: null,
+    headingLevel: "h3",
   },
 );
 </script>
@@ -63,7 +65,7 @@ withDefaults(
           <span v-if="duration" class="session-duration">{{ duration }}</span>
         </div>
         <div class="session-summary">
-          <h3>{{ title }}</h3>
+          <component :is="headingLevel">{{ title }}</component>
           <p v-if="people" class="session-people">{{ people }}</p>
           <p v-if="location">{{ location }}</p>
           <ul v-if="tags.length" class="session-tags">
@@ -71,8 +73,7 @@ withDefaults(
               v-for="tag in tags.slice(0, 3)"
               :key="tag.id"
               :style="{
-                backgroundColor: tag.color_background ?? undefined,
-                color: tag.color_foreground ?? undefined,
+                '--tag-color': tag.color_background || 'var(--brand-cyan)',
               }"
             >
               {{ tag.label }}
@@ -180,7 +181,7 @@ withDefaults(
 }
 
 .session-status--live {
-  color: #ffb4c9;
+  color: var(--critical-soft);
 }
 
 .session-status--next {
@@ -191,7 +192,7 @@ withDefaults(
   min-width: 0;
 }
 
-.session-summary h3 {
+.session-summary :is(h2, h3) {
   color: var(--text-primary);
   font-size: clamp(1.02rem, 3vw, 1.16rem);
   line-height: 1.35;
@@ -224,9 +225,11 @@ withDefaults(
 .session-tags li {
   overflow: hidden;
   max-width: 14rem;
-  border: 1px solid rgb(255 255 255 / 14%);
+  border: 1px solid color-mix(in oklab, var(--tag-color), white 8%);
   border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--tag-color) 24%, var(--surface-elevated));
   padding: 0.15rem 0.5rem;
+  color: var(--text-primary);
   font-size: 0.68rem;
   font-weight: 600;
   line-height: 1.25;

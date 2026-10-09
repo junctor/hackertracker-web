@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, watchEffect } from "vue";
+import { computed, ref, shallowRef, watch, watchEffect } from "vue";
 
 import type { ConferenceArticle } from "../types/hackertracker";
 
@@ -13,9 +13,10 @@ import { friendlyLoadError } from "../lib/errors";
 import { compareBySortOrder } from "../lib/sort";
 
 const { conference } = useConferenceContext();
-const articles = ref<ConferenceArticle[]>([]);
+const articles = shallowRef<ConferenceArticle[]>([]);
 const loading = ref(true);
 const error = ref("");
+let request = 0;
 const displayedArticles = computed(() =>
   articles.value.map((article) => {
     const dateTime = toIsoDateTime(article.updatedAt);
@@ -26,18 +27,25 @@ const displayedArticles = computed(() =>
 watch(
   conference,
   async (current) => {
-    if (!current) return;
+    const currentRequest = ++request;
+    if (!current) {
+      articles.value = [];
+      loading.value = false;
+      return;
+    }
     loading.value = true;
+    error.value = "";
     try {
-      articles.value = (await getArticles(current.code)).sort(
+      const loadedArticles = [...(await getArticles(current.code))].sort(
         (a, b) =>
           compareBySortOrder(a, b) ||
           a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
       );
+      if (currentRequest === request) articles.value = loadedArticles;
     } catch (reason) {
-      error.value = friendlyLoadError(reason, "announcements");
+      if (currentRequest === request) error.value = friendlyLoadError(reason, "announcements");
     } finally {
-      loading.value = false;
+      if (currentRequest === request) loading.value = false;
     }
   },
   { immediate: true },
@@ -51,16 +59,33 @@ watchEffect(() => {
 <template>
   <section v-if="conference" class="container page-content">
     <PageHeading title="Announcements" intro="Conference updates." />
-    <PageState v-if="loading" kind="loading" message="Checking for announcements…" />
-    <PageState v-else-if="error" kind="error" title="Announcements unavailable" :message="error" />
-    <PageState v-else-if="!articles.length" kind="empty" message="No announcements yet." />
+    <PageState
+      v-if="loading"
+      kind="loading"
+      heading-level="h2"
+      message="Checking for announcements…"
+    />
+    <PageState
+      v-else-if="error"
+      kind="error"
+      heading-level="h2"
+      title="Announcements unavailable"
+      :message="error"
+      retry
+    />
+    <PageState
+      v-else-if="!articles.length"
+      kind="empty"
+      heading-level="h2"
+      message="No announcements yet."
+    />
     <ul v-else class="announcement-list">
       <li v-for="(article, index) in displayedArticles" :key="article.id">
         <details class="announcement-card" :open="index === 0">
           <summary class="focus-ring">
             <span
-              ><strong>{{ article.name }}</strong
-              ><time v-if="article.updated" :datetime="article.updated.dateTime">{{
+              ><h2>{{ article.name }}</h2>
+              <time v-if="article.updated" :datetime="article.updated.dateTime">{{
                 article.updated.dateLabel
               }}</time></span
             >
@@ -98,6 +123,9 @@ summary {
 summary::-webkit-details-marker {
   display: none;
 }
+summary:focus-visible {
+  outline-offset: -3px;
+}
 summary::after {
   content: "›";
   flex: 0 0 auto;
@@ -117,6 +145,10 @@ summary > span {
   flex: 1 1 auto;
   justify-content: space-between;
   gap: var(--space-4);
+}
+summary h2 {
+  font-size: 1rem;
+  line-height: 1.35;
 }
 time {
   color: var(--text-subtle);

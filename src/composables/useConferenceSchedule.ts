@@ -1,26 +1,29 @@
-import { computed, ref, watch } from "vue";
+import { computed, ref, shallowRef, watch } from "vue";
 
 import type { GroupedSchedule } from "../types/hackertracker";
 
 import { useConferenceContext } from "./useConferenceContext";
+import { useBookmarks } from "./useBookmarks";
 import {
   filterSchedule,
   getCachedConferenceSchedule,
   getConferenceSchedule,
 } from "../firebase/data";
-import { loadBookmarks } from "../lib/bookmarks";
 import { friendlyLoadError } from "../lib/errors";
 
 export function useConferenceSchedule(bookmarksOnly = false) {
   const { conference } = useConferenceContext();
-  const grouped = ref<GroupedSchedule | null>(null);
+  const schedule = shallowRef<GroupedSchedule | null>(null);
   const loading = ref(true);
   const error = ref("");
   let request = 0;
 
   const code = computed(() => conference.value?.code);
-  const applyFilter = (schedule: GroupedSchedule, conferenceCode: string) =>
-    bookmarksOnly ? filterSchedule(schedule, loadBookmarks(conferenceCode)) : schedule;
+  const { bookmarks } = useBookmarks(() => code.value ?? "");
+  const grouped = computed(() => {
+    if (!schedule.value) return null;
+    return bookmarksOnly ? filterSchedule(schedule.value, bookmarks.value) : schedule.value;
+  });
 
   watch(
     code,
@@ -34,20 +37,20 @@ export function useConferenceSchedule(bookmarksOnly = false) {
       error.value = "";
       const cached = getCachedConferenceSchedule(conferenceCode);
       if (cached) {
-        grouped.value = applyFilter(cached.grouped, conferenceCode);
+        schedule.value = cached.grouped;
         loading.value = false;
       } else {
-        grouped.value = null;
+        schedule.value = null;
         loading.value = true;
       }
       try {
-        const schedule = await getConferenceSchedule(conferenceCode);
+        const loadedSchedule = await getConferenceSchedule(conferenceCode);
         if (current !== request) return;
-        if (!schedule) {
+        if (!loadedSchedule) {
           error.value = "Conference not found.";
           return;
         }
-        grouped.value = applyFilter(schedule.grouped, conferenceCode);
+        schedule.value = loadedSchedule.grouped;
       } catch (reason) {
         if (current === request) error.value = friendlyLoadError(reason, "the schedule");
       } finally {

@@ -40,7 +40,7 @@
 }
 
 .detail-section > h2 {
-  color: #e2e8f0;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   letter-spacing: 0.02em;
 }

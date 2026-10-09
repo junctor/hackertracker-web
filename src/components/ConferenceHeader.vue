@@ -7,7 +7,7 @@ import type { Conference } from "../types/hackertracker";
 import type { SupportedMenuItem } from "../lib/menuRoutes";
 
 import { menuIcon } from "../lib/menuIcons";
-import { conferenceMenuPath } from "../lib/routes";
+import { conferenceMenuPath, searchPath } from "../lib/routes";
 
 const props = defineProps<{ conference: Conference; items: SupportedMenuItem[] }>();
 const route = useRoute();
@@ -15,7 +15,11 @@ const open = ref(false);
 const menu = ref<HTMLElement | null>(null);
 
 const schedule = computed(() => props.items.find((item) => item.routeKey === "schedule"));
-const search = computed(() => props.items.find((item) => item.routeKey === "search"));
+const searchHref = computed(
+  () =>
+    props.items.find((item) => item.routeKey === "search")?.href ??
+    searchPath(props.conference.code),
+);
 const isActive = (href: string) => {
   const current = route.path.replace(/\/$/, "");
   const target = href.replace(/\/$/, "");
@@ -69,14 +73,15 @@ onBeforeUnmount(() => {
           :class="{ active: isActive(schedule.href) }"
           :to="schedule.href"
           :aria-current="isActive(schedule.href) ? 'page' : undefined"
+          :aria-label="`Schedule for ${conference.name}`"
         >
           <Calendar aria-hidden="true" /><span>Schedule</span>
         </RouterLink>
         <RouterLink
-          v-if="search"
           class="icon-link focus-ring"
-          :to="search.href"
-          :aria-current="isActive(search.href) ? 'page' : undefined"
+          :class="{ active: isActive(searchHref) }"
+          :to="searchHref"
+          :aria-current="isActive(searchHref) ? 'page' : undefined"
           :aria-label="`Search ${conference.name}`"
         >
           <Search aria-hidden="true" />
@@ -88,6 +93,7 @@ onBeforeUnmount(() => {
             type="button"
             :aria-expanded="open"
             aria-controls="conference-menu"
+            :aria-label="`${open ? 'Close' : 'Open'} conference menu`"
             @click.stop="open = !open"
           >
             <Menu aria-hidden="true" /><span>Menu</span>
@@ -183,12 +189,15 @@ onBeforeUnmount(() => {
   image-rendering: pixelated;
 }
 .home-link:hover,
-.icon-link:hover {
+.icon-link:hover,
+.icon-link.active {
   background: var(--surface-muted);
   color: var(--text-primary);
 }
 .conference-brand {
+  display: flex;
   min-width: 0;
+  min-height: var(--control-min);
   overflow: hidden;
   border-radius: 0.75rem;
   padding: 0.4rem var(--space-2);
@@ -199,10 +208,11 @@ onBeforeUnmount(() => {
   line-height: 1.1;
   text-overflow: ellipsis;
   white-space: nowrap;
+  align-items: center;
 }
 .conference-brand:hover {
-  background: rgb(255 255 255 / 0.04);
-  color: white;
+  background: var(--surface-muted);
+  color: var(--text-primary);
 }
 .header-actions {
   flex-shrink: 0;
