@@ -16,8 +16,13 @@ import type {
   ConferenceDocument,
   ConferenceMenu,
   ConferenceMenuItem,
+  ConferenceProduct,
   ConferenceSchedule,
   Content,
+  FeedbackForm,
+  FeedbackItem,
+  FeedbackItemType,
+  FeedbackOption,
   GroupedSchedule,
   Location,
   Organization,
@@ -50,6 +55,8 @@ const menusKey = (code: string) => `menus:${code}`;
 const organizationsKey = (code: string) => `organizations:${code}`;
 const documentsKey = (code: string) => `documents:${code}`;
 const articlesKey = (code: string) => `articles:${code}`;
+const productsKey = (code: string) => `products:${code}`;
+const feedbackFormsKey = (code: string) => `feedback-forms:${code}`;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object";
@@ -113,6 +120,8 @@ const numberOrNull = (value: unknown): number | null =>
 const text = (value: unknown): string => (typeof value === "string" ? value : "");
 const numberList = (value: unknown): number[] =>
   Array.isArray(value) ? value.filter((item): item is number => typeof item === "number") : [];
+const sortOrder = (value: Record<string, unknown>): number =>
+  numberOrNull(value.sortOrder ?? value.sort_order) ?? Number.MAX_SAFE_INTEGER;
 
 function normalizeTagGroups(value: unknown): TagGroup[] {
   const candidates = Array.isArray(value) ? value : [value];
@@ -215,6 +224,10 @@ const isDocumentList = (value: unknown): value is ConferenceDocument[] =>
   Array.isArray(value) && value.every((item) => isRecord(item) && typeof item.id === "number");
 const isArticleList = (value: unknown): value is ConferenceArticle[] =>
   Array.isArray(value) && value.every((item) => isRecord(item) && typeof item.id === "number");
+const isProductList = (value: unknown): value is ConferenceProduct[] =>
+  Array.isArray(value) && value.every((item) => isRecord(item) && typeof item.id === "number");
+const isFeedbackFormList = (value: unknown): value is FeedbackForm[] =>
+  Array.isArray(value) && value.every((item) => isRecord(item) && typeof item.id === "number");
 
 function normalizeDocument(value: unknown): ConferenceDocument | null {
   if (!isRecord(value) || typeof value.id !== "number") return null;
@@ -234,6 +247,113 @@ function normalizeArticle(value: unknown): ConferenceArticle | null {
     text: text(value.text),
     updatedAt: (value.updated as ConferenceArticle["updatedAt"]) ?? null,
     sortOrder: numberOrNull(value.sortOrder ?? value.sort_order) ?? undefined,
+  };
+}
+
+function normalizeProduct(value: unknown): ConferenceProduct | null {
+  if (!isRecord(value)) return null;
+  const id = numberOrNull(value.id ?? value.product_id);
+  if (id === null) return null;
+  const media = (Array.isArray(value.media) ? value.media : [])
+    .flatMap((item) => {
+      if (!isRecord(item)) return [];
+      return [
+        {
+          name: text(item.name),
+          url: text(item.url),
+          filetype: text(item.filetype),
+          filesize: numberOrNull(item.filesize) ?? 0,
+          asset_id: numberOrNull(item.asset_id),
+          sort_order: sortOrder(item),
+        },
+      ];
+    })
+    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  const variants = (Array.isArray(value.variants) ? value.variants : [])
+    .flatMap((item) => {
+      if (!isRecord(item)) return [];
+      const variantId = numberOrNull(item.variant_id ?? item.id);
+      if (variantId === null) return [];
+      return [
+        {
+          variantId,
+          productId: numberOrNull(item.product_id) ?? id,
+          title: text(item.title),
+          code: text(item.code),
+          price: numberOrNull(item.price),
+          stockStatus: text(item.stock_status).toUpperCase(),
+          tagIds: numberList(item.tag_ids),
+          sort_order: sortOrder(item),
+        },
+      ];
+    })
+    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  return {
+    id,
+    productId: numberOrNull(value.product_id) ?? id,
+    code: text(value.code),
+    title: text(value.title),
+    description: text(value.description),
+    priceMin: numberOrNull(value.price_min),
+    priceMax: numberOrNull(value.price_max),
+    eligibilityRestricted: Boolean(value.is_eligibility_restricted),
+    eligibilityRestrictionText: text(value.eligibility_restriction_text),
+    visibleAgeMin: numberOrNull(value.visible_age_min),
+    media,
+    tagIds: numberList(value.tag_ids),
+    variants,
+    sort_order: sortOrder(value),
+  };
+}
+
+const feedbackTypes = new Set<FeedbackItemType>([
+  "display_only",
+  "select_one",
+  "multi_select",
+  "text",
+]);
+
+function normalizeFeedbackOption(value: unknown): FeedbackOption | null {
+  if (!isRecord(value)) return null;
+  const id = numberOrNull(value.id);
+  if (id === null) return null;
+  return { id, captionText: text(value.caption_text), sort_order: sortOrder(value) };
+}
+
+function normalizeFeedbackItem(value: unknown): FeedbackItem | null {
+  if (!isRecord(value)) return null;
+  const id = numberOrNull(value.id);
+  const type = text(value.type) as FeedbackItemType;
+  if (id === null || !feedbackTypes.has(type)) return null;
+  return {
+    id,
+    captionText: text(value.caption_text),
+    type,
+    options: (Array.isArray(value.options) ? value.options : [])
+      .map(normalizeFeedbackOption)
+      .filter((item): item is FeedbackOption => item !== null)
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
+    selectMinimum: numberOrNull(value.select_minimum) ?? 0,
+    selectMaximum: numberOrNull(value.select_maximum) ?? 0,
+    selectOrientation: text(value.select_orientation),
+    textMaxLength: numberOrNull(value.text_max_length),
+    sort_order: sortOrder(value),
+  };
+}
+
+function normalizeFeedbackForm(value: unknown): FeedbackForm | null {
+  if (!isRecord(value)) return null;
+  const id = numberOrNull(value.id);
+  if (id === null) return null;
+  return {
+    id,
+    conferenceId: numberOrNull(value.conference_id) ?? 0,
+    nameText: text(value.name_text),
+    submissionUrl: text(value.submission_url),
+    items: (Array.isArray(value.items) ? value.items : [])
+      .map(normalizeFeedbackItem)
+      .filter((item): item is FeedbackItem => item !== null)
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
   };
 }
 
@@ -369,6 +489,35 @@ export async function getArticles(code: string): Promise<ConferenceArticle[]> {
         .filter((item): item is ConferenceArticle => item !== null);
     },
     isArticleList,
+  );
+}
+
+export async function getProducts(code: string): Promise<ConferenceProduct[]> {
+  return cachedLoad(
+    productsKey(code),
+    cacheTtl.products,
+    async () => {
+      const snapshot = await getDocs(collection(db, "conferences", code, "products"));
+      return snapshot.docs
+        .map((item) => normalizeProduct(item.data()))
+        .filter((item): item is ConferenceProduct => item !== null)
+        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    },
+    isProductList,
+  );
+}
+
+export async function getFeedbackForms(code: string): Promise<FeedbackForm[]> {
+  return cachedLoad(
+    feedbackFormsKey(code),
+    cacheTtl.feedbackForms,
+    async () => {
+      const snapshot = await getDocs(collection(db, "conferences", code, "feedbackforms"));
+      return snapshot.docs
+        .map((item) => normalizeFeedbackForm(item.data()))
+        .filter((item): item is FeedbackForm => item !== null);
+    },
+    isFeedbackFormList,
   );
 }
 

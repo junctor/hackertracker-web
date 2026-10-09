@@ -14,6 +14,8 @@ export const cacheTtl = {
   organizations: 30 * 60 * 1000,
   documents: 6 * 60 * 60 * 1000,
   articles: 10 * 60 * 1000,
+  products: 10 * 60 * 1000,
+  feedbackForms: 30 * 60 * 1000,
 } as const;
 
 interface CacheEntry<T> {
