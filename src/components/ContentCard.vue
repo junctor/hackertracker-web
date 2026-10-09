@@ -19,6 +19,7 @@ const accent = computed(() => allDisplayTags.value[0]?.color_background || "var(
 <template>
   <SessionCard
     accent="content"
+    heading-level="h2"
     :accent-color="accent"
     :title="content.title"
     :to="contentPath(conference.code, content.id)"

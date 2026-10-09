@@ -19,6 +19,7 @@ withDefaults(
     status?: "Live" | "Next" | null;
     accent?: "content" | "schedule";
     accentColor?: string | null;
+    headingLevel?: "h2" | "h3";
   }>(),
   {
     to: undefined,
@@ -33,6 +34,7 @@ withDefaults(
     status: null,
     accent: "content",
     accentColor: null,
+    headingLevel: "h3",
   },
 );
 </script>
@@ -63,7 +65,7 @@ withDefaults(
           <span v-if="duration" class="session-duration">{{ duration }}</span>
         </div>
         <div class="session-summary">
-          <h3>{{ title }}</h3>
+          <component :is="headingLevel">{{ title }}</component>
           <p v-if="people" class="session-people">{{ people }}</p>
           <p v-if="location">{{ location }}</p>
           <ul v-if="tags.length" class="session-tags">
@@ -190,7 +192,7 @@ withDefaults(
   min-width: 0;
 }
 
-.session-summary h3 {
+.session-summary :is(h2, h3) {
   color: var(--text-primary);
   font-size: clamp(1.02rem, 3vw, 1.16rem);
   line-height: 1.35;

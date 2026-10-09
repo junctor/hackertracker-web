@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { CircleAlert, Inbox, LoaderCircle } from "@lucide/vue";
+import type { Component } from "vue";
 
 defineProps<{
   kind?: "loading" | "error" | "empty";
@@ -7,6 +8,7 @@ defineProps<{
   message?: string;
   retry?: boolean;
   headingLevel?: "h1" | "h2";
+  icon?: Component;
 }>();
 
 const reload = () => window.location.reload();
@@ -22,7 +24,7 @@ const reload = () => window.location.reload();
   >
     <LoaderCircle v-if="kind === 'loading'" class="state-icon loading-icon" aria-hidden="true" />
     <CircleAlert v-else-if="kind === 'error'" class="state-icon error-icon" aria-hidden="true" />
-    <Inbox v-else class="state-icon" aria-hidden="true" />
+    <component :is="icon ?? Inbox" v-else class="state-icon" aria-hidden="true" />
     <component :is="headingLevel ?? 'h1'" v-if="title || kind" tabindex="-1">
       {{
         title ??

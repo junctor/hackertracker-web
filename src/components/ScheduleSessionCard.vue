@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Bookmark, Calendar } from "@lucide/vue";
+import { Bookmark, CalendarArrowDown } from "@lucide/vue";
 import { computed } from "vue";
 
 import type { Conference, ScheduledContent } from "../types/hackertracker";
@@ -10,12 +10,15 @@ import { formatDuration, formatScheduleTime, toIsoDateTime } from "../lib/dates"
 import { contentPath } from "../lib/routes";
 import SessionCard from "./SessionCard.vue";
 
-const props = defineProps<{
-  conference: Conference;
-  session: ScheduledContent;
-  status?: "Live" | "Next" | null;
-  link?: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    conference: Conference;
+    session: ScheduledContent;
+    status?: "Live" | "Next" | null;
+    link?: boolean;
+  }>(),
+  { link: true },
+);
 
 const { bookmarks, toggle } = useBookmarks(() => props.conference.code);
 const bookmarked = computed(() => bookmarks.value.has(props.session.contentId));
@@ -42,7 +45,7 @@ function downloadCalendar(): void {
     accent="schedule"
     :accent-color="session.color"
     :title="session.title"
-    :to="link === false ? undefined : contentPath(conference.code, session.contentId)"
+    :to="link ? contentPath(conference.code, session.contentId) : undefined"
     :begin="formatScheduleTime(session.begin, session.timeZone, true)"
     :end="session.end ? formatScheduleTime(session.end, session.timeZone) : undefined"
     :duration="duration"
@@ -60,7 +63,7 @@ function downloadCalendar(): void {
         :aria-label="`Download iCal event for ${session.title}`"
         @click="downloadCalendar"
       >
-        <Calendar aria-hidden="true" />
+        <CalendarArrowDown aria-hidden="true" />
       </button>
       <button
         type="button"

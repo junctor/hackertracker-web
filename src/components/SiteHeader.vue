@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AppWindow, Calendar, CircleHelp, GitFork, Info, Menu, X } from "@lucide/vue";
+import { AppWindow, CalendarDays, CircleHelp, GitFork, Info, Menu, X } from "@lucide/vue";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 
@@ -9,7 +9,7 @@ const scrolled = ref(false);
 const menu = ref<HTMLElement | null>(null);
 
 const items = [
-  { label: "Conferences", to: "/conferences", icon: Calendar },
+  { label: "Conferences", to: "/conferences", icon: CalendarDays },
   { label: "Apps", to: "/apps", icon: AppWindow },
   { label: "About", to: "/about", icon: Info },
   { label: "Support", to: "/support", icon: CircleHelp },

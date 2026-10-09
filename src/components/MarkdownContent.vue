@@ -3,7 +3,13 @@ import { computed } from "vue";
 
 import { safeMarkdownUrl } from "../lib/urls";
 
-const props = defineProps<{ content: string }>();
+const props = withDefaults(
+  defineProps<{
+    content: string;
+    headingStart?: 2 | 3;
+  }>(),
+  { headingStart: 3 },
+);
 
 function escapeHtml(value: string): string {
   return value
@@ -36,7 +42,7 @@ function inlineMarkdown(value: string): string {
   return output;
 }
 
-function renderMarkdown(markdown: string): string {
+function renderMarkdown(markdown: string, headingStart: 2 | 3): string {
   const lines = markdown.replace(/\r\n/g, "\n").split("\n");
   const blocks: string[] = [];
   let paragraph: string[] = [];
@@ -78,7 +84,8 @@ function renderMarkdown(markdown: string): string {
     if (heading) {
       flushParagraph();
       flushList();
-      const level = heading[1]?.length ?? 2;
+      const sourceLevel = heading[1]?.length ?? 1;
+      const level = Math.min(6, headingStart + sourceLevel - 1);
       blocks.push(`<h${level}>${inlineMarkdown(heading[2] ?? "")}</h${level}>`);
       continue;
     }
@@ -108,7 +115,7 @@ function renderMarkdown(markdown: string): string {
   return blocks.join("");
 }
 
-const rendered = computed(() => renderMarkdown(props.content));
+const rendered = computed(() => renderMarkdown(props.content, props.headingStart));
 </script>
 
 <template>
@@ -126,7 +133,7 @@ const rendered = computed(() => renderMarkdown(props.content));
   margin-top: 1rem;
 }
 
-.markdown :deep(:is(h1, h2, h3, h4)) {
+.markdown :deep(:is(h2, h3, h4, h5, h6)) {
   color: var(--text-primary);
   line-height: 1.25;
 }
