@@ -6,6 +6,8 @@ import {
   conferenceSectionPath,
   contentListPath,
   documentPath,
+  feedbackPath,
+  merchPath,
   nestedMenuPath,
   peoplePath,
   schedulePath,
@@ -20,9 +22,11 @@ export type MenuRouteKey =
   | "departments"
   | "document"
   | "exhibitors"
+  | "feedback"
   | "locations"
   | "maps"
   | "menu"
+  | "merch"
   | "people"
   | "readme"
   | "schedule"
@@ -81,6 +85,14 @@ export function resolveMenuItem(code: string, item: ConferenceMenuItem): Support
     case "content":
       routeKey = "content";
       href = contentListPath(code);
+      break;
+    case "form":
+      routeKey = "feedback";
+      href = feedbackPath(code);
+      break;
+    case "products":
+      routeKey = "merch";
+      href = merchPath(code);
       break;
     case "schedule":
       routeKey = "schedule";
