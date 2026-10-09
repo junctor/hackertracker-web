@@ -68,7 +68,7 @@ onBeforeUnmount(() => {
       <header>
         <div>
           <strong>Schedule filters</strong>
-          <p>Tags in one section are matched together.</p>
+          <p>Match any selected tag within a group and every selected group.</p>
         </div>
         <button
           v-if="selectedIds.length"

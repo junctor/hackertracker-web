@@ -72,6 +72,11 @@ const filtered = computed(() => {
 });
 const visibleItems = computed(() => filtered.value.slice(0, visibleCount.value));
 const remaining = computed(() => Math.max(0, filtered.value.length - visibleItems.value.length));
+const countLabel = computed(() => {
+  const count = filtered.value.length;
+  const noun = query.value.trim() || typeof selectedTag.value === "number" ? "results" : "items";
+  return `${count.toLocaleString()} ${count === 1 ? noun.slice(0, -1) : noun}`;
+});
 
 watch(
   conference,
@@ -140,7 +145,7 @@ onBeforeUnmount(() => {
     <PageHeading
       title="Content"
       intro="Talks, workshops, and activities."
-      :count="loading ? undefined : `${filtered.length.toLocaleString()} results`"
+      :count="loading ? undefined : countLabel"
     />
     <div class="content-controls">
       <SearchField

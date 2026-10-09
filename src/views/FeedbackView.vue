@@ -56,10 +56,27 @@ function isComplete(item: FeedbackItem): boolean {
   return answer.options.length >= item.selectMinimum;
 }
 
+function selectionHelp(item: FeedbackItem): string {
+  const minimum = item.selectMinimum;
+  const maximum = item.selectMaximum;
+  if (minimum > 0 && maximum > 0 && minimum === maximum)
+    return `Choose ${minimum === 1 ? "one option" : `${minimum} options`}.`;
+  if (minimum > 0 && maximum > minimum) return `Choose between ${minimum} and ${maximum} options.`;
+  if (minimum > 0)
+    return minimum === 1 ? "Choose at least one option." : `Choose at least ${minimum} options.`;
+  if (maximum > 0)
+    return maximum === 1 ? "Choose up to one option." : `Choose up to ${maximum} options.`;
+  return "";
+}
+
 async function submit(): Promise<void> {
   const currentForm = form.value;
   const currentConference = conference.value;
-  if (!currentForm || !currentConference || !currentForm.items.every(isComplete)) return;
+  if (!currentForm || !currentConference) return;
+  if (!currentForm.items.every(isComplete)) {
+    submitError.value = "Complete all required questions before sending.";
+    return;
+  }
   const endpoint = safeWebUrl(currentForm.submissionUrl);
   if (!endpoint) {
     submitError.value = "This feedback form has an invalid submission address.";
@@ -154,8 +171,11 @@ watchEffect(() => {
     />
     <div v-else-if="submitted" class="feedback-success" role="status">
       <CheckCircle2 aria-hidden="true" />
-      <h2>Feedback sent</h2>
-      <p>Thank you for helping improve the conference.</p>
+      <h2>Feedback request sent</h2>
+      <p>
+        Your response was sent to the conference feedback service, but delivery could not be
+        confirmed.
+      </p>
     </div>
     <form v-else class="feedback-form" @submit.prevent="submit">
       <template v-for="item in form.items" :key="item.id">
@@ -171,12 +191,11 @@ watchEffect(() => {
             :required="item.selectMinimum > 0"
             rows="7"
           />
+          <small v-if="item.textMaxLength">Up to {{ item.textMaxLength }} characters.</small>
         </label>
         <fieldset v-else class="choice-question">
           <legend>{{ item.captionText }}</legend>
-          <p v-if="item.type === 'multi_select' && item.selectMaximum > 0" class="choice-help">
-            Choose up to {{ item.selectMaximum }}.
-          </p>
+          <p v-if="selectionHelp(item)" class="choice-help">{{ selectionHelp(item) }}</p>
           <label v-for="option in item.options" :key="option.id" class="choice-row">
             <input
               v-if="item.type === 'select_one'"
@@ -206,8 +225,8 @@ watchEffect(() => {
         {{ submitting ? "Sending…" : "Send feedback" }}
       </button>
       <p class="privacy-note">
-        Your response is sent directly to the conference feedback service. This site does not store
-        it.
+        Your response, submission time, and a temporary anonymous request ID are sent directly to
+        the conference feedback service. Hacker Tracker Web does not retain them.
       </p>
     </form>
   </section>

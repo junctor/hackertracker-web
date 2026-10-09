@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Search } from "@lucide/vue";
 import { computed, onBeforeUnmount, ref, shallowRef, watch, watchEffect } from "vue";
 
 import type { Content, Organization, Person } from "../types/hackertracker";
@@ -239,7 +240,9 @@ watchEffect(() => {
       v-if="!canSearch"
       kind="empty"
       heading-level="h2"
+      title="Search the conference"
       message="Enter at least two characters to search titles, people, groups, and keywords."
+      :icon="Search"
     />
     <PageState
       v-else-if="loading && !total"

@@ -7,7 +7,7 @@ const benefits = [
   "Free for most conferences; large events may reimburse operating costs",
   "We may request one or two event passes",
   "Sponsor recognition where applicable",
-  "No collection or sale of attendee data",
+  "No advertising, user tracking, or sale of attendee data",
   "JSON exports for your website",
   "Pretalx, Sessionize, and Sched integrations",
 ];

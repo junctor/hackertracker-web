@@ -43,7 +43,7 @@ const accent = computed(() => {
 
 watchEffect(() => {
   document.title = error.value
-    ? "Error · Person | Hacker Tracker"
+    ? "Person unavailable · Hacker Tracker"
     : conference.value && person.value
       ? `${person.value.name} · ${conference.value.name} | Hacker Tracker`
       : "Loading person… | Hacker Tracker";

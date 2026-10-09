@@ -19,6 +19,9 @@ const currentDocument = ref<ConferenceDocument | null>(null);
 const loading = ref(true);
 const error = ref("");
 let request = 0;
+const errorTitle = computed(() =>
+  /(?:not found|no document)/i.test(error.value) ? "Document not found" : "Document unavailable",
+);
 const updated = computed(() => {
   const value = currentDocument.value?.updatedAt;
   if (!value) return null;
@@ -63,7 +66,7 @@ watchEffect(() => {
     <PageState
       v-else-if="error || !currentDocument"
       kind="error"
-      title="Document not found"
+      :title="errorTitle"
       :message="error"
     />
     <template v-else>

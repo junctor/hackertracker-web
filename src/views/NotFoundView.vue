@@ -10,7 +10,7 @@ const messages = [
   "Page not found. Either it’s been moved, or it was just a rumor.",
   "You’ve reached a null sector. No data lives at this address.",
   "Invalid opcode. This page cannot be executed.",
-  "Access denied: target not in scope.",
+  "Target not found: this address is out of scope.",
   "Glitch in the system. That page never compiled.",
 ];
 const message = ref(messages[Math.floor(Math.random() * messages.length)] ?? messages[0]);

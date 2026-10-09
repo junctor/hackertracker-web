@@ -97,7 +97,8 @@ watchEffect(() => {
       v-else-if="!filtered.length"
       kind="empty"
       heading-level="h2"
-      message="No locations match your search."
+      :title="query ? 'No locations found' : 'No locations listed'"
+      :message="query ? `No locations match “${query}”.` : 'No locations are listed yet.'"
     />
     <ul v-else class="location-grid">
       <li v-for="location in filtered" :key="location.id">

@@ -52,6 +52,11 @@ const filtered = computed(() => {
 });
 const visiblePeople = computed(() => filtered.value.slice(0, visibleCount.value));
 const remaining = computed(() => Math.max(0, filtered.value.length - visiblePeople.value.length));
+const countLabel = computed(() => {
+  const count = filtered.value.length;
+  const noun = query.value.trim() ? (count === 1 ? "result" : "results") : "people";
+  return `${count.toLocaleString()} ${noun}`;
+});
 watch([query, people], () => (visibleCount.value = BATCH_SIZE));
 
 watchEffect(() => {
@@ -109,10 +114,7 @@ function highlightedName(person: Person): { before: string; match: string; after
     <PageState v-if="loading" kind="loading" message="Getting the speaker list…" />
     <PageState v-else-if="error" kind="error" title="People unavailable" :message="error" retry />
     <section v-else-if="conference && code" class="container wide page-content">
-      <PageHeading
-        title="People"
-        :count="`${filtered.length.toLocaleString()} ${filtered.length === 1 ? 'result' : 'results'}`"
-      >
+      <PageHeading title="People" :count="countLabel">
         <form class="people-controls" role="search" @submit.prevent>
           <SearchField v-model="query" label="Search people" placeholder="Search people…" />
         </form>

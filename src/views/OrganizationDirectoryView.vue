@@ -67,6 +67,17 @@ const visibleOrganizations = computed(() => filtered.value.slice(0, visibleCount
 const remaining = computed(() =>
   Math.max(0, filtered.value.length - visibleOrganizations.value.length),
 );
+const countLabel = computed(() => {
+  const count = filtered.value.length;
+  const noun = query.value.trim()
+    ? count === 1
+      ? "result"
+      : "results"
+    : count === 1
+      ? "group"
+      : "groups";
+  return `${count.toLocaleString()} ${noun}`;
+});
 const selected = computed(() =>
   organizationId.value
     ? organizations.value.find((item) => item.id === organizationId.value)
@@ -183,11 +194,7 @@ watchEffect(() => {
       :message="`No organization exists for ID ${organizationId}.`"
     />
     <template v-else>
-      <PageHeading
-        :title="title"
-        intro="Browse groups and resources."
-        :count="`${filtered.length.toLocaleString()} results`"
-      >
+      <PageHeading :title="title" intro="Browse groups and resources." :count="countLabel">
         <RouterLink
           v-if="scheduleTagIds.length"
           class="icon-button focus-ring schedule-link"

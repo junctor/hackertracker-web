@@ -26,7 +26,7 @@ watch(
 );
 watchEffect(() => {
   document.title = error.value
-    ? "Error · Schedule | Hacker Tracker"
+    ? "Schedule unavailable · Hacker Tracker"
     : conference.value
       ? `Schedule · ${conference.value.name} | Hacker Tracker`
       : "Loading schedule… | Hacker Tracker";
@@ -44,7 +44,7 @@ watchEffect(() => {
       retry
     >
       <div class="state-actions">
-        <RouterLink class="button focus-ring" to="/">Return Home</RouterLink
+        <RouterLink class="button focus-ring" to="/">Return home</RouterLink
         ><RouterLink class="button focus-ring" to="/support">Contact support</RouterLink>
       </div>
     </PageState>

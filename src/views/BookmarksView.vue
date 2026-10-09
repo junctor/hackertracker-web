@@ -10,7 +10,7 @@ import { schedulePath } from "../lib/routes";
 const { code, conference, grouped, loading, error } = useConferenceSchedule(true);
 watchEffect(() => {
   document.title = error.value
-    ? "Error · Bookmarks | Hacker Tracker"
+    ? "Bookmarks unavailable · Hacker Tracker"
     : conference.value
       ? `Bookmarks · ${conference.value.name} | Hacker Tracker`
       : "Loading bookmarks… | Hacker Tracker";
@@ -19,7 +19,7 @@ watchEffect(() => {
 
 <template>
   <div>
-    <PageState v-if="loading && !grouped" kind="loading" message="Loading saved events…" />
+    <PageState v-if="loading && !grouped" kind="loading" message="Loading bookmarks…" />
     <PageState
       v-else-if="error && !grouped"
       kind="error"

@@ -60,7 +60,7 @@ onBeforeUnmount(() => {
   <header class="site-header" :class="headerClass">
     <a class="skip-link focus-ring" href="#main">Skip to content</a>
     <div class="header-inner">
-      <RouterLink class="brand focus-ring" to="/" aria-label="Hacker Tracker Home">
+      <RouterLink class="brand focus-ring" to="/" aria-label="Hacker Tracker home">
         <img src="/images/logos/ht-logo.png" alt="" />
       </RouterLink>
 

@@ -314,7 +314,7 @@ onBeforeUnmount(() => {
             v-else
             class="icon-button focus-ring"
             :to="schedulePath(conference.code)"
-            aria-label="Schedule"
+            aria-label="Return to schedule"
             ><Calendar aria-hidden="true"
           /></RouterLink>
         </div>

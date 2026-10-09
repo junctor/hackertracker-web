@@ -28,6 +28,10 @@ const filtered = computed(() => {
       !needle || `${product.title} ${product.description}`.toLocaleLowerCase().includes(needle),
   );
 });
+const countLabel = computed(() => {
+  const count = filtered.value.length;
+  return `${count.toLocaleString()} ${count === 1 ? "product" : "products"}`;
+});
 
 const imageUrl = (product: ConferenceProduct) => safeWebUrl(product.media[0]?.url);
 const markBroken = (id: number) => (brokenImages.value = new Set([...brokenImages.value, id]));
@@ -82,7 +86,7 @@ watchEffect(() => {
     <PageHeading
       title="Merch"
       intro="Browse official conference merchandise and current availability."
-      :count="loading ? undefined : `${filtered.length.toLocaleString()} products`"
+      :count="loading ? undefined : countLabel"
     />
     <p v-if="conference.merch_tax_statement" class="merch-notice">
       {{ conference.merch_tax_statement }}

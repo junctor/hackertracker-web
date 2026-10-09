@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { provide, ref, watch, watchEffect } from "vue";
+import { computed, provide, ref, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
 import ConferenceHeader from "../components/ConferenceHeader.vue";
@@ -16,6 +16,11 @@ const route = useRoute();
 const conference = ref<Conference | null>(null);
 const loading = ref(true);
 const error = ref("");
+const errorTitle = computed(() =>
+  /(?:not found|no conference named)/i.test(error.value)
+    ? "Conference not found"
+    : "Conference unavailable",
+);
 let request = 0;
 
 const {
@@ -78,7 +83,7 @@ provide(conferenceContextKey, {
       <PageState
         v-else-if="error || !conference"
         kind="error"
-        title="Conference not found"
+        :title="errorTitle"
         :message="error || 'This conference is not available.'"
       >
         <RouterLink class="button focus-ring" to="/conferences">Browse conferences</RouterLink>
